@@ -1,0 +1,109 @@
+#!/bin/bash
+
+#############  CONSTANTES  #############
+UTILS_MODULE=
+
+SELF=`readlink $0 || echo $0`
+SCRIPT_PATH=`dirname $SELF`
+
+#supondo o script no root do repositorio
+JARAKI_PATH=`cd $SCRIPT_PATH; pwd`
+
+UTILS_MODULE=jaraki_utils
+############# FUNCOES #############
+
+function usage
+{
+	echo "Usage: `basename $0` [options] [.java file]
+
+	[-h  | --help  ]  Prints this help
+	[-tk | --tokens]  Prints the tokens list of the given .java file
+	[-tr | --tree  ]  Prints the Abstract Sintax Tree (AST) of the given .java file
+	[-d  | --debug ]  Compile jaraki code debugging the \"java_compile\" module
+
+	NOTE: If any option other than -d is passed, no erlang code file is generated!" >&2
+}
+
+function generate_erl
+{
+	echo "Generating Erlang source code from Jaraki..."
+	erl -pa $JARAKI_PATH/ebin -noshell -eval "jaraki_compile:write_erlang_from_jaraki(\"$JARAKI_PATH/$filename\")." -s erlang halt
+	echo "done!"
+	echo ""
+}
+
+function print_tokens
+{
+	erl -pa $JARAKI_PATH/ebin -noshell -eval "jaraki_compile:print_tokens(\"$JARAKI_PATH/$filename\")." -s erlang halt
+	echo ""
+}
+
+function print_tree
+{
+	erl -pa $JARAKI_PATH/ebin -noshell -eval "jaraki_compile:print_jast(\"$JARAKI_PATH/$filename\")." -s erlang halt
+	echo ""
+}
+
+function debug_compile
+{
+	echo "A ser implementado..."
+	echo ""
+}
+
+#############  SCRIPT  #############
+
+if [ $# -eq 0 ]; then
+	usage
+	exit 1
+fi
+
+tokens=
+tree=
+filename=""
+generate_erl=1
+
+while [ "$1" != "" ]; do
+    case $1 in
+        -tk | --tokens )        tokens=1
+								generate_erl=0
+                                ;;
+        -tr | --tree )    		tree=1
+								generate_erl=0
+                                ;;
+        -h | --help )           usage
+                                exit
+                                ;;
+		-d | --debug )			debug=1
+								;;
+        *.java )                filename=$1
+								;;
+		* )						echo "*** Error: file especified \"$1\" has not .java extension"
+								echo "" #newline
+								usage
+								exit 1
+    esac
+    shift
+done
+
+if [ "$filename" == "" ]; then
+	echo "*** Error: no file especified"
+	echo ""
+	usage
+	exit 1
+fi
+
+if [ "$tokens" == "1" ]; then
+	print_tokens
+fi
+
+if [ "$tree" == "1" ]; then
+	print_tree
+fi
+
+if [ "$debug" == "1" ]; then
+	debug_compile
+fi
+
+if [ "$generate_erl" == "1" ]; then
+	generate_erl
+fi
