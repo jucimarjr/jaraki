@@ -1,0 +1,209 @@
+%% LUDUS - Laboratorio de Projetos Especiais em Engenharia da Computacao
+%% Aluno  : Daniel Henrique Braz Aquino ( dhbaquino@gmail.com )
+%%			Eden ( edenstark@gmail.com )
+%%			Helder Cunha Batista ( hcb007@gmail.com )
+%%			Josiane Rodrigues da Silva ( josi.enge@gmail.com )
+%%			Lídia Lizziane Serejo de Carvalho ( lidializz@gmail.com )
+%%			Rodrigo Barros Bernardino ( rbbernardino@gmail.com )
+%% Orientador : Prof Jucimar Jr ( jucimar.jr@gmail.com )
+%% Objetivo :
+
+%%-----------------------------------------------------------------------------
+%% Definições das regras do analisador sintatico do compilador
+Nonterminals
+start_parser
+import_list import_path
+pack_path
+class_definition	class_body	class_list
+method_definition
+block		block_expressions
+
+var_declaration var_value var_type var_list
+add_expr	mult_expr
+unary_expr	literal
+comp_expr	bool_expr
+attribution
+print_expr if_expr if_else_expr	if_else_no_trailing
+for_expr	for_no_trailing
+no_trailing_expr	no_short_if_expr
+%%argument argument_list
+increment_expr
+expression.
+
+Terminals
+package import class public static void main print println
+'(' ')' '[' ']' '{' '}' ';' '=' '.' '.*' ','
+int_t float_t double_t
+'if' 'else' %true false
+for
+integer float
+identifier text
+add_op	mult_op	inc_op
+comp_op	bool_op.
+%% and_op	or_op	not_op.
+
+Rootsymbol start_parser.
+
+%% TODO: interpretar pacotes e imports na análise semântica
+start_parser -> class_list									: '$1'.
+start_parser -> package pack_path class_list				: '$3'.
+start_parser -> package pack_path import_list class_list	: '$4'.
+start_parser -> import_list class_list						: '$2'.
+
+pack_path -> identifier ';'				: ['$1'].
+pack_path -> identifier '.' pack_path	: ['$1' | '$3'].
+
+import_list -> import import_path				: ['$2'] .
+import_list -> import import_path import_list	: ['$2' | '$3'].
+
+import_path -> identifier ';'				: ['$1'].
+import_path -> identifier '.*' ';'			: [{'$1', '$2'}].
+import_path -> identifier '.' import_path	: ['$1' | '$3'].
+
+class_list -> class_definition				: ['$1'].
+class_list -> class_definition class_list	: ['$1' | '$2'].
+
+class_definition -> public class identifier '{' class_body '}':
+	{line('$3'), {class, unwrap('$3')}, {class_body, '$5'}}.
+
+class_body -> method_definition					: ['$1'].
+class_body -> method_definition class_body		: ['$1' | '$2'].
+
+method_definition ->
+	public static void main
+	'(' identifier '[' ']' identifier ')' block:
+		{line('$4'),
+			{method, unwrap('$4')},
+			[{line('$9'),
+				{class_identifier, unwrap('$6')},
+				{argument, unwrap('$9')}}
+			], '$11'}.
+
+%%argument_list -> argument						: ['$1'].
+%%argument_list -> argument ',' argument_list	: ['$1' | '$2'].
+
+%%argument -> identifier '[' ']' identifier:
+%{line('$4'), {type, '$1'}, {argument, unwrap('$4')}}.
+%%Desabilitado porque o método main deverá ter apenas um argumento.
+
+block -> '{' block_expressions '}': {block, '$2'}.
+
+block_expressions -> expression: ['$1'].
+block_expressions -> expression block_expressions: ['$1'| '$2'].
+
+%% expression: expressoes com trailing (if, while, for)
+%%             ou sem trailing (no_trailing_expr)
+
+expression -> for_expr : '$1'.
+expression -> if_expr : '$1'.
+expression -> if_else_expr : '$1'.
+expression -> no_trailing_expr : '$1'.
+
+no_short_if_expr -> for_no_trailing : '$1'.
+no_trailing_expr -> block : '$1'.
+no_trailing_expr ->	var_declaration : '$1'.
+no_trailing_expr ->	attribution : '$1'.
+no_trailing_expr -> print_expr : '$1'.
+
+no_short_if_expr -> no_trailing_expr : '$1'.
+no_short_if_expr -> if_else_no_trailing : '$1'.
+
+%% Declaração de variáveis
+var_declaration -> var_type var_list ';':
+	{var_declaration, {var_type, '$1'}, {var_list, '$2'}}.
+
+var_list -> identifier: [{identifier, unwrap('$1')}].
+var_list -> identifier ',' var_list : [{identifier, unwrap('$1')} | '$3'].
+
+%% Atribuições
+attribution ->	identifier '=' var_value ';':
+	{line('$1'),
+		attribution, {var, unwrap('$1')}, {var_value, '$3'}}.
+
+%% trata expressoes do tipo [ System.out.print( texto )	]
+print_expr ->	print	'(' text ')' ';':
+	{line('$1'),	print,	{text, unwrap('$3')}}.
+
+%% trata expressoes do tipo [ System.out.println( texto ) ]
+print_expr ->	println '(' text ')' ';':
+	{line('$1'),	println,	{text, unwrap('$3')}}.
+
+%% trata expressoes do tipo [ System.out.print( identificador )	]
+print_expr ->	print '(' identifier ')' ';':
+	{line('$1'),	print,	{var, unwrap('$3')}}.
+
+%% trata expressoes do tipo [ System.out.println( texto ) ]
+print_expr ->	println '(' identifier ')' ';':
+	{line('$1'),	println,	{var, unwrap('$3')}}.
+
+increment_expr -> identifier inc_op :
+				Var = {var, line('$1'), unwrap('$1')},
+				{inc_op, line('$1'), unwrap('$2'), Var}.
+
+%% BEGIN_FOR
+for_expr -> for '(' int_t identifier '=' integer ';' bool_expr ';'
+				increment_expr  ')'  expression :
+			{line('$1'), for,
+				{for_init, {var_type, unwrap('$3')}, {var_name, unwrap('$4')}},
+				{for_start, '$6'}, {condition_expr, '$8'},
+				{inc_expr, '$10'}, {for_body, '$12'}}.
+
+for_no_trailing -> for '(' int_t identifier '=' integer ';'
+					bool_expr ';'
+					increment_expr  ')'  no_short_if_expr :
+			{line('$1'), for,
+				{for_init, {var_type, unwrap('$3')}, {var_name, unwrap('$4')}},
+				{for_start, '$6'}, {condition_expr, '$8'},
+				{inc_expr, '$10'}, {for_body, '$12'}}.
+%% END_FOR
+
+%% BEGIN_IF
+if_expr -> 'if' '(' bool_expr ')' expression :
+	{line('$1'), 'if', {bool_expr, '$3'}, {if_expr, '$5'}}.
+
+if_else_expr -> 'if' '(' bool_expr ')' no_short_if_expr 'else' expression :
+	{line('$1'), 'if', {bool_expr, '$3'}, {if_expr, '$5'}, {else_expr, '$7'}}.
+
+if_else_no_trailing -> 'if' '(' bool_expr ')' no_short_if_expr
+						'else' no_short_if_expr :
+	{line('$1'), 'if', {bool_expr, '$3'}, {if_expr, '$5'}, {else_expr, '$7'}}.
+%% END_IF
+
+var_type ->	int_t		:	{line('$1'), unwrap('$1')}.
+var_type ->	float_t		:	{line('$1'), unwrap('$1')}.
+var_type ->	double_t	:	{line('$1'), unwrap('$1')}.
+
+%% -Trata expressoes matematicas (numericas).
+%% TODO: acrescentar tipo boolean e tratar precedencia de op booleanos
+%% TODO: tratar o not (!)
+var_value -> bool_expr : '$1'.
+
+bool_expr -> comp_expr bool_op bool_expr	:
+			{op, line('$2'), unwrap('$2'), '$1', '$3'}.
+bool_expr -> comp_expr						: '$1'.
+
+comp_expr -> add_expr comp_op comp_expr		:
+			{op, line('$2'), unwrap('$2'), '$1', '$3'}.
+comp_expr -> add_expr						: '$1'.
+
+add_expr -> mult_expr add_op add_expr		:
+			{op, line('$2'), unwrap('$2'), '$1', '$3'}.
+add_expr -> mult_expr						: '$1'.
+
+mult_expr -> unary_expr mult_op mult_expr	:
+			{op, line('$2'), unwrap('$2'), '$1', '$3'}.
+mult_expr -> unary_expr						: '$1'.
+
+unary_expr -> add_op literal    : {op, line('$1'), unwrap('$1'), '$2'}.
+unary_expr -> literal           : '$1'.
+
+literal -> integer : '$1'.
+literal -> float : '$1'.
+literal -> identifier :  {var, line('$1'), unwrap('$1')}.
+literal -> '(' add_expr ')' : '$2'.
+
+
+Erlang code.
+
+unwrap({_, _, V})	-> V.
+line({_, Line, _})	-> Line.
