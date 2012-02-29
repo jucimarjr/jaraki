@@ -33,11 +33,16 @@ match_statement({Line, println, {var, VarName}}) ->
 	create_print_function(Line, println, var, VarName);
 
 %% Casa expressoes do tipo varivel = valor
-match_statement({Line, attribution,
-			{var, VarName}, {var_value, VarValue}}) ->
+match_statement(
+	{
+		Line, 
+		attribution,
+		{var, VarName},
+		{var_value, VarValue}}
+	) ->
 	create_attribution(Line, VarName, VarValue);
 
-%% Casa expressoes if( Bool_expr ) ...
+%% Casa expressoes if-then
 match_statement(
 	{
 		Line,
@@ -141,7 +146,7 @@ create_print_function(Line, println, var, VarName) ->
 %%-----------------------------------------------------------------------------
 %% Cria o elemento da east para atribuiçao de variaveis do java
 create_attribution(Line, VarName, VarValue) ->
-{ok, VarRecord} = jaraki_identifier:get_var(VarName),
+	{ok, VarRecord} = jaraki_identifier:get_var(VarName),
 	NewCounter = VarRecord#var.counter + 1,
 	JavaName = VarRecord#var.java_name,
 	ErlangName = "Var_" ++ JavaName ++ integer_to_list(NewCounter),
@@ -182,18 +187,35 @@ create_inc_op(Line, IncOp, {var, _VarLine, VarName}) ->
 create_if(Line, Condition, IfExpr) ->
 	TransformedCondition = match_attr_expr(Condition),
 	TransformedIfExpr = match_inner_stmt(IfExpr),
-	{'case', Line, TransformedCondition,
-			[{clause, Line, [{atom, Line, true}], [], TransformedIfExpr},
-			 {clause, Line, [{var, Line, false}], [],
-			[{atom, Line, no_operation}]}]}.
+	{
+		'case',
+		Line,
+		TransformedCondition,
+		[
+			{ clause, Line, [{atom, Line, true}], [], TransformedIfExpr	},
+			{
+				clause,
+				Line,
+				[{var, Line, false}],
+				[],
+				[{atom, Line, no_operation}]
+			}
+		]
+	}.
 
 create_if(Line, Condition, IfExpr, ElseExpr) ->
 	TransformedCondition = match_attr_expr(Condition),
 	TransformedIfExpr = match_inner_stmt(IfExpr),
 	TransformedElseExpr = match_inner_stmt(ElseExpr),
-	{'case', Line, TransformedCondition,
-			[{clause, Line, [{atom, Line, true}], [], TransformedIfExpr},
-			 {clause, Line, [{atom, Line, false}], [], TransformedElseExpr}]}.
+	{
+		'case',
+		Line,
+		TransformedCondition,
+		[
+			{clause, Line, [{atom, Line, true}], [], TransformedIfExpr},
+			{clause, Line, [{atom, Line, false}], [], TransformedElseExpr}
+		]
+	}.
 
 %%-----------------------------------------------------------------------------
 %% Cria o FOR
@@ -248,6 +270,8 @@ create_for(Line, VarType, VarName, Start, CondExpr, IncExpr, Body) ->
 
 	{block, Line, lists:flatten(ForBlock)}.
 
+%%-----------------------------------------------------------------------------
+%% cria as variaveis que estao dentro do FOR
 %% TODO: verificar nome melhor
 create_inner_vars(Line) ->
 	VarsList = jaraki_identifier:get_all_vars(),
@@ -274,6 +298,7 @@ create_inner_vars(Line, [Var | Rest], VarAttrList) ->
 	VarAttr = {match, Line, {var, Line, list_to_atom(ErlangName)}, GetAst},
 	create_inner_vars(Line, Rest, [VarAttr | VarAttrList]).
 
+%%-----------------------------------------------------------------------------
 %% TODO: verificar nome melhor
 update_inner_vars(Line) ->
 	VarList = jaraki_identifier:get_all_vars(),

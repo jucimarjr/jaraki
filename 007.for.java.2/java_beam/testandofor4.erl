@@ -2,9 +2,9 @@
 
 -compile(export_all).
 
--import(control, [for/3]).
+-import(loop, [for/3]).
 
-main(Var_Args) ->
+main(V_Args) ->
     begin Var_n1 = 5, put("n", Var_n1) end,
     begin
       put("i", 0),
