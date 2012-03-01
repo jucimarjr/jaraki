@@ -1,0 +1,44 @@
+Sem print
+
+
+Erlang-ETS 	500.000 
+
+real	0m1.235s
+user	0m1.216s
+sys		0m0.016s
+
+Java	500.000
+
+real	0m0.065s
+user	0m0.064s
+sys		0m0.004s
+
+
+
+Erlang-ETS 	5.000.000 
+
+real	0m11.306s
+user	0m11.245s
+sys		0m0.056s
+
+Java	5.000.000
+
+real	0m0.075s
+user	0m0.068s
+sys		0m0.012s
+
+
+
+Com print
+
+Erlang-ETS 	500.000 
+
+real	5m14.322s
+user	0m24.494s
+sys		0m5.640s
+
+Java	500.000
+
+real	4m18.054s
+user	0m2.928s
+sys		0m3.244s
