@@ -13,7 +13,7 @@ public class MediaUeaB2 {
 
     public static void main(String[] Args) {
 
-            float n1 = 8, a, b = 3;
+            float n1 = 8;
 
             float n2;
 

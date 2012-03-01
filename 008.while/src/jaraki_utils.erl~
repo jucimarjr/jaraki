@@ -56,7 +56,7 @@ print_java_ast(JavaFileName) ->
 print_tokens(JavaFileName) ->
 	io:format("Generating Lexical Analysis... "),
 
-	Tokens = ast:get_java_tokens(JavaFileName),
+	Tokens = ast:get_tokens(JavaFileName),
 	io:format("done!~n"),
 
 	io:format("Jaraki Tokens from ~p:~n", [JavaFileName]),
