@@ -1,0 +1,33 @@
+-module(testandowhile5).
+
+-compile(export_all).
+
+-import(loop, [for/3, while/2]).
+
+main(V_args) ->
+    st:new(),
+    begin Var_i1 = 1, st:insert({"i", Var_i1}) end,
+    begin Var_n1 = 20, st:insert({"n", Var_n1}) end,
+    begin Var_x1 = 0, st:insert({"x", Var_x1}) end,
+    begin
+      while(fun () -> st:get("i") =< st:get("n") end,
+	    fun () ->
+		    Var_n2 = st:get("n"),
+		    Var_i2 = st:get("i"),
+		    Var_x2 = st:get("x"),
+		    st:insert({"n", Var_n2}),
+		    st:insert({"i", Var_i2}),
+		    st:insert({"x", Var_x2}),
+		    io:format("Estou contando e calculando dentro do "
+			      "while :D "),
+		    io:format("~p~n", [Var_i2]),
+		    begin
+		      Var_x3 = Var_x2 + Var_i2, st:insert({"x", Var_x3})
+		    end,
+		    io:format("~p~n", [Var_x3]),
+		    begin Var_i3 = Var_i2 + 1, st:insert({"i", Var_i3}) end
+	    end),
+      Var_n3 = st:get("n"),
+      Var_i4 = st:get("i"),
+      Var_x4 = st:get("x")
+    end.
