@@ -48,4 +48,5 @@ clean:
 	rm -f $(SRC_DIR)/jaraki_parser.erl
 	rm -rf $(EBIN_DIR)/*.beam
 	rm -rf $(LIB_EBIN_DIR)/*.beam
+	find . -name  *.*~ -print0 | xargs -0 git rm
 	@ echo
