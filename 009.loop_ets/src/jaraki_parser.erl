@@ -5,11 +5,19 @@
 unwrap({_, _, V})	-> V.
 line({_, Line, _})	-> Line.
 
+<<<<<<< HEAD
 -file("/usr/lib/erlang/lib/parsetools-2.0.5/include/yeccpre.hrl", 0).
 %%
 %% %CopyrightBegin%
 %%
 %% Copyright Ericsson AB 1996-2010. All Rights Reserved.
+=======
+-file("/usr/lib/erlang/lib/parsetools-2.0.7/include/yeccpre.hrl", 0).
+%%
+%% %CopyrightBegin%
+%%
+%% Copyright Ericsson AB 1996-2011. All Rights Reserved.
+>>>>>>> ef49a10cff1c38f5c9f0d0fd4957492559a4bddf
 %%
 %% The contents of this file are subject to the Erlang Public License,
 %% Version 1.1, (the "License"); you may not use this file except in
@@ -36,10 +44,18 @@ parse(Tokens) ->
 
 -spec parse_and_scan({function() | {atom(), atom()}, [_]}
                      | {atom(), atom(), [_]}) -> yecc_ret().
+<<<<<<< HEAD
 parse_and_scan({F, A}) -> % Fun or {M, F}
     yeccpars0([], {{F, A}, no_line}, 0, [], []);
 parse_and_scan({M, F, A}) ->
     yeccpars0([], {{{M, F}, A}, no_line}, 0, [], []).
+=======
+parse_and_scan({F, A}) ->
+    yeccpars0([], {{F, A}, no_line}, 0, [], []);
+parse_and_scan({M, F, A}) ->
+    Arity = length(A),
+    yeccpars0([], {{fun M:F/Arity, A}, no_line}, 0, [], []).
+>>>>>>> ef49a10cff1c38f5c9f0d0fd4957492559a4bddf
 
 -spec format_error(any()) -> [char() | list()].
 format_error(Message) ->
@@ -75,7 +91,11 @@ yeccpars0(Tokens, Tzr, State, States, Vstack) ->
             Error
     end.
 
+<<<<<<< HEAD
 yecc_error_type(function_clause, [{?MODULE,F,ArityOrArgs} | _]) ->
+=======
+yecc_error_type(function_clause, [{?MODULE,F,ArityOrArgs,_} | _]) ->
+>>>>>>> ef49a10cff1c38f5c9f0d0fd4957492559a4bddf
     case atom_to_list(F) of
         "yeccgoto_" ++ SymbolL ->
             {ok,[{atom,_,Symbol}],_} = erl_scan:string(SymbolL),
@@ -188,7 +208,11 @@ yecctoken2string(Other) ->
 
 
 
+<<<<<<< HEAD
 -file("src/jaraki_parser.erl", 191).
+=======
+-file("src/jaraki_parser.erl", 192).
+>>>>>>> ef49a10cff1c38f5c9f0d0fd4957492559a4bddf
 
 yeccpars2(0=S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_0(S, Cat, Ss, Stack, T, Ts, Tzr);

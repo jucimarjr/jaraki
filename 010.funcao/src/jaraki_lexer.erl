@@ -1,8 +1,4 @@
-<<<<<<< HEAD
--file("/usr/lib/erlang/lib/parsetools-2.0.5/include/leexinc.hrl", 0).
-=======
 -file("/usr/lib/erlang/lib/parsetools-2.0.7/include/leexinc.hrl", 0).
->>>>>>> ef49a10cff1c38f5c9f0d0fd4957492559a4bddf
 %% The source of this file is part of leex distribution, as such it
 %% has the same Copyright as the other files in the leex
 %% distribution. The Copyright is defined in the accompanying file
@@ -60,11 +56,7 @@ op(OpChar) ->
 		_ ->    list_to_atom(OpChar)
 	end.
 
-<<<<<<< HEAD
--file("/usr/lib/erlang/lib/parsetools-2.0.5/include/leexinc.hrl", 14).
-=======
 -file("/usr/lib/erlang/lib/parsetools-2.0.7/include/leexinc.hrl", 14).
->>>>>>> ef49a10cff1c38f5c9f0d0fd4957492559a4bddf
 
 format_error({illegal,S}) -> ["illegal characters ",io_lib:write_string(S)];
 format_error({user,S}) -> S.
@@ -2169,8 +2161,4 @@ yyaction_37() ->
 yyaction_38(TokenChars, TokenLen, TokenLine) ->
      build_text (text, TokenChars, TokenLine, TokenLen) .
 
-<<<<<<< HEAD
--file("/usr/lib/erlang/lib/parsetools-2.0.5/include/leexinc.hrl", 282).
-=======
 -file("/usr/lib/erlang/lib/parsetools-2.0.7/include/leexinc.hrl", 282).
->>>>>>> ef49a10cff1c38f5c9f0d0fd4957492559a4bddf
