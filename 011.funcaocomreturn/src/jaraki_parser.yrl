@@ -263,8 +263,8 @@ literal -> float : '$1'.
 literal -> identifier :  {var, line('$1'), unwrap('$1')}.
 literal -> '(' add_expr ')' : '$2'.
 literal -> function_call: '$1'.
-literal -> true : '$1'.
-literal -> false: '$1'.
+literal -> true : {atom, line('$1'), true}.
+literal -> false: {atom, line('$1'), false}.
 Erlang code.
 
 unwrap({_, _, Value})	-> Value.

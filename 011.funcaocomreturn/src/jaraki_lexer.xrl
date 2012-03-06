@@ -73,7 +73,7 @@ Rules.
 {Integer}	: {token, {int_t,	TokenLine, list_to_atom(TokenChars)}}.
 {Float}		: {token, {float_t,	TokenLine, list_to_atom(TokenChars)}}.
 {Double}	: {token, {double_t,	TokenLine, list_to_atom(TokenChars)}}.
-{Boolean}	: {token, {boolean,	TokenLine, list_to_atom(TokenChars)}}.
+{Boolean}	: {token, {boolean_t,	TokenLine, list_to_atom(TokenChars)}}.
 {If}		: {token, {'if',	TokenLine, list_to_atom(TokenChars)}}.
 {Else}		: {token, {'else',	TokenLine, list_to_atom(TokenChars)}}.
 {For}		: {token, {'for',	TokenLine, list_to_atom(TokenChars)}}.
@@ -103,7 +103,7 @@ Rules.
 %{And}			: {token, {and_op, TokenLine, list_to_atom(TokenChars)}}.
 %{Or}			: {token, {or_op, TokenLine, list_to_atom(TokenChars)}}.
 %{Not}			: {token, {not_op, TokenLine, list_to_atom(TokenChars)}}.
-{Digit}+		: {token, {integer,TokenLine, list_to_integer(TokenChars)}}.
+{Digit}+		: {token, {integer, TokenLine, list_to_integer(TokenChars)}}.
 {Digit}+\.{Digit}+	: {token, {float, TokenLine, list_to_float(TokenChars)}}.
 
 {Identifier}	: {token, {identifier, TokenLine, list_to_atom(TokenChars)}}.

@@ -99,8 +99,12 @@ match_statement(
 match_statement({inc_op, Line, IncOp, Variable}) ->
 	create_inc_op(Line, IncOp, Variable);
 
+%% casa expressões return;
 match_statement({Line, return, Value}) ->
-	match_attr_expr(Value).
+	put(loop, true),	
+	VarValue = match_attr_expr(Value),
+	put(loop, false),
+	VarValue.	
 
 %%-----------------------------------------------------------------------------
 %% casa expressoes/lista de expressoes dentro do IF,FOR,WHILE 
@@ -120,6 +124,10 @@ match_attr_expr({function_call, {Line, FunctionName},
 match_attr_expr({integer, _Line, _Value} = Element) ->
 	Element;
 match_attr_expr({float, _Line, _Value} = Element) ->
+	Element;
+match_attr_expr({atom, _Line, true} = Element) ->
+	Element;
+match_attr_expr({atom, _Line, false} = Element) ->
 	Element;
 match_attr_expr({op, Line, Op, LeftExp, RightExp}) ->
 	{op, Line, Op, match_attr_expr(LeftExp), match_attr_expr(RightExp)};

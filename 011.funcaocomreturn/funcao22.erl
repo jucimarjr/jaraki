@@ -4,12 +4,22 @@
 
 -import(loop, [for/3, while/2]).
 
+bo(Var_a1) ->
+    begin Var_b1 = false, st:insert({"b", Var_b1}) end,
+    case Var_a1 == true of
+      true ->
+	  begin Var_b2 = false, st:insert({"b", Var_b2}) end;
+      false ->
+	  begin Var_b3 = true, st:insert({"b", Var_b3}) end
+    end,
+    st:get("b").
+
 quadrado(Var_a1) ->
     begin
       Var_temp1 = Var_a1 * Var_a1,
       st:insert({"temp", Var_temp1})
     end,
-    Var_temp1.
+    st:get("temp").
 
 cubo(Var_a1) ->
     begin
@@ -27,5 +37,8 @@ main(Var_Args1) ->
     end,
     cubo(Var_x1),
     io:format("O valor de a ao quadrado eh: "),
-    io:format("~p~n", [Var_t1]).
+    io:format("~p~n", [Var_t1]),
+    begin Var_b1 = bo(true), st:insert({"b", Var_b1}) end,
+    io:format("O valor de b ao quadrado eh: "),
+    io:format("~p~n", [Var_b1]).
 
