@@ -33,8 +33,13 @@ match_statement({Line, println, {var, VarName}}) ->
 	create_print_function(Line, println, var, VarName);
 
 %% transforma chanadas de funcoes em Erlang
-match_statement( {function_call,
-						{Line, FunctionName}, {argument_list, ArgumentsList}}) ->
+match_statement( 
+	{
+		function_call,
+		{Line, FunctionName},
+		{argument_list, ArgumentsList}
+	}
+	) ->
 	create_function_call(Line, FunctionName, ArgumentsList);
 
 %% Casa expressoes do tipo varivel = valor

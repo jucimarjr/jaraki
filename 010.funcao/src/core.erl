@@ -43,8 +43,15 @@ get_erl_body(JavaClass) ->
 %% Extrai uma funcao erl de um metodo java
 %% ISSUE: funciona apenas pro main()
 %% TODO: Tratar metodos genericos...
-get_erl_function({Line, _Type, {method, 'main'}, Parameters,
-					{block, JavaMethodBody}})	 ->
+get_erl_function(
+	{
+		Line,
+		_Type,
+		{method, 'main'},
+		Parameters,
+		{block, JavaMethodBody}
+	}
+	) ->
 	
 	[{_Line, {var_type, {_Line, ArgClass}}, _ArgName}] = Parameters,
 
