@@ -107,18 +107,22 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 			gen_erl_code:match_statement(Statement)
 		end,
 
-	InitEts = [{call, Line,
-			{remote, Line, 
-				{atom, Line, st}, {atom, Line, new}},[]}],
+	InitEts = 
+		case get(scope) of
+			'main' -> [{call, Line,
+					{remote, Line, 
+						{atom, Line, st}, 
+						{atom, Line, new}},[]}];
+			_ -> [no_operation]
+		end,	
 
 	ErlangStmtTemp1 = lists:map(MappedErlangFun, JavaMethodBody),
-	ErlangStmtTemp2 = [
+	ErlangStmtTemp2 = InitEts ++ ErlangStmtTemp1,	
+	ErlangStmt = [
 			Element || 
-			Element <- ErlangStmtTemp1, 
+			Element <- ErlangStmtTemp2, 
 			Element =/= no_operation
 			],
-	ErlangStmt = InitEts ++ ErlangStmtTemp2,
-	
 	[{clause, Line, ErlangArgsList, [], ErlangStmt}].
 
 %%-----------------------------------------------------------------------------

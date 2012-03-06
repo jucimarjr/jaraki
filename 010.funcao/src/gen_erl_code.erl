@@ -363,8 +363,10 @@ create_inner_vars(Line) ->
 create_inner_vars(_, [], VarAttrList) -> VarAttrList;
 create_inner_vars(Line, [ {loop,_} | Rest ], VarAttrList) ->
 	create_inner_vars(Line, Rest, VarAttrList);
+create_inner_vars(Line, [ {scope,_} | Rest ], VarAttrList) ->
+	create_inner_vars(Line, Rest, VarAttrList);
 create_inner_vars(Line, [Var | Rest], VarAttrList) ->
-	{{vars, VarName}, VarRecord} = Var,
+	{{vars, VarName, _}, VarRecord} = Var,
 
 	JavaName   = VarRecord#var.java_name,
 
@@ -391,6 +393,8 @@ update_inner_vars(Line) ->
 
 update_inner_vars(_, [], VarUpdtList) -> VarUpdtList;
 update_inner_vars(Line, [ {loop,_} | Rest ], VarUpdtList) ->
+	update_inner_vars(Line, Rest, VarUpdtList);
+update_inner_vars(Line, [ {scope,_} | Rest ], VarUpdtList) ->
 	update_inner_vars(Line, Rest, VarUpdtList);
 update_inner_vars(Line, [Var | Rest], VarUpdtList) ->
 	{_Key, VarRecord} = Var,
