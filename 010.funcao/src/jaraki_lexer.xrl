@@ -22,12 +22,14 @@ Public				= public
 Static				= static
 Void				= void
 Main				= main
+Return				= return
 Integer				= int
 Float				= float
 Double				= double
-If					= if
+Boolean				= boolean
+If				= if
 Else				= else
-For					= for
+For				= for
 While				= while
 True				= true
 False				= false
@@ -42,69 +44,71 @@ OpenParentheses		= \(
 CloseParentheses	= \)
 OpenBrackets		= \[
 CloseBrackets		= \]
-OpenKeys			= \{
-CloseKeys			= \}
-Dot					= \.
-Comma				= ,
-Semicolon			= ;
-Equal				= =
-CompOp				= (<|<=|==|>=|>|!=)
-BoolOp				= (\&\&|\|\|!)
-%And					= (\&\&)
-%Or					= (\|\|)
-%Not					= (!)
-AddOp				= (\+|-)
-MultOp				= (\*|/)
-IncOp				= (\+\+|--)
-WhiteSpace			= [\s|\n|\t]
+OpenKeys		= \{
+CloseKeys		= \}
+Dot			= \.
+Comma			= ,
+Semicolon		= ;
+Equal			= =
+CompOp			= (<|<=|==|>=|>|!=)
+BoolOp			= (\&\&|\|\|!)
+%And			= (\&\&)
+%Or			= (\|\|)
+%Not			= (!)
+AddOp			= (\+|-)
+MultOp			= (\*|/)
+IncOp			= (\+\+|--)
+WhiteSpace		= [\s|\n|\t]
 
 Rules.
 
-{Package}			: {token, {package,	TokenLine, list_to_atom(TokenChars)}}.
-{Import}			: {token, {import,	TokenLine, list_to_atom(TokenChars)}}.
-{Class}				: {token, {class,	TokenLine, list_to_atom(TokenChars)}}.
-{Public}			: {token, {public,	TokenLine, list_to_atom(TokenChars)}}.
-{Static}			: {token, {static,	TokenLine, list_to_atom(TokenChars)}}.
-{Void}				: {token, {void,	TokenLine, list_to_atom(TokenChars)}}.
-{Main}				: {token, {main,	TokenLine, list_to_atom(TokenChars)}}.
-{Integer}			: {token, {int_t,	TokenLine, list_to_atom(TokenChars)}}.
-{Float}				: {token, {float_t,	TokenLine, list_to_atom(TokenChars)}}.
-{Double}			: {token, {double_t,TokenLine, list_to_atom(TokenChars)}}.
-{If}				: {token, {'if',	TokenLine, list_to_atom(TokenChars)}}.
-{Else}				: {token, {'else',	TokenLine, list_to_atom(TokenChars)}}.
-{For}				: {token, {'for',	TokenLine, list_to_atom(TokenChars)}}.
-{While}				: {token, {'while',	TokenLine, list_to_atom(TokenChars)}}.
-{True}				: {token, {true,	TokenLine, list_to_atom(TokenChars)}}.
-{False}				: {token, {false,	TokenLine, list_to_atom(TokenChars)}}.
-{Print}				: {token, {print,	TokenLine, list_to_atom(TokenChars)}}.
-{Println}			: {token, {println,	TokenLine, list_to_atom(TokenChars)}}.
+{Package}	: {token, {package,	TokenLine, list_to_atom(TokenChars)}}.
+{Import}	: {token, {import,	TokenLine, list_to_atom(TokenChars)}}.
+{Class}		: {token, {class,	TokenLine, list_to_atom(TokenChars)}}.
+{Public}	: {token, {public,	TokenLine, list_to_atom(TokenChars)}}.
+{Static}	: {token, {static,	TokenLine, list_to_atom(TokenChars)}}.
+{Void}		: {token, {void,	TokenLine, list_to_atom(TokenChars)}}.
+{Main}		: {token, {main,	TokenLine, list_to_atom(TokenChars)}}.
+{Return}	: {token, {return,	TokenLine, list_to_atom(TokenChars)}}.
+{Integer}	: {token, {int_t,	TokenLine, list_to_atom(TokenChars)}}.
+{Float}		: {token, {float_t,	TokenLine, list_to_atom(TokenChars)}}.
+{Double}	: {token, {double_t,	TokenLine, list_to_atom(TokenChars)}}.
+{Boolean}	: {token, {boolean,	TokenLine, list_to_atom(TokenChars)}}.
+{If}		: {token, {'if',	TokenLine, list_to_atom(TokenChars)}}.
+{Else}		: {token, {'else',	TokenLine, list_to_atom(TokenChars)}}.
+{For}		: {token, {'for',	TokenLine, list_to_atom(TokenChars)}}.
+{While}		: {token, {'while',	TokenLine, list_to_atom(TokenChars)}}.
+{True}		: {token, {true,	TokenLine, list_to_atom(TokenChars)}}.
+{False}		: {token, {false,	TokenLine, list_to_atom(TokenChars)}}.
+{Print}		: {token, {print,	TokenLine, list_to_atom(TokenChars)}}.
+{Println}	: {token, {println,	TokenLine, list_to_atom(TokenChars)}}.
 
 
-{ImportAll}			: {token, {list_to_atom(TokenChars), TokenLine}}.
+{ImportAll}		: {token, {list_to_atom(TokenChars), TokenLine}}.
 {OpenParentheses}	: {token, {list_to_atom(TokenChars), TokenLine}}.
 {CloseParentheses}	: {token, {list_to_atom(TokenChars), TokenLine}}.
 {OpenBrackets}		: {token, {list_to_atom(TokenChars), TokenLine}}.
 {CloseBrackets}		: {token, {list_to_atom(TokenChars), TokenLine}}.
-{OpenKeys}			: {token, {list_to_atom(TokenChars), TokenLine}}.
-{CloseKeys}			: {token, {list_to_atom(TokenChars), TokenLine}}.
-{Dot}				: {token, {list_to_atom(TokenChars), TokenLine}}.
-{Comma}				: {token, {list_to_atom(TokenChars), TokenLine}}.
-{Semicolon}			: {token, {list_to_atom(TokenChars), TokenLine}}.
-{Equal}				: {token, {list_to_atom(TokenChars), TokenLine}}.
-{AddOp}				: {token, {add_op, TokenLine, list_to_atom(TokenChars)}}.
-{MultOp}			: {token, {mult_op, TokenLine, list_to_atom(TokenChars)}}.
-{IncOp}				: {token, {inc_op, TokenLine, list_to_atom(TokenChars)}}.
-{CompOp}			: {token, {comp_op, TokenLine, op(TokenChars)}}.
-{BoolOp}			: {token, {bool_op, TokenLine, op(TokenChars)}}.
-%{And}				: {token, {and_op, TokenLine, list_to_atom(TokenChars)}}.
-%{Or}				: {token, {or_op, TokenLine, list_to_atom(TokenChars)}}.
-%{Not}				: {token, {not_op, TokenLine, list_to_atom(TokenChars)}}.
-{Digit}+			: {token, {integer,TokenLine, list_to_integer(TokenChars)}}.
+{OpenKeys}		: {token, {list_to_atom(TokenChars), TokenLine}}.
+{CloseKeys}		: {token, {list_to_atom(TokenChars), TokenLine}}.
+{Dot}			: {token, {list_to_atom(TokenChars), TokenLine}}.
+{Comma}			: {token, {list_to_atom(TokenChars), TokenLine}}.
+{Semicolon}		: {token, {list_to_atom(TokenChars), TokenLine}}.
+{Equal}			: {token, {list_to_atom(TokenChars), TokenLine}}.
+{AddOp}			: {token, {add_op, TokenLine, list_to_atom(TokenChars)}}.
+{MultOp}		: {token, {mult_op, TokenLine, list_to_atom(TokenChars)}}.
+{IncOp}			: {token, {inc_op, TokenLine, list_to_atom(TokenChars)}}.
+{CompOp}		: {token, {comp_op, TokenLine, op(TokenChars)}}.
+{BoolOp}		: {token, {bool_op, TokenLine, op(TokenChars)}}.
+%{And}			: {token, {and_op, TokenLine, list_to_atom(TokenChars)}}.
+%{Or}			: {token, {or_op, TokenLine, list_to_atom(TokenChars)}}.
+%{Not}			: {token, {not_op, TokenLine, list_to_atom(TokenChars)}}.
+{Digit}+		: {token, {integer,TokenLine, list_to_integer(TokenChars)}}.
 {Digit}+\.{Digit}+	: {token, {float, TokenLine, list_to_float(TokenChars)}}.
 
 {Identifier}	: {token, {identifier, TokenLine, list_to_atom(TokenChars)}}.
 {WhiteSpace}+	: skip_token.
-{Text} 			: build_text(text, TokenChars, TokenLine, TokenLen).
+{Text} 		: build_text(text, TokenChars, TokenLine, TokenLen).
 
 Erlang code.
 

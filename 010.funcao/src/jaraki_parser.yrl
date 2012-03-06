@@ -17,13 +17,14 @@ pack_path
 class_definition class_body class_list
 method_definition
 block block_expressions
-function_call
+function_call function_call_expr
 var_declaration var_value var_type var_list
 add_expr mult_expr
 unary_expr literal
 comp_expr bool_expr
 attribution
 print_expr if_expr if_else_expr if_else_no_trailing
+return_expr
 for_expr for_no_trailing
 while_expr while_no_trailing
 no_trailing_expr no_short_if_expr
@@ -33,10 +34,10 @@ increment_expr_for increment_expr
 expression.
 
 Terminals
-package import class public static void main print println
+package import class public static void main return print println
 '(' ')' '[' ']' '{' '}' ';' '=' '.' '.*' ','
-int_t float_t double_t
-'if' 'else' %true false
+int_t float_t double_t boolean_t
+'if' 'else' true false
 for while
 integer float
 identifier text
@@ -71,27 +72,27 @@ class_definition -> public class identifier '{' class_body '}':
 class_body -> method_definition			: ['$1'].
 class_body -> method_definition class_body	: ['$1' | '$2'].
 
-method_definition -> public static void identifier '(' ')' block:
-							{line('$4'), {method, unwrap('$4')}, [], '$7'}.
+method_definition -> public static var_type identifier '(' ')' block:
+							{line('$4'), '$3', {method, unwrap('$4')}, [], '$7'}.
 
-method_definition -> public static void identifier '(' parameters_list ')' block:
-							{line('$4'), {method, unwrap('$4')}, '$6', '$8'}.
+method_definition -> public static var_type identifier '(' parameters_list ')' block:
+							{line('$4'), '$3', {method, unwrap('$4')}, '$6', '$8'}.
 
 method_definition ->
-	public static void main
+	public static var_type main
 	'(' identifier '[' ']' identifier ')' block:
-		{line('$4'),
+		{line('$4'), '$3',
 			{method, unwrap('$4')},
 			[{line('$9'),
 				{var_type, {line('$6'), unwrap('$6')}},
 				{parameter, unwrap('$9')}}
 			], '$11'}.
 
-parameters_list -> parameter					: ['$1'].
+parameters_list -> parameter				: ['$1'].
 parameters_list -> parameter ',' parameters_list	: ['$1' | '$3'].
 
 parameter -> var_type identifier: {line('$2'), {var_type, '$1'},
-												{parameter, unwrap('$2')}}.
+						{parameter, unwrap('$2')}}.
 
 block -> '{' block_expressions '}'	: {block, '$2'}.
 block -> '{' '}': {block, []}.
@@ -102,12 +103,13 @@ block_expressions -> expression block_expressions	: ['$1'| '$2'].
 %% expression: expressoes com trailing (if, while, for)
 %%             ou sem trailing (no_trailing_expr)
 
-expression -> function_call : '$1'.
+expression -> function_call_expr: '$1'.
 expression -> for_expr		: '$1'.
 expression -> while_expr	: '$1'.
 expression -> if_expr		: '$1'.
 expression -> if_else_expr	: '$1'.
 expression -> no_trailing_expr	: '$1'.
+expression -> return_expr	: '$1'.
 
 no_short_if_expr -> for_no_trailing	: '$1'.
 no_short_if_expr -> while_no_trailing	: '$1'.
@@ -193,7 +195,7 @@ if_expr -> 'if' '(' bool_expr ')' expression :
 	{line('$1'), 'if', {bool_expr, '$3'}, {if_expr, '$5'}}.
 
 if_else_expr -> 'if' '(' bool_expr ')' no_short_if_expr 'else' expression :
-	{line('$1'), 'if', {bool_expr, '$3'}, {if_expr, '$5'}, {else_expr, '$7'}}.
+ 	{line('$1'), 'if', {bool_expr, '$3'}, {if_expr, '$5'}, {else_expr, '$7'}}.
 
 if_else_no_trailing -> 'if' '(' bool_expr ')' no_short_if_expr
 						'else' no_short_if_expr :
@@ -202,27 +204,29 @@ if_else_no_trailing -> 'if' '(' bool_expr ')' no_short_if_expr
 
 %% BEGIN_FUNCTION
 
-function_call -> 
-			identifier '(' ')'	';': 
-				{function_call,
-					{line('$1'), unwrap('$1')}, {argument_list, []}}.
+function_call_expr -> function_call ';' : '$1'.
 
-function_call -> 
-			identifier '(' argument_list ')'	';': 
-				{function_call,
-					{line('$1'), unwrap('$1')}, {argument_list, '$3'}}.
+function_call -> identifier '(' ')': 
+			{function_call, {line('$1'), unwrap('$1')}, 
+					{argument_list, []}}.
+
+function_call -> identifier '(' argument_list ')': 
+			{function_call, {line('$1'), unwrap('$1')}, 
+				{argument_list, '$3'}}.
 
 %% END_FUNCTION
 
-argument_list -> argument					: ['$1'].
-argument_list -> argument ',' argument_list	: ['$1' | '$3'].
+return_expr -> return var_value ';' : {line('$1'), 'return', '$2'}. 
 
+argument_list -> argument			: ['$1'].
+argument_list -> argument ',' argument_list	: ['$1' | '$3'].
 argument -> var_value   : '$1'.
 
-var_type ->	int_t		:	{line('$1'), unwrap('$1')}.
-var_type ->	float_t		:	{line('$1'), unwrap('$1')}.
-var_type ->	double_t	:	{line('$1'), unwrap('$1')}.
-
+var_type -> void	: {line('$1'), unwrap('$1')}.
+var_type -> int_t	: {line('$1'), unwrap('$1')}.
+var_type -> float_t	: {line('$1'), unwrap('$1')}.
+var_type -> double_t	: {line('$1'), unwrap('$1')}.
+var_type -> boolean_t	: {line('$1'), unwrap('$1')}.
 %% -Trata expressoes matematicas (numericas).
 %% TODO: acrescentar tipo boolean e tratar precedencia de op booleanos
 %% TODO: tratar o not (!)
@@ -251,8 +255,9 @@ literal -> integer : '$1'.
 literal -> float : '$1'.
 literal -> identifier :  {var, line('$1'), unwrap('$1')}.
 literal -> '(' add_expr ')' : '$2'.
-
-
+literal -> function_call: '$1'.
+literal -> true : '$1'.
+literal -> false: '$1'.
 Erlang code.
 
 unwrap({_, _, V})	-> V.
