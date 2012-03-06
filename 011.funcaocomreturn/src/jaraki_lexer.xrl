@@ -57,6 +57,7 @@ BoolOp			= (\&\&|\|\|!)
 %Not			= (!)
 AddOp			= (\+|-)
 MultOp			= (\*|/)
+RemOp			= (\%)
 IncOp			= (\+\+|--)
 WhiteSpace		= [\s|\n|\t]
 
@@ -97,6 +98,7 @@ Rules.
 {Equal}			: {token, {list_to_atom(TokenChars), TokenLine}}.
 {AddOp}			: {token, {add_op, TokenLine, list_to_atom(TokenChars)}}.
 {MultOp}		: {token, {mult_op, TokenLine, list_to_atom(TokenChars)}}.
+{RemOp}			: {token, {rem_op, TokenLine, list_to_atom(TokenChars)}}.
 {IncOp}			: {token, {inc_op, TokenLine, list_to_atom(TokenChars)}}.
 {CompOp}		: {token, {comp_op, TokenLine, op(TokenChars)}}.
 {BoolOp}		: {token, {bool_op, TokenLine, op(TokenChars)}}.

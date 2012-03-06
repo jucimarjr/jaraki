@@ -19,7 +19,7 @@ method_definition
 block block_expressions
 function_call function_call_expr
 var_declaration var_value var_type var_list
-add_expr mult_expr
+add_expr mult_expr rem_expr
 unary_expr literal
 comp_expr bool_expr
 attribution
@@ -41,7 +41,7 @@ int_t float_t double_t boolean_t
 for while
 integer float
 identifier text
-add_op mult_op inc_op
+add_op mult_op rem_op inc_op
 comp_op	bool_op.
 %% and_op or_op not_op.
 
@@ -251,9 +251,13 @@ add_expr -> mult_expr add_op add_expr		:
 			{op, line('$2'), unwrap('$2'), '$1', '$3'}.
 add_expr -> mult_expr						: '$1'.
 
-mult_expr -> unary_expr mult_op mult_expr	:
+mult_expr -> rem_expr mult_op mult_expr	:
 			{op, line('$2'), unwrap('$2'), '$1', '$3'}.
-mult_expr -> unary_expr						: '$1'.
+mult_expr -> rem_expr						: '$1'.
+
+rem_expr -> unary_expr rem_op rem_expr		:
+			{op, line('$2'), 'rem', '$1', '$3'}.
+rem_expr -> unary_expr						: '$1'.
 
 unary_expr -> add_op literal    : {op, line('$1'), unwrap('$1'), '$2'}.
 unary_expr -> literal           : '$1'.
