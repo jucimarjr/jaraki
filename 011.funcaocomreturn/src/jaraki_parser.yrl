@@ -157,6 +157,14 @@ print_expr ->	print '(' identifier ')' ';':
 print_expr ->	println '(' identifier ')' ';':
 	{line('$1'),	println,	{var, unwrap('$3')}}.
 
+%% trata expressoes do tipo [ System.out.print( texto + identificador ) ]
+print_expr -> print '(' text add_op identifier ')' ';':
+	   {line('$1'), print, {text, unwrap('$3')}, {var, unwrap('$5')}}.
+
+%% trata expressoes do tipo [ System.out.println( texto + identificador ) ]
+print_expr -> println '(' text add_op identifier ')' ';':
+	   	   {line('$1'), println, {text, unwrap('$3')}, {var, unwrap('$5')}}.
+
 increment_expr_for -> identifier inc_op :
 				Var = {var, line('$1'), unwrap('$1')},
 				{inc_op, line('$1'), unwrap('$2'), Var}.

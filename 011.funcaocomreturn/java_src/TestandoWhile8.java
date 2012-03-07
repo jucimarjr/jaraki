@@ -10,16 +10,11 @@ public class Testandowhile8{
 
 	while(i < 10) {
 
-		System.out.println("1 - Estou dentro do 1o while!!");
-
-		System.out.println(i);
+		System.out.println("1 - Estou dentro do 1o while!!" + i);
 
 		while(j < 10) {
 
-			System.out.println("1 - Estou dentro do 2o while!!");
-
-                	System.out.println(j);
-
+			System.out.println("2 - Estou dentro do 2o while!!" + j);
 			j++;
 		}
 		

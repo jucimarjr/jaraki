@@ -32,6 +32,14 @@ match_statement({Line, print, {var, VarName}}) ->
 match_statement({Line, println, {var, VarName}}) ->
 	create_print_function(Line, println, var, VarName);
 
+%% transforma expressoes System.out.print( texto + identificador ) em Erlang
+match_statement({Line, print, {text, Text}, {var, VarName}}) ->
+	create_print_function(Line, print, text, Text, var, VarName);
+
+%% transforma expressoes System.out.println( texto + identificador ) em Erlang
+match_statement({Line, println, {text, Text}, {var, VarName}}) ->
+	create_print_function(Line, println, text, Text, var, VarName);
+
 %% transforma chanadas de funcoes em Erlang
 match_statement( {function_call, {Line, FunctionName}, {argument_list, ArgumentsList}}) ->
 	create_function_call(Line, FunctionName, ArgumentsList);
@@ -175,6 +183,23 @@ create_print_function(Line, println, var, VarName) ->
 		{atom, Line, io}, {atom, Line, format}},
 		[{string, Line,"~p~n"},
 			{cons, Line, {var, Line, list_to_atom(ErlangName)}, {nil, Line}}]}.
+
+create_print_function(Line, print, text, Text, var, VarName) ->
+	{ok, VarRecord} = jaraki_identifier:get_var(VarName),
+	ErlangName = VarRecord#var.erl_name,
+	{call, Line, {remote, Line,
+		{atom, Line, io}, {atom, Line, format}},
+		[{string, Line, Text ++ "~p"},
+			{cons, Line, {var, Line, list_to_atom(ErlangName)}, {nil, Line}}]};
+
+create_print_function(Line, println, text, Text, var, VarName) ->
+	{ok, VarRecord} = jaraki_identifier:get_var(VarName),
+	ErlangName = VarRecord#var.erl_name,
+	{call, Line, {remote, Line,
+		{atom, Line, io}, {atom, Line, format}},
+		[{string, Line, Text ++ "~p~n"},
+			{cons, Line, {var, Line, list_to_atom(ErlangName)}, {nil, Line}}]}.
+
 
 %%-----------------------------------------------------------------------------
 %% 
