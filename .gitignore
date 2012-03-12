@@ -6,3 +6,4 @@ jaraki_parser.erl
 *.swp
 .\#*
 .DS_Store
+.metadata/
