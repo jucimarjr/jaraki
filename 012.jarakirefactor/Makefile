@@ -1,15 +1,19 @@
 SRC_DIR=src
 EBIN_DIR=ebin
 INCLUDE_DIR=include
-LIB_EBIN_DIR=lib/ebin
+TEST_EBIN_DIR=test/ebin
 
 ERLC=erlc -I $(INCLUDE_DIR) -W0
-ERL=erl -noshell -pa $(EBIN_DIR)
+ERL=erl -noshell -pa $(EBIN_DIR) -pa $(TEST_EBIN_DIR)
 
 .PHONY: clean debug
 
 # This is the default task
-compile: ebin/jaraki.beam src/jaraki_lexer.erl src/jaraki_parser.erl 
+compile: ebin/jaraki.beam src/jaraki_lexer.erl src/jaraki_parser.erl test/ebin/test.beam 
+
+test:   compile
+	@ echo EUnit testing...
+	@ $(ERL) -eval 'eunit:test("test/ebin", [verbose]), halt().'
 
 # This is the task when you intend to debug
 debug: ERLC += +debug_info
@@ -21,21 +25,21 @@ ebin/jaraki.beam: $(INCLUDE_DIR)/*.hrl src/*.erl
 	@ $(ERLC) -o $(EBIN_DIR) src/*.erl
 	@ echo
 
-#$(LIB_EBIN_DIR)/control.beam: lib/control.erl
-#	@ echo Compiling libs source...
-#	@ mkdir -p $(LIB_EBIN_DIR)
-#	@ $(ERLC) -o $(LIB_EBIN_DIR) loop.erl
-#	@ echo
+$(TEST_EBIN_DIR)/test.beam : test/*.erl
+	@ echo Compiling Eunits tests...
+	@ mkdir -p $(TEST_EBIN_DIR)
+	@ $(ERLC) -o $(TEST_EBIN_DIR) test/test.erl
+	@ echo  
 
 src/jaraki_lexer.erl: src/jaraki_lexer.xrl
-	@ echo Compiling lexer ...
+	@ echo Compiling Lexer ...
 	@ $(ERL) -eval 'leex:file("$<"), halt().'
 	@ mkdir -p $(EBIN_DIR)
 	@ $(ERLC) -o $(EBIN_DIR) $@
 	@ echo
 
 src/jaraki_parser.erl: src/jaraki_parser.yrl
-	@ echo Compiling parser ...
+	@ echo Compiling Parser ...
 	@ $(ERL) -eval 'yecc:file("$<", [{verbose, true}]), halt().'
 	@ mkdir -p $(EBIN_DIR)
 	@ $(ERLC) -o $(EBIN_DIR) $@
@@ -47,6 +51,6 @@ clean:
 	rm -f $(SRC_DIR)/jaraki_lexer.erl
 	rm -f $(SRC_DIR)/jaraki_parser.erl
 	rm -rf $(EBIN_DIR)/*.beam
-	rm -rf $(LIB_EBIN_DIR)/*.beam
+	rm -rf $(TEST_EBIN_DIR)/*.beam
 	find . -name  *.*~ -print0 | xargs -0 rm
 	@ echo
