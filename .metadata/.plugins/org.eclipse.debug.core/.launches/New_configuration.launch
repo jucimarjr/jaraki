@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.erlide.core.launch.erlangProcess">
+<stringAttribute key="org.erlide.core.arguments" value=""/>
+<stringAttribute key="org.erlide.core.cookie" value=""/>
+<intAttribute key="org.erlide.core.debugFlags" value="4"/>
+<stringAttribute key="org.erlide.core.extra_args" value=""/>
+<stringAttribute key="org.erlide.core.function" value=""/>
+<booleanAttribute key="org.erlide.core.loadAllNodes" value="false"/>
+<stringAttribute key="org.erlide.core.module" value=""/>
+<stringAttribute key="org.erlide.core.nodeName" value=""/>
+<stringAttribute key="org.erlide.core.projects" value=""/>
+<stringAttribute key="org.erlide.core.runtime" value="erts"/>
+<booleanAttribute key="org.erlide.core.startMe" value="true"/>
+<stringAttribute key="org.erlide.core.working_dir" value="."/>
+</launchConfiguration>
