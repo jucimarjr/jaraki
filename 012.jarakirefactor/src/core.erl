@@ -18,6 +18,7 @@
 %%   east -> arvore sintatica do erlang.
 %% TODO: tratar múltiplos arquivos, ou seja, múltiplas classes
 transform_jast_to_east(JavaAST, ErlangModuleName) ->
+		
 	ErlangModuleBody =
 		lists:map(
 			fun(JavaClass) -> get_erl_body(JavaClass) end,
@@ -33,7 +34,6 @@ transform_jast_to_east(JavaAST, ErlangModuleName) ->
 get_erl_body(JavaClass) ->
 	{_Line, _JavaClassName, {class_body, JavaClassBody}} = JavaClass,
 
-	put(loop, false),
 	lists:map(
 		fun(JavaMethod) -> get_erl_function(JavaMethod) end,
 		JavaClassBody
@@ -41,11 +41,11 @@ get_erl_body(JavaClass) ->
 
 %%-----------------------------------------------------------------------------
 %% Extrai uma funcao erl de um metodo java
-%% ISSUE: funciona apenas pro main()
-%% TODO: Tratar metodos genericos...
+%% ISSUE: funciona apenas para métodos públicos
+%% TODO: tratar visibilidade dos métodos quando trabalhar com POO.  
 get_erl_function({Line, _Type, {method, 'main'}, Parameters,
 					{block, JavaMethodBody}})	 ->
-	
+
 	[{_Line, {var_type, {_Line, ArgClass}}, _ArgName}] = Parameters,
 
 	case ArgClass of
@@ -56,17 +56,18 @@ get_erl_function({Line, _Type, {method, 'main'}, Parameters,
 				"The args of the \"main method\" is not String")
 	end,
 	put(scope, 'main'),
-	ErlangFunctionBody = 
+	ErlangFunctionBody =
 		get_erl_function_body(Line, JavaMethodBody, Parameters),
 	{function, Line, 'main', length(Parameters), ErlangFunctionBody};
 
 get_erl_function({Line, _Type, {method, FunctionIdentifier}, Parameters,
 					{block, JavaMethodBody}}) ->
-	
+
 	put(scope, FunctionIdentifier),
-	ErlangFunctionBody = 
+	ErlangFunctionBody =
 		get_erl_function_body(Line, JavaMethodBody, Parameters),
-	{function, Line, FunctionIdentifier, length(Parameters), ErlangFunctionBody}.
+	{function, Line, FunctionIdentifier, length(Parameters),
+		ErlangFunctionBody}.
 
 %%-----------------------------------------------------------------------------
 %% Converte o corpo do metodo java em funcao erlang.
