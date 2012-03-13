@@ -23,7 +23,7 @@ add_expr mult_expr rem_expr
 unary_expr literal
 comp_expr bool_expr
 attribution
-print_expr if_expr if_else_expr if_else_no_trailing
+print_expr print_content if_expr if_else_expr if_else_no_trailing
 return_expr
 for_expr for_no_trailing
 while_expr while_no_trailing
@@ -141,29 +141,22 @@ attribution ->	identifier '=' var_value ';':
 	{line('$1'),
 		attribution, {var, unwrap('$1')}, {var_value, '$3'}}.
 
-%% trata expressoes do tipo [ System.out.print( texto )	]
-print_expr ->	print	'(' text ')' ';':
-	{line('$1'),	print,	{text, unwrap('$3')}}.
-
-%% trata expressoes do tipo [ System.out.println( texto ) ]
-print_expr ->	println '(' text ')' ';':
-	{line('$1'),	println,	{text, unwrap('$3')}}.
-
-%% trata expressoes do tipo [ System.out.print( identificador )	]
-print_expr ->	print '(' identifier ')' ';':
-	{line('$1'),	print,	{var, unwrap('$3')}}.
-
-%% trata expressoes do tipo [ System.out.println( texto ) ]
-print_expr ->	println '(' identifier ')' ';':
-	{line('$1'),	println,	{var, unwrap('$3')}}.
-
 %% trata expressoes do tipo [ System.out.print( texto + identificador ) ]
-print_expr -> print '(' text add_op identifier ')' ';':
-	   {line('$1'), print, {text, unwrap('$3')}, {var, unwrap('$5')}}.
+print_expr -> print '(' print_content ')' ';':
+	   {line('$1'), print, '$3'}.
 
 %% trata expressoes do tipo [ System.out.println( texto + identificador ) ]
-print_expr -> println '(' text add_op identifier ')' ';':
-	   	   {line('$1'), println, {text, unwrap('$3')}, {var, unwrap('$5')}}.
+print_expr -> println '(' print_content ')' ';':
+	   	   {line('$1'), println, '$3'}.
+
+
+print_content -> text : ['$1'].
+
+print_content -> identifier : ['$1'].
+
+print_content -> text add_op print_content : ['$1' | '$3'].
+
+print_content -> identifier add_op print_content : ['$1' | '$3'].
 
 increment_expr_for -> identifier inc_op :
 				Var = {var, line('$1'), unwrap('$1')},

@@ -16,31 +16,16 @@
 %% transformacoes de expressoes em java para erlang
 %% apenas uma unica expressao
 
-%% transforma expressoes do tipo System.out.print( texto ) em Erlang
-match_statement({Line, print, {text, Text}}) ->
-	create_print_function(Line, text, Text);
+%% transforma expressoes do tipo System.out.print em Erlang
+match_statement({Line, print, Content}) ->
+    create_print_function(Line, print, Content);
 
-%% transforma expressoes System.out.println( texto ) em Erlang
-match_statement({Line, println, {text, Text}}) ->
-	create_print_function(Line, text, Text ++ "~n");
+%% transforma expressoes System.out.println em Erlang
+match_statement({Line, println, Content}) ->
+	 create_print_function(Line, println, Content);
 
-%% transforma expressoes do tipo System.out.print( variavel ) em Erlang
-match_statement({Line, print, {var, VarName}}) ->
-	create_print_function(Line, print, var, VarName);
 
-%% transforma expressoes System.out.println( variavel ) em Erlang
-match_statement({Line, println, {var, VarName}}) ->
-	create_print_function(Line, println, var, VarName);
-
-%% transforma expressoes System.out.print( texto + identificador ) em Erlang
-match_statement({Line, print, {text, Text}, {var, VarName}}) ->
-	create_print_function(Line, print, text, Text, var, VarName);
-
-%% transforma expressoes System.out.println( texto + identificador ) em Erlang
-match_statement({Line, println, {text, Text}, {var, VarName}}) ->
-	create_print_function(Line, println, text, Text, var, VarName);
-
-%% transforma chanadas de funcoes em Erlang
+%% transforma chamadas de funcoes em Erlang
 match_statement( {function_call, {Line, FunctionName},
 					{argument_list, ArgumentsList}}) ->
 	create_function_call(Line, FunctionName, ArgumentsList);
@@ -141,51 +126,53 @@ match_attr_expr({var, Line, VarName}) ->
 	{call, Line, {remote, Line,
 		{atom, Line, st},{atom, Line, get}},
 			[{string, Line, atom_to_list(VarName)}]}.
+
 %%-----------------------------------------------------------------------------
 %% Cria o elemento da east para as funcoes de impressao do java
-create_print_function(Line, text, Text) ->
+create_print_function(Line, print, Content) ->	
+    
+	PrintText = print_test(Content, Line, [], print),    
+	PrintContent = print_list(Content, Line),
+	
 	{call, Line, {remote, Line,
-		{atom, Line, io}, {atom, Line, format}}, [{string, Line, Text}]}.
-
-create_print_function(Line, print, var, VarName) ->
-	VarAst = {call, Line, {remote, Line,
-		{atom, Line, st},{atom, Line, get}},
-			[{string, Line, atom_to_list(VarName)}]},
-
+		{atom, Line, io}, {atom, Line, format}}, [PrintText, PrintContent]};
+    
+create_print_function(Line, println, Content) ->	
+    
+	PrintText = print_test(Content, Line, [], println),    
+	PrintContent = print_list(Content, Line),
+	
 	{call, Line, {remote, Line,
-		{atom, Line, io}, {atom, Line, format}},
-		[{string, Line,"~p"},
-			{cons, Line, VarAst, {nil, Line}}]};
+		{atom, Line, io}, {atom, Line, format}}, [PrintText, PrintContent]}.
 
-create_print_function(Line, println, var, VarName) ->
-	VarAst = {call, Line, {remote, Line,
-		{atom, Line, st},{atom, Line, get}},
-			[{string, Line, atom_to_list(VarName)}]},
 
-	{call, Line, {remote, Line,
-		{atom, Line, io}, {atom, Line, format}},
-		[{string, Line,"~p~n"},
-			{cons, Line, VarAst, {nil, Line}}]}.
-
-create_print_function(Line, print, text, Text, var, VarName) ->
-	VarAst = {call, Line, {remote, Line,
-		{atom, Line, st},{atom, Line, get}},
-			[{string, Line, atom_to_list(VarName)}]},
-
-	{call, Line, {remote, Line,
-		{atom, Line, io}, {atom, Line, format}},
-		[{string, Line, Text ++ "~p"},
-			{cons, Line, VarAst, {nil, Line}}]};
-
-create_print_function(Line, println, text, Text, var, VarName) ->
-	VarAst = {call, Line, {remote, Line,
-		{atom, Line, st},{atom, Line, get}},
-			[{string, Line, atom_to_list(VarName)}]},
-
-	{call, Line, {remote, Line,
-		{atom, Line, io}, {atom, Line, format}},
-		[{string, Line, Text ++ "~p~n"},
-			{cons, Line, VarAst, {nil, Line}}]}.
+print_test([], Line, Text, print) -> 
+	{string, Line, Text};
+print_test([], Line, Text, println) -> 
+	{string, Line, Text ++ "~n"};
+print_test([Head | L], Line, Text, _print) ->
+	{Type, _, PrintElement} = Head,
+	case Type of	
+		identifier ->
+			print_test(L, Line, Text ++ "~p", _print);
+		text ->
+			print_test(L, Line, Text ++ "~s", _print)
+	end.
+ 
+print_list([], Line) ->
+	{nil, Line};
+print_list([Element|L], Line) ->
+    {Type, _, PrintElement} = Element,
+    case Type of
+	 identifier ->
+	   	Identifier = {call, Line, {remote, Line,
+			{atom, Line, st},{atom, Line, get}},
+				[{string, Line, atom_to_list(PrintElement)}]}, 
+		{cons, Line, Identifier, print_list(L, Line)};
+	text ->	
+		{cons, Line, {string, Line, PrintElement}, print_list(L, Line)}	
+    end.
+	    
 
 %%---------------------------------------------------------------------------%%
 
