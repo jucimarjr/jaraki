@@ -18,3 +18,4 @@ funcao22_test_() ->
 
 listarprimos_test_() ->
 	?_assertEqual(ok, jaraki:compile("java_src/ListarPrimos.java")).
+

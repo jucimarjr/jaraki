@@ -9,15 +9,24 @@
 %% Objetivo : Compilar arquivos java para a VM do Erlang 
 
 -module(jaraki).
--export([compile/1, get_version/0]).
+-export([compile/1, compile/2, get_version/0]).
 
 -include("../include/jaraki_define.hrl").
+
+
+
+compile(JavaFileName) ->
+	compile(file, JavaFileName).
+
+compile(dir,JavaFileDir) ->
+	JavaFileList = filelib:wildcard(JavaFileDir ++ "/*.java"),
+	lists:foreach( fun(X) -> compile(file,X) end, JavaFileList);
 
 %%-----------------------------------------------------------------------------
 %% Escreve o codigo em erlang a partir do java.
 %% TODO: tratar múltiplos arquivos, ou seja, múltiplas classes
 %% TODO: criar uma versão compile(JavaFileName,[options]) 
-compile(JavaFileName) ->
+compile(file, JavaFileName) ->
 	{_, _, StartTime} = now(),
 
 	JavaAST = ast:get_java_ast(JavaFileName),
@@ -30,9 +39,10 @@ compile(JavaFileName) ->
 	{_, _, EndTime} = now(),
 	ElapsedTime = EndTime - StartTime,
 	io:format(
-		"Compile time: ~p us (~p s)~n",
-		[ElapsedTime,ElapsedTime/1000000]
+		"~p -> ~p [ Compile time: ~p us (~p s) ]~n",
+		[JavaFileName,ErlangFileName,ElapsedTime,ElapsedTime/1000000]
 	).
+
 
 %%-----------------------------------------------------------------------------
 %% Mostra a versao, autores e ano do Jaraki.
