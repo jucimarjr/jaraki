@@ -28,7 +28,7 @@ public class Testandowhile6{
 
 	proximo = temp + proximo;
 	
-	i++	
+	i++;	
     } 
   }
 }
