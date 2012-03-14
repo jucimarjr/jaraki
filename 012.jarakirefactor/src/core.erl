@@ -18,7 +18,7 @@
 %%   east -> arvore sintatica do erlang.
 %% TODO: tratar múltiplos arquivos, ou seja, múltiplas classes
 transform_jast_to_east(JavaAST, ErlangModuleName) ->
-		
+
 	ErlangModuleBody =
 		lists:map(
 			fun(JavaClass) -> get_erl_body(JavaClass) end,
@@ -32,18 +32,17 @@ transform_jast_to_east(JavaAST, ErlangModuleName) ->
 %% Extrai o corpo do modulo erlang a partir de uma classe java
 %% TODO: Tratar atributos ("variáveis globais") da classe...
 get_erl_body(JavaClass) ->
-	{_Line, _JavaClassName, {class_body, JavaClassBody}} = JavaClass,
 
-	lists:map(
-		fun(JavaMethod) -> get_erl_function(JavaMethod) end,
-		JavaClassBody
-	).
+	st:new(),
+	{_Line, _JavaClassName, {class_body, JavaClassBody}} = JavaClass,
+	lists:map(fun(JavaMethod) -> get_erl_function(JavaMethod) end,
+					JavaClassBody).
 
 %%-----------------------------------------------------------------------------
 %% Extrai uma funcao erl de um metodo java
 %% ISSUE: funciona apenas para métodos públicos
-%% TODO: tratar visibilidade dos métodos quando trabalhar com POO.  
-get_erl_function({Line, _Type, {method, 'main'}, Parameters,
+%% TODO: tratar visibilidade dos métodos quando trabalhar com POO.
+get_erl_function({Line, _Type, {method, main}, Parameters,
 					{block, JavaMethodBody}})	 ->
 
 	[{_Line, {var_type, {_Line, ArgClass}}, _ArgName}] = Parameters,
@@ -55,15 +54,15 @@ get_erl_function({Line, _Type, {method, 'main'}, Parameters,
 			jaraki_exception:handle_error(
 				"The args of the \"main method\" is not String")
 	end,
-	put(scope, 'main'),
-	ErlangFunctionBody =
+	st:put_scope(main),
+	ErlangFunctionBody = 
 		get_erl_function_body(Line, JavaMethodBody, Parameters),
-	{function, Line, 'main', length(Parameters), ErlangFunctionBody};
+	{function, Line, main, length(Parameters), ErlangFunctionBody};
 
 get_erl_function({Line, _Type, {method, FunctionIdentifier}, Parameters,
 					{block, JavaMethodBody}}) ->
 
-	put(scope, FunctionIdentifier),
+	st:put_scope(FunctionIdentifier),
 	ErlangFunctionBody =
 		get_erl_function_body(Line, JavaMethodBody, Parameters),
 	{function, Line, FunctionIdentifier, length(Parameters),
@@ -75,53 +74,65 @@ get_erl_function({Line, _Type, {method, FunctionIdentifier}, Parameters,
 %% TODO: Declarar variável em qualquer lugar (mover o fun)
 get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 	ErlangArgsList =
-		[
-			{var, ParamLine,
-				list_to_atom("Var_" ++ atom_to_list(ParamName) ++ "1")} ||
+		[{var, ParamLine, 
+			list_to_atom("V_" ++ atom_to_list(ParamName))} ||
 			{ParamLine, _ClassIdentifier, {parameter, ParamName}} <- 
 				ParametersList
 		],
 	MappedParamsFun = 
-		fun ({VarLine, {var_type, {_Line, VarType}},{parameter, VarName}}) ->
-			jaraki_identifier:insert(VarLine, VarType, VarName),
-
-			{ok, VarRecord} = jaraki_identifier:get_var(VarName),
-			NewCounter = VarRecord#var.counter + 1,
-			JavaName = VarRecord#var.java_name,
-			ErlangName = "Var_" ++ JavaName ++ integer_to_list(NewCounter),
-			NewVarRecord = VarRecord#var{erl_name = ErlangName, counter = NewCounter},
-
-			jaraki_identifier:set_var(VarName, NewVarRecord)
+		fun ({_VarLine, {var_type, {_Line, VarType}}, 
+				{parameter, VarName}}) ->
+			st:put({st:get_scope(), VarName}, {VarType, undefined})
 		end,
-	lists:map( MappedParamsFun, ParametersList ),
+	lists:map( MappedParamsFun, ParametersList),
+	
+	
+	ScopeAst = {atom, Line, st:get_scope()},
+	InitArgs = [
+		{call, Line, {remote, InitArgLine, 
+			{atom, Line, st}, {atom, Line, put}},[
+			{tuple, InitArgLine, 
+				[ScopeAst, {string, InitArgLine, 
+					atom_to_list(InitArgName)}]}, 
+			{tuple, InitArgLine, 
+				[{atom, Line, InitArgType}, 
+					{var, InitArgLine, 
+					list_to_atom("V_" ++ 
+					atom_to_list(InitArgName))}]}]} || 
+		({_Line, {var_type, {InitArgLine, InitArgType}}, 
+				{parameter, InitArgName}}) <-ParametersList
+		], 
 
 	MappedErlangFun =
 		fun(
-			{var_declaration, 
-				{var_type,{VarLine, VarType}},
+			{var_declaration,
+				{var_type,{_VarLine, VarType}},
 				{var_list, VarList}
 			}
-		) ->	
-			jaraki_identifier:insert_var_list(VarLine, VarType, 
-								VarList);
-		(Statement) -> 
+		) ->
+			st:insert_var_list(st:get_scope(), VarList, 
+						VarType, undefined);
+		(Statement) ->
 			gen_erl_code:match_statement(Statement)
 		end,
 
-	InitEts = 
-		case get(scope) of
-			'main' -> [{call, Line,
-					{remote, Line, 
-						{atom, Line, st}, 
+	
+	InitEts =
+		case st:get_scope() of
+			main -> [{call, Line,
+					{remote, Line,
+						{atom, Line, st},
 						{atom, Line, new}},[]}];
 			_ -> [no_operation]
-		end,	
+		end,
 
-	ErlangStmtTemp1 = lists:map(MappedErlangFun, JavaMethodBody),
-	ErlangStmtTemp2 = InitEts ++ ErlangStmtTemp1,	
+	
+	ErlangStmtTemp1 = InitArgs ++ 
+				lists:map(MappedErlangFun, JavaMethodBody),
+	ErlangStmtTemp2 = InitEts ++ ErlangStmtTemp1,
 	ErlangStmt = [
-			Element || 
-			Element <- ErlangStmtTemp2, 
+			Element ||
+			Element <- ErlangStmtTemp2,
 			Element =/= no_operation
 			],
 	[{clause, Line, ErlangArgsList, [], ErlangStmt}].

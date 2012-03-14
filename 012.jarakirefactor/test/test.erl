@@ -1,14 +1,21 @@
 -module(test).
 -include_lib("eunit/include/eunit.hrl").
 
-compile_all_test_() ->
-	{
-		"Jaraki compiling test...",
-		[compilar(JavaFile) || JavaFile <-	filelib:wildcard("java_src/*.java")]
-	}.
+helloworld_test_() ->
+	?_assertEqual(ok, jaraki:compile("java_src/jaraki_hello.java")).
 
-compilar(JavaFile) ->
-	{filename:basename(JavaFile), [?_assertEqual(ok, jaraki:compile(JavaFile))]}.
+media_test_() ->
+	?_assertEqual(ok, jaraki:compile("java_src/jaraki_media.java")).
 
+mediauea_test_() ->
+	?_assertEqual(ok, jaraki:compile("java_src/jaraki_mediauea.java")).
 
+for7_test_() ->
+	?_assertEqual(ok, jaraki:compile("java_src/For7.java")).
+
+funcao22_test_() ->
+	?_assertEqual(ok, jaraki:compile("java_src/funcao2.2.java")).
+
+listarprimos_test_() ->
+	?_assertEqual(ok, jaraki:compile("java_src/ListarPrimos.java")).
 

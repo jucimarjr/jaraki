@@ -18,7 +18,7 @@
 
 %% transforma expressoes do tipo System.out.print em Erlang
 match_statement({Line, print, Content}) ->
-    create_print_function(Line, print, Content);
+	create_print_function(Line, print, Content);
 
 %% transforma expressoes System.out.println em Erlang
 match_statement({Line, println, Content}) ->
@@ -94,7 +94,7 @@ match_statement({inc_op, Line, IncOp, Variable}) ->
 	create_inc_op(Line, IncOp, Variable);
 
 %% casa expressões return;
-match_statement({Line, return, Value}) ->
+match_statement({_Line, return, Value}) ->
 	match_attr_expr(Value).
 
 %%-----------------------------------------------------------------------------
@@ -107,7 +107,7 @@ match_inner_stmt(Statement) ->
 %%-----------------------------------------------------------------------------
 %% Casa expressoes matematicas a procura de variaveis para substituir seus nomes
 
-match_attr_expr({op, Line, Op, RightExp}=UnaryOp) ->
+match_attr_expr({op, Line, Op, RightExp}) ->
 	{op, Line, Op, match_attr_expr(RightExp)};
 match_attr_expr({function_call, {Line, FunctionName},
 			{argument_list, ArgumentsList}}) ->
@@ -125,85 +125,89 @@ match_attr_expr({op, Line, Op, LeftExp, RightExp}) ->
 match_attr_expr({var, Line, VarName}) ->
 	{call, Line, {remote, Line,
 		{atom, Line, st},{atom, Line, get}},
-			[{string, Line, atom_to_list(VarName)}]}.
+			[{atom, Line, st:get_scope()},
+				{string, Line, atom_to_list(VarName)}]}.
 
 %%-----------------------------------------------------------------------------
 %% Cria o elemento da east para as funcoes de impressao do java
-create_print_function(Line, print, Content) ->	
-    
-	PrintText = print_test(Content, Line, [], print),    
-	PrintContent = print_list(Content, Line),
-	
-	{call, Line, {remote, Line,
-		{atom, Line, io}, {atom, Line, format}}, [PrintText, PrintContent]};
-    
-create_print_function(Line, println, Content) ->	
-    
-	PrintText = print_test(Content, Line, [], println),    
-	PrintContent = print_list(Content, Line),
-	
-	{call, Line, {remote, Line,
-		{atom, Line, io}, {atom, Line, format}}, [PrintText, PrintContent]}.
+create_print_function(Line, print, Content) ->
 
+	PrintText = print_test(Content, Line, [], print),
+	PrintContent = print_list(Content, Line),
 
-print_test([], Line, Text, print) -> 
+	{call, Line, {remote, Line,
+		{atom, Line, io}, {atom, Line, format}}, 
+		[PrintText, PrintContent]};
+
+create_print_function(Line, println, Content) ->
+
+	PrintText = print_test(Content, Line, [], println),
+	PrintContent = print_list(Content, Line),
+
+	{call, Line, {remote, Line,
+		{atom, Line, io}, {atom, Line, format}}, 
+		[PrintText, PrintContent]}.
+
+print_test([], Line, Text, print) ->
 	{string, Line, Text};
-print_test([], Line, Text, println) -> 
+print_test([], Line, Text, println) ->
 	{string, Line, Text ++ "~n"};
 print_test([Head | L], Line, Text, _print) ->
-	{Type, _, PrintElement} = Head,
-	case Type of	
+	{Type, _, _PrintElement} = Head,
+	case Type of
 		identifier ->
 			print_test(L, Line, Text ++ "~p", _print);
 		text ->
 			print_test(L, Line, Text ++ "~s", _print)
 	end.
- 
+
 print_list([], Line) ->
 	{nil, Line};
 print_list([Element|L], Line) ->
-    {Type, _, PrintElement} = Element,
-    case Type of
+	{Type, _, PrintElement} = Element,
+	case Type of
 	 identifier ->
-	   	Identifier = {call, Line, {remote, Line,
+	   Identifier = {call, Line, {remote, Line,
 			{atom, Line, st},{atom, Line, get}},
-				[{string, Line, atom_to_list(PrintElement)}]}, 
-		{cons, Line, Identifier, print_list(L, Line)};
-	text ->	
-		{cons, Line, {string, Line, PrintElement}, print_list(L, Line)}	
-    end.
-	    
+				[{atom, Line, st:get_scope()}, 
+				{string, Line, atom_to_list(PrintElement)}]},
+			{cons, Line, Identifier, print_list(L, Line)};
+	text ->
+		{cons, Line, {string, Line, PrintElement}, print_list(L, Line)}
+end.
 
 %%---------------------------------------------------------------------------%%
 
 create_function_call(Line, FunctionName, ArgumentsList) ->
-	TransformedArgumentList = lists:map(fun match_attr_expr/1, ArgumentsList),
+	TransformedArgumentList = 
+		lists:map(fun match_attr_expr/1, ArgumentsList),
 	{call, Line, {atom, Line, FunctionName}, TransformedArgumentList}.
-
 
 %%-----------------------------------------------------------------------------
 %% Cria o elemento da east para atribuiçao de variaveis do java
 create_attribution(Line, VarName, VarValue) ->
 	TransformedVarValue = match_attr_expr(VarValue),
 	JavaNameAst = {string, Line, atom_to_list(VarName)},
-	{call, Line,
-				{remote, Line, {atom, Line, st}, {atom, Line, insert}},
-					[{tuple, Line, [JavaNameAst, TransformedVarValue]}]}.
+	
+	{Type, _Value} = st:get2(st:get_scope(), VarName),	
+	TypeAst = {atom, Line, Type},
+	ScopeAst = {atom, Line, st:get_scope()},
+	
+	{call, Line, {remote, Line, {atom, Line, st}, {atom, Line, put}},
+			[{tuple, Line, [ScopeAst, JavaNameAst]}, {tuple, Line, 
+			[TypeAst, TransformedVarValue]}]}.
 
 %%-----------------------------------------------------------------------------
 %% Cria a operacao de incremento ++
-create_inc_op(Line, IncOp, {var, _VarLine, VarName}=VarAst) ->
+create_inc_op(Line, IncOp, {var, _VarLine, VarName} = VarAst) ->
 		Inc =
 			case IncOp of
 				'++' -> '+';
 				'--' ->	'-'
 			end,
 
-		VarValue = {op, Line, Inc,
-						VarAst,
-							{integer, Line,1}},
+		VarValue = {op, Line, Inc, VarAst, {integer, Line,1}},
 		create_attribution(Line, VarName, VarValue).
-
 
 %%-----------------------------------------------------------------------------
 %% Cria o if
@@ -214,8 +218,7 @@ create_if(Line, Condition, IfExpr) ->
 		'case',
 		Line,
 		TransformedCondition,
-		[
-			{ clause, Line, [{atom, Line, true}], [], TransformedIfExpr	},
+		[{ clause, Line, [{atom, Line, true}], [], TransformedIfExpr},
 			{
 				clause,
 				Line,
@@ -230,24 +233,26 @@ create_if(Line, Condition, IfExpr, ElseExpr) ->
 	TransformedCondition = match_attr_expr(Condition),
 	TransformedIfExpr = match_inner_stmt(IfExpr),
 	TransformedElseExpr = match_inner_stmt(ElseExpr),
-	{
-		'case',
-		Line,
-		TransformedCondition,
-		[
-			{clause, Line, [{atom, Line, true}], [], TransformedIfExpr},
-			{clause, Line, [{atom, Line, false}], [], TransformedElseExpr}
-		]
+	{'case', Line, TransformedCondition,
+	[
+		{clause, Line, [{atom, Line, true}], [], TransformedIfExpr},
+		{clause, Line, [{atom, Line, false}], [], TransformedElseExpr}
+	]
 	}.
 
 %%-----------------------------------------------------------------------------
 %% Cria o FOR
 create_for(Line, VarType, VarName, Start, CondExpr, IncExpr, Body) ->
-	InitAst = {call, Line,
-		{remote, Line, {atom, Line, st}, {atom, Line, insert}},
-		[{tuple, Line,
-				[{string, Line, atom_to_list(VarName)},
-					Start]}]},
+	
+	JavaNameAst = {string, Line, atom_to_list(VarName)},
+	TypeAst = {atom, Line, VarType},
+	ScopeAst = {atom, Line, st:get_scope()},
+	InitAst = {call, Line, {remote, Line, {atom, Line, st}, 
+			{atom, Line, put}},
+			[{tuple, Line, [ScopeAst, JavaNameAst]}, {tuple, Line, 
+			[TypeAst, Start]}]},
+
+	st:put({st:get_scope(), VarName}, {VarType, undefined}),
 
 	CondAst = {'fun', Line,	{clauses, [{clause, Line, [], [],
 				[match_attr_expr(CondExpr)]}]}},
@@ -271,10 +276,7 @@ create_while(Line, CondExpr, Body) ->
 	CondAst = {'fun', Line,	{clauses, [{clause, Line, [], [],
 			[match_attr_expr(CondExpr)]}]}},
 
-
 	CoreBody = match_inner_stmt(Body),
-
-
 
 	BodyAst = {'fun', Line, {clauses, [{clause, Line, [], [],
 					CoreBody}]}},

@@ -1,17 +1,46 @@
 -module(st).
--export([new/0, insert/1, get/1, delete/1]).
+-compile(export_all).	
 
 new() ->
-	TableName = ets:new(dict, [named_table]),
-	TableName.
+	ets:new(dict, [named_table]).
 
-insert({VarName, VarValue}) ->
-	ets:insert(dict, {VarName,VarValue}).
 
-get(VarName) ->
-	VarValue = ets:lookup(dict,VarName),
-	[{_Key , Value}] = VarValue,
+%%SEMÂNTICA E GERAÇÃO DE CÓDIGO
+
+%% VarValue na análise semântica: undefined indica que não foi inicializada
+insert_var_list(Scope, [{identifier, VarName} | []], Type, VarValue) ->
+	st:put({Scope, VarName}, {Type, VarValue});
+
+insert_var_list(Scope, [{identifier, VarName} | Rest], Type, VarValue) ->
+	st:put({Scope, VarName}, {Type, VarValue}),
+	insert_var_list(Scope, Rest, Type, VarValue).
+
+%% Semântica - Key = {Scope, VarName}, Value = {Type, VarValue}
+put(Key, Value) ->
+	ets:insert(dict, {Key, Value}),
+	no_operation.
+
+get(Scope, VarName) ->
+	VarValue = ets:lookup(dict, {Scope, VarName}),
+	[{_Key , {_Type, Value}}] = VarValue,
 	Value.
 
-delete(VarName) ->
-	ets:delete(dict, VarName).
+delete(Scope, VarName) ->
+	ets:delete(dict, {Scope, VarName}).
+
+%% SEMÂNTICA
+get2(Scope, VarName) ->
+	VarValue = ets:lookup(dict, {Scope, VarName}),
+	case VarValue of
+		[{_Key , Value}] ->
+					Value;
+		[] ->
+			jaraki_exception:handle_error("Variable not declared")
+	end.
+
+put_scope(Scope) ->
+	ets:insert(dict, {scope, Scope}).
+
+get_scope() ->
+	[{_Key, Scope}] = ets:lookup(dict, scope),
+	Scope.

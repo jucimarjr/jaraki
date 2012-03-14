@@ -13,8 +13,6 @@
 
 -include("../include/jaraki_define.hrl").
 
-
-
 compile(JavaFileName) ->
 	compile(file, JavaFileName).
 
@@ -75,4 +73,3 @@ create_erl_file(ErlangAST, ErlangFileName) ->
 	{ok, WriteDescriptor} = file:open(ErlangFileName, [raw, write]),
 	file:write(WriteDescriptor, ErlangCode),
 	file:close(WriteDescriptor).
-
