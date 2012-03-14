@@ -13,8 +13,11 @@
 
 -include("../include/jaraki_define.hrl").
 
+<<<<<<< HEAD
 %%-----------------------------------------------------------------------------
 %% Interface com o usuario final. Compila 1 arquivo java
+=======
+>>>>>>> c5a417666735dfa29b81dd9a09aae7f766d8a1db
 compile(JavaFileName) ->
 	compile(file, JavaFileName).
 
@@ -103,4 +106,3 @@ create_erl_file(ErlangAST, ErlangFileName) ->
 	{ok, WriteDescriptor} = file:open(ErlangFileName, [raw, write]),
 	file:write(WriteDescriptor, ErlangCode),
 	file:close(WriteDescriptor).
-

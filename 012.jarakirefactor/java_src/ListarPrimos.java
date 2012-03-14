@@ -17,11 +17,11 @@ public class ListarPrimos {
 		}
 	}
 
-	public static int ehprimo(int m) {
+	public static int ehprimo(int n) {
 		int primo;
 		primo = 0;
-		for (int j = 2; j <= m-1; j++){
-			if ((m % j) == 0){
+		for (int i = 2; i <= n-1; i++){
+			if ((n % i) == 0){
 					primo = primo + 1;	
 				}
 		}

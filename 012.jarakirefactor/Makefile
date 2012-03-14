@@ -3,7 +3,7 @@ EBIN_DIR=ebin
 INCLUDE_DIR=include
 TEST_EBIN_DIR=test/ebin
 
-ERLC=erlc -I $(INCLUDE_DIR) -W0
+ERLC=erlc -I $(INCLUDE_DIR)# -W0
 ERL=erl -noshell -pa $(EBIN_DIR) -pa $(TEST_EBIN_DIR)
 
 .PHONY: clean debug
