@@ -8,6 +8,8 @@ new() ->
 %%SEMÂNTICA E GERAÇÃO DE CÓDIGO
 
 %% VarValue na análise semântica: undefined indica que não foi inicializada
+%% TODO: verificar se variável já existe...
+%% TODO: duas variáveis
 insert_var_list(Scope, [{identifier, VarName} | []], Type, VarValue) ->
 	st:put({Scope, VarName}, {Type, VarValue});
 

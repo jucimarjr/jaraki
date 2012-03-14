@@ -267,7 +267,13 @@ create_for(Line, VarType, VarName, Start, CondExpr, IncExpr, Body) ->
 
 	ForAst = {call, Line, {atom, Line, for}, [CondAst, IncAst, BodyAst]},
 
-	ForBlock = [InitAst, ForAst],
+	EndAst = {call, Line, {remote, Line, {atom, Line, st}, 
+			{atom, Line, delete}},
+			[ScopeAst, JavaNameAst]},
+
+	st:delete(st:get_scope(), VarName),
+
+	ForBlock = [InitAst, ForAst, EndAst],
 
 	{block, Line, lists:flatten(ForBlock)}.
 
