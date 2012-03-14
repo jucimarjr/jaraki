@@ -14,6 +14,8 @@ compile: ebin/jaraki.beam src/jaraki_lexer.erl src/jaraki_parser.erl test/ebin/t
 test:   compile
 	@ echo EUnit testing...
 	@ $(ERL) -eval 'eunit:test("test/ebin", [verbose]), halt().'
+	@ mv *.erl $(TEST_EBIN_DIR)
+	@ mv *.beam $(TEST_EBIN_DIR)
 
 # This is the task when you intend to debug
 debug: ERLC += +debug_info
@@ -28,6 +30,8 @@ ebin/jaraki.beam: $(INCLUDE_DIR)/*.hrl src/*.erl
 $(TEST_EBIN_DIR)/test.beam : test/*.erl
 	@ echo Compiling Eunits tests...
 	@ mkdir -p $(TEST_EBIN_DIR)
+	@ rm -rf $(TEST_EBIN_DIR)/*.erl 
+	@ rm -rf $(TEST_EBIN_DIR)/*.beam 
 	@ $(ERLC) -o $(TEST_EBIN_DIR) test/test.erl
 	@ echo  
 
@@ -52,5 +56,6 @@ clean:
 	rm -f $(SRC_DIR)/jaraki_parser.erl
 	rm -rf $(EBIN_DIR)/*.beam
 	rm -rf $(TEST_EBIN_DIR)/*.beam
+	rm -rf $(TEST_EBIN_DIR)/*.erl
 	find . -name  *.*~ -print0 | xargs -0 rm
 	@ echo

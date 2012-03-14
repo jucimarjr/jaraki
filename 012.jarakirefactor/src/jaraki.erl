@@ -13,36 +13,63 @@
 
 -include("../include/jaraki_define.hrl").
 
-
-
+%%-----------------------------------------------------------------------------
+%% Interface com o usuario final. Compila 1 arquivo java
 compile(JavaFileName) ->
 	compile(file, JavaFileName).
 
+%%-----------------------------------------------------------------------------
+%% Escreve o codigo em erlang a partir do java.
+
+%% compila um diretorio inteiro de .java
 compile(dir,JavaFileDir) ->
 	JavaFileList = filelib:wildcard(JavaFileDir ++ "/*.java"),
 	lists:foreach( fun(X) -> compile(file,X) end, JavaFileList);
 
-%%-----------------------------------------------------------------------------
-%% Escreve o codigo em erlang a partir do java.
-%% TODO: tratar múltiplos arquivos, ou seja, múltiplas classes
-%% TODO: criar uma versão compile(JavaFileName,[options]) 
-compile(file, JavaFileName) ->
+%% compila um diretorio inteiro de .java e gera os .BEAM
+compile(dir_beam,JavaFileDir) ->
+	JavaFileList = filelib:wildcard(JavaFileDir ++ "/*.java"),
+	lists:foreach( fun(X) -> compile(file_beam,X) end, JavaFileList);
+
+%% compila um arquivo .java especifico e gera o .BEAM
+compile(file_beam, JavaFileName) ->
 	{_, _, StartTime} = now(),
 
+	ErlangFile = get_erl_file(JavaFileName),
+	
+	compile:file(ErlangFile),
+
+	{_, _, EndTime} = now(),
+	ElapsedTime = EndTime - StartTime,
+	io:format(
+		"~p -> ~p [ Compile and generate .BEAM time: ~p us (~p s) ]~n",
+		[filename:basename(JavaFileName),ErlangFile,ElapsedTime,ElapsedTime/1000000]
+	);
+
+%% compila um arquivo .java especifica e gera apenas o .ERL
+compile(file, JavaFileName) ->
+	{_, _, StartTime} = now(),
+	
+	ErlangFile = get_erl_file(JavaFileName),
+
+	{_, _, EndTime} = now(),
+	ElapsedTime = EndTime - StartTime,
+	io:format(
+		"~p -> ~p [ Compile time: ~p us (~p s) ]~n",
+		[filename:basename(JavaFileName),ErlangFile,ElapsedTime,ElapsedTime/1000000]
+	).
+
+
+%%-----------------------------------------------------------------------------
+%% Gera um arquivo .ERL a partir de um .JAVA
+get_erl_file(JavaFileName) ->
 	JavaAST = ast:get_java_ast(JavaFileName),
 	ErlangModuleName= get_erl_modulename(JavaAST),
 	ErlangFileName= get_erl_filename(ErlangModuleName),
 
 	{ok, ErlangAST} = core:transform_jast_to_east(JavaAST, ErlangModuleName),
 	create_erl_file(ErlangAST,ErlangFileName),
-	
-	{_, _, EndTime} = now(),
-	ElapsedTime = EndTime - StartTime,
-	io:format(
-		"~p -> ~p [ Compile time: ~p us (~p s) ]~n",
-		[JavaFileName,ErlangFileName,ElapsedTime,ElapsedTime/1000000]
-	).
-
+	ErlangFileName.
 
 %%-----------------------------------------------------------------------------
 %% Mostra a versao, autores e ano do Jaraki.
@@ -60,6 +87,7 @@ get_erl_filename(ErlangModuleName) ->
 
 %%-----------------------------------------------------------------------------
 %% Extrai o nome do modulo erlang partir do java ast
+%% o nome do modulo eh o nome da classe
 get_erl_modulename(JavaAST) ->
 	[{_Line, {class, JavaClassName}, _JavaClassBody}] = JavaAST,
 	ErlangModuleName = 
