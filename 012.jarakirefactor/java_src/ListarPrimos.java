@@ -1,7 +1,7 @@
 public class ListarPrimos {
 	public static void main(String[] args) {
-		int a, i, n;
-		
+		int a, i;
+		int n;
 		a = 2;
 		i = 0;
 		n = 10;

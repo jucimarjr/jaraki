@@ -11,16 +11,16 @@ new() ->
 %% TODO: verificar se variável já existe...
 %% TODO: duas variáveis
 insert_var_list(Scope, [{identifier, VarName} | []], Type, VarValue) ->
-	st:put({Scope, VarName}, {Type, VarValue});
+	get_declared(Scope, VarName, Type, VarValue),			
+	no_operation;
 
 insert_var_list(Scope, [{identifier, VarName} | Rest], Type, VarValue) ->
-	st:put({Scope, VarName}, {Type, VarValue}),
+	get_declared(Scope, VarName, Type, VarValue),	
 	insert_var_list(Scope, Rest, Type, VarValue).
 
 %% Semântica - Key = {Scope, VarName}, Value = {Type, VarValue}
 put(Key, Value) ->
-	ets:insert(dict, {Key, Value}),
-	no_operation.
+	ets:insert(dict, {Key, Value}).
 
 get(Scope, VarName) ->
 	VarValue = ets:lookup(dict, {Scope, VarName}),
@@ -38,6 +38,15 @@ get2(Scope, VarName) ->
 					Value;
 		[] ->
 			jaraki_exception:handle_error("Variable not declared")
+	end.
+
+get_declared(Scope, VarName, Type, VarValue) ->
+	case ets:lookup(dict, {Scope, VarName}) of
+		[] ->	
+			st:put({Scope, VarName}, {Type, VarValue});
+		[{_Key, _Value}] -> 
+			jaraki_exception:
+				handle_error("Variable already declared")
 	end.
 
 put_scope(Scope) ->
