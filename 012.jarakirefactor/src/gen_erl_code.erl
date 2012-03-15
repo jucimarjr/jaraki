@@ -10,6 +10,8 @@
 
 -module(gen_erl_code).
 -compile(export_all).
+-import(gen_ast,
+	[function/4, var/2, atom/2, rcall/4, string/2, tuple/2, atom/2]).
 -include("../include/jaraki_define.hrl").
 
 %%-----------------------------------------------------------------------------
@@ -123,10 +125,8 @@ match_attr_expr({atom, _Line, false} = Element) ->
 match_attr_expr({op, Line, Op, LeftExp, RightExp}) ->
 	{op, Line, Op, match_attr_expr(LeftExp), match_attr_expr(RightExp)};
 match_attr_expr({var, Line, VarName}) ->
-	{call, Line, {remote, Line,
-		{atom, Line, st},{atom, Line, get}},
-			[{atom, Line, st:get_scope()},
-				{string, Line, atom_to_list(VarName)}]}.
+	rcall(Line, st, get,
+		[atom(Line, st:get_scope()), string(Line, VarName)]).
 
 %%-----------------------------------------------------------------------------
 %% Cria o elemento da east para as funcoes de impressao do java
@@ -135,23 +135,19 @@ create_print_function(Line, print, Content) ->
 	PrintText = print_test(Content, Line, [], print),
 	PrintContent = print_list(Content, Line),
 
-	{call, Line, {remote, Line,
-		{atom, Line, io}, {atom, Line, format}}, 
-		[PrintText, PrintContent]};
+	rcall(Line, io, format, [PrintText, PrintContent]);
 
 create_print_function(Line, println, Content) ->
 
 	PrintText = print_test(Content, Line, [], println),
 	PrintContent = print_list(Content, Line),
 
-	{call, Line, {remote, Line,
-		{atom, Line, io}, {atom, Line, format}}, 
-		[PrintText, PrintContent]}.
+	rcall(Line, io, format, [PrintText, PrintContent]).
 
 print_test([], Line, Text, print) ->
-	{string, Line, Text};
+	string(Line, Text);
 print_test([], Line, Text, println) ->
-	{string, Line, Text ++ "~n"};
+	string(Line, Text ++ "~n");
 print_test([Head | L], Line, Text, _print) ->
 	{Type, _, _PrintElement} = Head,
 	case Type of
