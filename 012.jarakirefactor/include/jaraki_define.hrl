@@ -9,7 +9,9 @@
 %% Objetivo : Mostrar versão, equipe, ano e definição de record
 
 -define(VSN, 0.005).
--define(TEAM, ['uea_ludus@googlegroups.com', 'Jucimar Jr', 'Daniel Henrique', 'Eden', 'Helder Batista', 'Josiane Rodrigues', 'Lidia Lizziane', 'Rodrigo Bernardino']).
+-define(TEAM, ['uea_ludus@googlegroups.com', 'Jucimar Jr', 'Daniel Henrique', 
+		'Eden', 'Helder Batista', 'Josiane Rodrigues', 
+		'Lidia Lizziane', 'Rodrigo Bernardino']).
 -define(YEAR, 2012).
 
 %% Esse record define uma variavel, usado na analise semantica

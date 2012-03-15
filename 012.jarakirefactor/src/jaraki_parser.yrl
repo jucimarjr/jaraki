@@ -109,7 +109,7 @@ expression -> while_expr	: '$1'.
 expression -> if_expr		: '$1'.
 expression -> if_else_expr	: '$1'.
 expression -> no_trailing_expr	: '$1'.
-expression -> return_expr	: '$1'.
+
 
 no_short_if_expr -> for_no_trailing	: '$1'.
 no_short_if_expr -> while_no_trailing	: '$1'.
@@ -118,7 +118,7 @@ no_trailing_expr -> var_declaration	: '$1'.
 no_trailing_expr -> attribution 	: '$1'.
 no_trailing_expr -> print_expr 		: '$1'.
 no_trailing_expr -> increment_expr	: '$1'.
-
+no_trailing_expr -> return_expr		: '$1'.
 no_short_if_expr -> no_trailing_expr 	: '$1'.
 no_short_if_expr -> if_else_no_trailing : '$1'.
 
