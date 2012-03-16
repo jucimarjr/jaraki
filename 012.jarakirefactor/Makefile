@@ -6,7 +6,7 @@ JAVA_SRC_DIR = java_src
 JAVA_CLASS_DIR = $(JAVA_SRC_DIR)/class
 ERLC=erlc -I $(INCLUDE_DIR)# -W0
 ERL=erl -noshell -pa $(EBIN_DIR) -pa $(TEST_EBIN_DIR)
-JAVAC=javac
+JAVAC=javac -verbose
 JAVA=java
 
 .PHONY: clean debug
@@ -53,6 +53,7 @@ src/jaraki_parser.erl: src/jaraki_parser.yrl
 
 java: java_src/*.java
 	@ echo Compiling java source ...
+	@ rm -rf $(JAVA_CLASS_DIR)/
 	@ mkdir -p $(JAVA_CLASS_DIR)
 	@ $(JAVAC) -d $(JAVA_CLASS_DIR) $(JAVA_SRC_DIR)/*.java
 	@ echo
@@ -63,8 +64,8 @@ clean:
 	rm -f $(SRC_DIR)/jaraki_lexer.erl
 	rm -f $(SRC_DIR)/jaraki_parser.erl
 	rm -rf $(EBIN_DIR)/*.beam
-	rm -rf $(TEST_EBIN_DIR)/*.*
-	find . -name  *.class -print0 | xargs -0
+	rm -rf $(TEST_EBIN_DIR)/
+	rm -rf $(JAVA_CLASS_DIR)/
 	find . -name  *.*~ -print0 | xargs -0
 	find . -name  *~ -print0 | xargs -0
 	@ echo

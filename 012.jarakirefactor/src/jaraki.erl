@@ -13,23 +13,52 @@
 
 -include("../include/jaraki_define.hrl").
 
-%% Interface com o usuario final. Compila 1 arquivo java
-compile(JavaFileName) ->
+%%-----------------------------------------------------------------------------
+%% Interface com o usuario final. Compila 1 arquivo java, gera o .erl e o .beam
+compile({beam,JavaFileName}) ->
 	{_, _, StartTime} = now(),
 	
-	JavaAST = ast:get_java_ast(JavaFileName),
-	ErlangModuleName= get_erl_modulename(JavaAST),
-	ErlangFileName= get_erl_filename(ErlangModuleName),
-
-	{ok, ErlangAST} = core:transform_jast_to_east(JavaAST, ErlangModuleName),
-	create_erl_file(ErlangAST,ErlangFileName),
+	ErlangFile = get_erl_file(JavaFileName),
+	
+	compile:file(ErlangFile),
 
 	{_, _, EndTime} = now(),
 	ElapsedTime = EndTime - StartTime,
 	io:format(
 		"~p -> ~p [ Compile time: ~p us (~p s) ]~n",
-		[filename:basename(JavaFileName),ErlangFileName,ElapsedTime,ElapsedTime/1000000]
+		[
+			filename:basename(JavaFileName),
+			ErlangFile,
+			ElapsedTime,
+			ElapsedTime/1000000
+		]
+	);
+
+%%-----------------------------------------------------------------------------
+%% Interface com o usuario final. Compila 1 arquivo java
+compile(JavaFileName) ->
+	{_, _, StartTime} = now(),
+	
+	ErlangFile = get_erl_file(JavaFileName),
+
+	{_, _, EndTime} = now(),
+	ElapsedTime = EndTime - StartTime,
+	io:format(
+		"~p -> ~p [ Compile time: ~p us (~p s) ]~n",
+		[filename:basename(JavaFileName),ErlangFile,ElapsedTime,ElapsedTime/1000000]
 	).
+
+%%-----------------------------------------------------------------------------
+%% gera um arquivo .erl de um .java 
+get_erl_file(JavaFileName) ->
+	JavaAST = ast:get_java_ast(JavaFileName),
+	ErlangModuleName= get_erl_modulename(JavaAST),
+	ErlangFileName= get_erl_filename(ErlangModuleName),
+	{ok, ErlangAST} = core:transform_jast_to_east(JavaAST, ErlangModuleName),
+	create_erl_file(ErlangAST,ErlangFileName),
+	ErlangFileName.
+
+
 
 %%-----------------------------------------------------------------------------
 %% Mostra a versao, autores e ano do Jaraki.
