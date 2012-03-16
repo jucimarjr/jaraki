@@ -2,7 +2,8 @@ SRC_DIR=src
 EBIN_DIR=ebin
 INCLUDE_DIR=include
 TEST_EBIN_DIR=test/ebin
-
+JAVA_SRC = java_src
+JAVA_SRC_CLASS = java_src/class
 ERLC=erlc -I $(INCLUDE_DIR)# -W0
 ERL=erl -noshell -pa $(EBIN_DIR) -pa $(TEST_EBIN_DIR)
 
@@ -51,11 +52,15 @@ src/jaraki_parser.erl: src/jaraki_parser.yrl
 
 clean:
 	@ echo Cleaning...
+	rm -f *.beam
+	rm -f *.erl
 	rm -f erl_crash.dump
 	rm -f $(SRC_DIR)/jaraki_lexer.erl
 	rm -f $(SRC_DIR)/jaraki_parser.erl
 	rm -rf $(EBIN_DIR)/*.beam
 	rm -rf $(TEST_EBIN_DIR)/*.beam
 	rm -rf $(TEST_EBIN_DIR)/*.erl
-	find . -name  *.*~ -print0 | xargs -0 rm
+	rm -rf $(JAVA_SRC)/*.class
+	rm -rf $(JAVA_SRC_CLASS)/*.class
+	find . -name  *.*~ -print0 | xargs -0
 	@ echo
