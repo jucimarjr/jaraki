@@ -1,6 +1,6 @@
 package jaraki;
 
-public class TestandoFor {
+public class TestandoFor1 {
 
     public static void main(String[] Args) {
 

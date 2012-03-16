@@ -2,10 +2,12 @@ SRC_DIR=src
 EBIN_DIR=ebin
 INCLUDE_DIR=include
 TEST_EBIN_DIR=test/ebin
-JAVA_SRC = java_src
-JAVA_SRC_CLASS = java_src/class
+JAVA_SRC_DIR = java_src
+JAVA_CLASS_DIR = $(JAVA_SRC_DIR)/class
 ERLC=erlc -I $(INCLUDE_DIR)# -W0
 ERL=erl -noshell -pa $(EBIN_DIR) -pa $(TEST_EBIN_DIR)
+JAVAC=javac
+JAVA=java
 
 .PHONY: clean debug
 
@@ -31,8 +33,8 @@ ebin/jaraki.beam: $(INCLUDE_DIR)/*.hrl src/*.erl
 $(TEST_EBIN_DIR)/test.beam : test/*.erl
 	@ echo Compiling Eunits tests...
 	@ mkdir -p $(TEST_EBIN_DIR)
-	@ rm -rf $(TEST_EBIN_DIR)/*.erl 
-	@ rm -rf $(TEST_EBIN_DIR)/*.beam 
+	@ rm -rf $(TEST_EBIN_DIR)/*.beam
+	@ rm -rf $(TEST_EBIN_DIR)/*.erl
 	@ $(ERLC) -o $(TEST_EBIN_DIR) test/test.erl
 	@ echo  
 
@@ -50,17 +52,20 @@ src/jaraki_parser.erl: src/jaraki_parser.yrl
 	@ $(ERLC) -o $(EBIN_DIR) $@
 	@ echo
 
+java: java_src/*.java
+	@ echo Compiling java source ...
+	@ mkdir -p $(JAVA_CLASS_DIR)
+	@ $(JAVAC) -d $(JAVA_CLASS_DIR) $(JAVA_SRC_DIR)/*.java
+	@ echo
+
 clean:
 	@ echo Cleaning...
-	rm -f *.beam
-	rm -f *.erl
 	rm -f erl_crash.dump
 	rm -f $(SRC_DIR)/jaraki_lexer.erl
 	rm -f $(SRC_DIR)/jaraki_parser.erl
 	rm -rf $(EBIN_DIR)/*.beam
-	rm -rf $(TEST_EBIN_DIR)/*.beam
-	rm -rf $(TEST_EBIN_DIR)/*.erl
-	rm -rf $(JAVA_SRC)/*.class
-	rm -rf $(JAVA_SRC_CLASS)/*.class
+	rm -rf $(TEST_EBIN_DIR)/*.*
+	find . -name  *.class -print0 | xargs -0
 	find . -name  *.*~ -print0 | xargs -0
+	find . -name  *~ -print0 | xargs -0
 	@ echo

@@ -1,4 +1,4 @@
-public class Testandowhile1{
+public class TestandoWhile1{
 
   public static void main(String[] args){
     

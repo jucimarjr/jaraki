@@ -1,6 +1,6 @@
 package testandoFor;
 
-public class For7 {
+public class TestandoFor7 {
 	  public static void main(String[] Args) {
 
 	    float s;

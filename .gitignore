@@ -1,5 +1,8 @@
 *.beam
 *.*~
+*~
+*.class
+test/beam/*
 jaraki_lexer.erl
 jaraki_parser.erl
 *.dump
