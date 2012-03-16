@@ -4,6 +4,8 @@
 new() ->
 	ets:new(dict, [named_table]).
 
+destroy() ->
+	ets:delete(dict).
 
 %%SEMÂNTICA E GERAÇÃO DE CÓDIGO
 

@@ -9,66 +9,27 @@
 %% Objetivo : Compilar arquivos java para a VM do Erlang 
 
 -module(jaraki).
--export([compile/1, compile/2, get_version/0]).
+-export([compile/1, get_version/0]).
 
 -include("../include/jaraki_define.hrl").
 
 %% Interface com o usuario final. Compila 1 arquivo java
 compile(JavaFileName) ->
-	compile(file, JavaFileName).
-
-%%-----------------------------------------------------------------------------
-%% Escreve o codigo em erlang a partir do java.
-
-%% compila um diretorio inteiro de .java
-compile(dir,JavaFileDir) ->
-	JavaFileList = filelib:wildcard(JavaFileDir ++ "/*.java"),
-	lists:foreach( fun(X) -> compile(file,X) end, JavaFileList);
-
-%% compila um diretorio inteiro de .java e gera os .BEAM
-compile(dir_beam,JavaFileDir) ->
-	JavaFileList = filelib:wildcard(JavaFileDir ++ "/*.java"),
-	lists:foreach( fun(X) -> compile(file_beam,X) end, JavaFileList);
-
-%% compila um arquivo .java especifico e gera o .BEAM
-compile(file_beam, JavaFileName) ->
-	{_, _, StartTime} = now(),
-
-	ErlangFile = get_erl_file(JavaFileName),
-	
-	compile:file(ErlangFile),
-
-	{_, _, EndTime} = now(),
-	ElapsedTime = EndTime - StartTime,
-	io:format(
-		"~p -> ~p [ Compile and generate .BEAM time: ~p us (~p s) ]~n",
-		[filename:basename(JavaFileName),ErlangFile,ElapsedTime,ElapsedTime/1000000]
-	);
-
-%% compila um arquivo .java especifica e gera apenas o .ERL
-compile(file, JavaFileName) ->
 	{_, _, StartTime} = now(),
 	
-	ErlangFile = get_erl_file(JavaFileName),
-
-	{_, _, EndTime} = now(),
-	ElapsedTime = EndTime - StartTime,
-	io:format(
-		"~p -> ~p [ Compile time: ~p us (~p s) ]~n",
-		[filename:basename(JavaFileName),ErlangFile,ElapsedTime,ElapsedTime/1000000]
-	).
-
-
-%%-----------------------------------------------------------------------------
-%% Gera um arquivo .ERL a partir de um .JAVA
-get_erl_file(JavaFileName) ->
 	JavaAST = ast:get_java_ast(JavaFileName),
 	ErlangModuleName= get_erl_modulename(JavaAST),
 	ErlangFileName= get_erl_filename(ErlangModuleName),
 
 	{ok, ErlangAST} = core:transform_jast_to_east(JavaAST, ErlangModuleName),
 	create_erl_file(ErlangAST,ErlangFileName),
-	ErlangFileName.
+
+	{_, _, EndTime} = now(),
+	ElapsedTime = EndTime - StartTime,
+	io:format(
+		"~p -> ~p [ Compile time: ~p us (~p s) ]~n",
+		[filename:basename(JavaFileName),ErlangFileName,ElapsedTime,ElapsedTime/1000000]
+	).
 
 %%-----------------------------------------------------------------------------
 %% Mostra a versao, autores e ano do Jaraki.

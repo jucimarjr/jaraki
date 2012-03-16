@@ -32,9 +32,8 @@ ebin/jaraki.beam: $(INCLUDE_DIR)/*.hrl src/*.erl
 
 $(TEST_EBIN_DIR)/test.beam : test/*.erl
 	@ echo Compiling Eunits tests...
+	@ rm -rf $(TEST_EBIN_DIR)/
 	@ mkdir -p $(TEST_EBIN_DIR)
-	@ rm -rf $(TEST_EBIN_DIR)/*.beam
-	@ rm -rf $(TEST_EBIN_DIR)/*.erl
 	@ $(ERLC) -o $(TEST_EBIN_DIR) test/test.erl
 	@ echo  
 

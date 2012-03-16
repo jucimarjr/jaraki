@@ -24,12 +24,14 @@
 %% TODO: tratar múltiplos arquivos, ou seja, múltiplas classes
 transform_jast_to_east(JavaAST, ErlangModuleName) ->
 
+	st:new(),
 	ErlangModuleBody =
 		lists:map(
 			fun(JavaClass) -> get_erl_body(JavaClass) end,
 			JavaAST
 		),
 	ErlangModule = create_module(ErlangModuleName, ErlangModuleBody),
+	st:destroy(),
 	{ok, ErlangModule}.
 
 
@@ -38,7 +40,6 @@ transform_jast_to_east(JavaAST, ErlangModuleName) ->
 %% TODO: Tratar atributos ("variáveis globais") da classe...
 get_erl_body(JavaClass) ->
 
-	st:new(),
 	{_Line, _JavaClassName, {class_body, JavaClassBody}} = JavaClass,
 	lists:map(fun(JavaMethod) -> get_erl_function(JavaMethod) end,
 					JavaClassBody).
