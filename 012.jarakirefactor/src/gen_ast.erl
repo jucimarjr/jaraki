@@ -22,10 +22,22 @@ atom(Line, Name) when is_atom(Name) ->
 atom(Line, Name) when is_list(Name) ->
 	{atom, Line, list_to_atom(Name)}.
 
+call(Line, FunctionName, Arguments) ->
+	{call, Line, atom(Line, FunctionName), Arguments}.
+
 rcall(Line, ModuleName, FunctionName, Arguments) ->
 	{call, Line,
 		{remote, Line, atom(Line, ModuleName), atom(Line, FunctionName)},
 		Arguments}.
+
+'case'(Line, Condiction, Patterns) ->
+	{'case', Line, Condiction, Patterns}.
+
+clause(Line, Pattern, Guard, Body)->
+	{clause, Line, Pattern, Guard, Body}.
+
+'fun'(Line, Clauses) ->
+	{'fun', Line, {clauses, Clauses}}.
 
 tuple(Line, Arguments) ->
 	{tuple, Line, Arguments}.

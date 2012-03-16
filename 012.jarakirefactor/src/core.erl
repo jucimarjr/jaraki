@@ -11,7 +11,10 @@
 -module(core).
 -export([transform_jast_to_east/2]).
 -import(gen_ast,
-	[function/4, var/2, atom/2, rcall/4, string/2, tuple/2, atom/2]).
+	[
+		function/4, var/2, atom/2, call/3, rcall/4, 'case'/3, clause/4, 
+		'fun'/2, string/2, tuple/2, atom/2
+	]).
 -include("../include/jaraki_define.hrl").
 
 %%-----------------------------------------------------------------------------

@@ -11,7 +11,10 @@
 -module(gen_erl_code).
 -compile(export_all).
 -import(gen_ast,
-	[function/4, var/2, atom/2, rcall/4, string/2, tuple/2, atom/2]).
+	[
+		function/4, var/2, atom/2, call/3, rcall/4, 'case'/3, clause/4, 
+		'fun'/2, string/2, tuple/2, atom/2
+	]).
 -include("../include/jaraki_define.hrl").
 
 %%-----------------------------------------------------------------------------
@@ -28,7 +31,7 @@ match_statement({Line, println, Content}) ->
 
 
 %% transforma chamadas de funcoes em Erlang
-match_statement( {function_call, {Line, FunctionName},
+match_statement({function_call, {Line, FunctionName},
 					{argument_list, ArgumentsList}}) ->
 	create_function_call(Line, FunctionName, ArgumentsList);
 
@@ -70,7 +73,7 @@ match_statement(
 	{
 		Line,
 		for,
-		{for_init, {var_type, VarType},	{var_name, VarName} },
+		{for_init, {var_type, VarType},	{var_name, VarName}},
 		{for_start, Start},
 		{condition_expr, CondExpr},
 		{inc_expr, IncExpr},
@@ -162,14 +165,12 @@ print_list([], Line) ->
 print_list([Element|L], Line) ->
 	{Type, _, PrintElement} = Element,
 	case Type of
-	 identifier ->
-	   Identifier = {call, Line, {remote, Line,
-			{atom, Line, st},{atom, Line, get}},
-				[{atom, Line, st:get_scope()}, 
-				{string, Line, atom_to_list(PrintElement)}]},
-			{cons, Line, Identifier, print_list(L, Line)};
+	identifier ->
+		Identifier = rcall(Line, st, get, [atom(Line, st:get_scope()), 
+				string(Line, PrintElement)]),
+		{cons, Line, Identifier, print_list(L, Line)};
 	text ->
-		{cons, Line, {string, Line, PrintElement}, print_list(L, Line)}
+		{cons, Line, string(Line, PrintElement), print_list(L, Line)}
 end.
 
 %%---------------------------------------------------------------------------%%
@@ -177,21 +178,24 @@ end.
 create_function_call(Line, FunctionName, ArgumentsList) ->
 	TransformedArgumentList = 
 		lists:map(fun match_attr_expr/1, ArgumentsList),
-	{call, Line, {atom, Line, FunctionName}, TransformedArgumentList}.
+	call(Line, FunctionName, TransformedArgumentList).
+
 
 %%-----------------------------------------------------------------------------
 %% Cria o elemento da east para atribuiçao de variaveis do java
 create_attribution(Line, VarName, VarValue) ->
+
 	TransformedVarValue = match_attr_expr(VarValue),
-	JavaNameAst = {string, Line, atom_to_list(VarName)},
+	JavaNameAst = string(Line, VarName),
 	
 	{Type, _Value} = st:get2(st:get_scope(), VarName),	
-	TypeAst = {atom, Line, Type},
-	ScopeAst = {atom, Line, st:get_scope()},
-	
-	{call, Line, {remote, Line, {atom, Line, st}, {atom, Line, put}},
-			[{tuple, Line, [ScopeAst, JavaNameAst]}, {tuple, Line, 
-			[TypeAst, TransformedVarValue]}]}.
+	TypeAst = atom(Line, Type),
+	ScopeAst = atom(Line, st:get_scope()),
+
+	rcall(Line, st, put, [
+				tuple(Line, [ScopeAst, JavaNameAst]), 
+				tuple(Line, [TypeAst, TransformedVarValue])
+			]).
 
 %%-----------------------------------------------------------------------------
 %% Cria a operacao de incremento ++
@@ -202,7 +206,7 @@ create_inc_op(Line, IncOp, {var, _VarLine, VarName} = VarAst) ->
 				'--' ->	'-'
 			end,
 
-		VarValue = {op, Line, Inc, VarAst, {integer, Line,1}},
+		VarValue = {op, Line, Inc, VarAst, {integer, Line, 1}},
 		create_attribution(Line, VarName, VarValue).
 
 %%-----------------------------------------------------------------------------
@@ -210,77 +214,47 @@ create_inc_op(Line, IncOp, {var, _VarLine, VarName} = VarAst) ->
 create_if(Line, Condition, IfExpr) ->
 	TransformedCondition = match_attr_expr(Condition),
 	TransformedIfExpr = match_inner_stmt(IfExpr),
-	{
-		'case',
-		Line,
-		TransformedCondition,
-		[{ clause, Line, [{atom, Line, true}], [], TransformedIfExpr},
-			{
-				clause,
-				Line,
-				[{var, Line, false}],
-				[],
-				[{atom, Line, no_operation}]
-			}
-		]
-	}.
+	'case'(Line, TransformedCondition, [
+		clause(Line, [atom(Line, true)], [], TransformedIfExpr),
+		clause(Line, [atom(Line, false)], [], [atom(Line, no_operation)])
+	]).
 
 create_if(Line, Condition, IfExpr, ElseExpr) ->
 	TransformedCondition = match_attr_expr(Condition),
 	TransformedIfExpr = match_inner_stmt(IfExpr),
 	TransformedElseExpr = match_inner_stmt(ElseExpr),
-	{'case', Line, TransformedCondition,
-	[
-		{clause, Line, [{atom, Line, true}], [], TransformedIfExpr},
-		{clause, Line, [{atom, Line, false}], [], TransformedElseExpr}
-	]
-	}.
+	'case'(Line, TransformedCondition,[
+		clause(Line, [atom(Line, true)], [], TransformedIfExpr),
+		clause(Line, [atom(Line, false)], [], TransformedElseExpr)
+	]).
 
 %%-----------------------------------------------------------------------------
 %% Cria o FOR
 create_for(Line, VarType, VarName, Start, CondExpr, IncExpr, Body) ->
-	
-	JavaNameAst = {string, Line, atom_to_list(VarName)},
-	TypeAst = {atom, Line, VarType},
+	JavaNameAst = string(Line, VarName),
+	TypeAst = atom(Line, VarType),
 	ScopeAst = {atom, Line, st:get_scope()},
-	InitAst = {call, Line, {remote, Line, {atom, Line, st}, 
-			{atom, Line, put}},
-			[{tuple, Line, [ScopeAst, JavaNameAst]}, {tuple, Line, 
-			[TypeAst, Start]}]},
+	InitAst = rcall(Line, st, put,[
+			tuple(Line, [ScopeAst, JavaNameAst]), 
+			tuple(Line, [TypeAst, Start])]),
 
 	st:put({st:get_scope(), VarName}, {VarType, undefined}),
 
-	CondAst = {'fun', Line,	{clauses, [{clause, Line, [], [],
-				[match_attr_expr(CondExpr)]}]}},
-
-	IncAst = {'fun', Line, {clauses, [{clause, Line, [], [],
-				[match_statement(IncExpr)]}]}},
-
-	%% TODO verificar nome melhor para CoreBody
+	CondAst = 'fun'(Line, [clause(Line, [], [], [match_attr_expr(CondExpr)])]),
+	IncAst = 'fun'(Line, [clause(Line, [], [], [match_statement(IncExpr)])]),
 	CoreBody = match_inner_stmt(Body),
-
-	BodyAst = {'fun', Line, {clauses, [{clause, Line, [], [], CoreBody}]}},
-
-	ForAst = {call, Line, {atom, Line, for}, [CondAst, IncAst, BodyAst]},
-
-	EndAst = {call, Line, {remote, Line, {atom, Line, st}, 
-			{atom, Line, delete}},
-			[ScopeAst, JavaNameAst]},
+	BodyAst = 'fun'(Line, [clause(Line, [], [], CoreBody)]),
+	ForAst = call(Line, for, [CondAst, IncAst, BodyAst]),
+	EndAst = rcall(Line, st, delete, [ScopeAst, JavaNameAst]),
 
 	st:delete(st:get_scope(), VarName),
 
 	ForBlock = [InitAst, ForAst, EndAst],
-
 	{block, Line, lists:flatten(ForBlock)}.
 
 create_while(Line, CondExpr, Body) ->
 
-	CondAst = {'fun', Line,	{clauses, [{clause, Line, [], [],
-			[match_attr_expr(CondExpr)]}]}},
-
+	CondAst = 'fun'(Line, [clause(Line, [], [], [match_attr_expr(CondExpr)])]),
 	CoreBody = match_inner_stmt(Body),
-
-	BodyAst = {'fun', Line, {clauses, [{clause, Line, [], [],
-					CoreBody}]}},
-
-	{call, Line, {atom, Line, while}, [CondAst, BodyAst]}.
+	BodyAst = 'fun'(Line, [clause(Line, [], [], CoreBody)]),
+	call(Line, while, [CondAst, BodyAst]).
