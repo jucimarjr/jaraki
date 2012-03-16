@@ -117,6 +117,8 @@ match_attr_expr({op, Line, Op, RightExp}) ->
 match_attr_expr({function_call, {Line, FunctionName},
 			{argument_list, ArgumentsList}}) ->
 	create_function_call(Line, FunctionName, ArgumentsList);
+match_attr_expr({sqrt, Line, RightExp}) ->
+	rcall(Line, math, sqrt, [match_attr_expr(RightExp)]);
 match_attr_expr({integer, _Line, _Value} = Element) ->
 	Element;
 match_attr_expr({float, _Line, _Value} = Element) ->

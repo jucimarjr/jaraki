@@ -1,10 +1,11 @@
 public class Crivo {
 
 	public static void main(String[] args) {
-		int n, maior, cont;
+		int n, cont;
+		double maior;
 		cont = 0;
 		n = 1000;
-		maior = (int) Math.sqrt(n);
+		maior = Math.sqrt(n);
 
 		for(int i = 2; i <= n; i++){
 			cont  = 0;

@@ -23,6 +23,7 @@ add_expr mult_expr rem_expr
 unary_expr literal
 comp_expr bool_expr
 attribution
+sqrt_expr
 print_expr print_content if_expr if_else_expr if_else_no_trailing
 return_expr
 for_expr for_no_trailing
@@ -34,7 +35,7 @@ increment_expr_for increment_expr
 expression.
 
 Terminals
-package import class public static void main return print println
+package import class public static void main return sqrt print println
 '(' ')' '[' ']' '{' '}' ';' '=' '.' '.*' ','
 int_t float_t double_t boolean_t
 'if' 'else' true false
@@ -140,6 +141,8 @@ var_list -> identifier	',' var_list	: [{identifier, unwrap('$1')} | '$3'].
 attribution ->	identifier '=' var_value ';':
 	{line('$1'),
 		attribution, {var, unwrap('$1')}, {var_value, '$3'}}.
+
+sqrt_expr -> sqrt '(' var_value ')': {sqrt, line('$1'), '$3'}.
 
 %% trata expressoes do tipo [ System.out.print( texto + identificador ) ]
 print_expr -> print '(' print_content ')' ';':
@@ -263,13 +266,15 @@ rem_expr -> unary_expr						: '$1'.
 unary_expr -> add_op literal    : {op, line('$1'), unwrap('$1'), '$2'}.
 unary_expr -> literal           : '$1'.
 
+literal -> function_call: '$1'.
+literal -> sqrt_expr : '$1'.
 literal -> integer : '$1'.
 literal -> float : '$1'.
 literal -> identifier :  {var, line('$1'), unwrap('$1')}.
 literal -> '(' add_expr ')' : '$2'.
-literal -> function_call: '$1'.
 literal -> true : {atom, line('$1'), true}.
 literal -> false: {atom, line('$1'), false}.
+
 Erlang code.
 
 unwrap({_, _, Value})	-> Value.

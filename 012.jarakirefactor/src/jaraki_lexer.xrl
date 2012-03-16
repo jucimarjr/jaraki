@@ -33,6 +33,7 @@ For				= for
 While				= while
 True				= true
 False				= false
+Sqrt				= Math.sqrt
 Print				= System.out.print
 Println				= System.out.println
 Digit				= [0-9]
@@ -81,6 +82,7 @@ Rules.
 {While}		: {token, {'while',	TokenLine, list_to_atom(TokenChars)}}.
 {True}		: {token, {true,	TokenLine, list_to_atom(TokenChars)}}.
 {False}		: {token, {false,	TokenLine, list_to_atom(TokenChars)}}.
+{Sqrt}		: {token, {sqrt,	TokenLine, list_to_atom(TokenChars)}}.
 {Print}		: {token, {print,	TokenLine, list_to_atom(TokenChars)}}.
 {Println}	: {token, {println,	TokenLine, list_to_atom(TokenChars)}}.
 
