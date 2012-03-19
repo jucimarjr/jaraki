@@ -13,6 +13,9 @@
 
 Definitions.
 
+Comment			= /\*((.)||(\n)||(\r))*\*/
+CommentInline	= //(.)*\n
+
 Package				= package
 
 Import				= import
@@ -27,9 +30,9 @@ Integer				= int
 Float				= float
 Double				= double
 Boolean				= boolean
-If				= if
+If					= if
 Else				= else
-For				= for
+For					= for
 While				= while
 True				= true
 False				= false
@@ -47,7 +50,7 @@ OpenBrackets		= \[
 CloseBrackets		= \]
 OpenKeys		= \{
 CloseKeys		= \}
-Dot			= \.
+Dot				= \.
 Comma			= ,
 Semicolon		= ;
 Equal			= =
@@ -63,6 +66,9 @@ IncOp			= (\+\+|--)
 WhiteSpace		= [\s|\n|\t]
 
 Rules.
+
+{Comment}		: skip_token.
+{CommentInline}	: skip_token.
 
 {Package}	: {token, {package,	TokenLine, list_to_atom(TokenChars)}}.
 {Import}	: {token, {import,	TokenLine, list_to_atom(TokenChars)}}.
