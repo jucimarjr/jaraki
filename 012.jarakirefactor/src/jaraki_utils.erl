@@ -93,3 +93,11 @@ print_erl_ast_from_erlang(ErlangFileName) ->
 
 	io:format("Erlang Abstract Syntax Tree from ~p:~n", [ErlangFileName]),
 	io:format("~p~n", [ErlangAst]).
+
+%%-----------------------------------------------------------------------------
+%% calcula o tempo de execução de uma funcao em microssegundos
+get_runtime(Module, Func, N )->
+	{ElapsedTime, R} = timer:tc(Module, Func, [N]),
+	io:format("~p(~p): ~p [~p us]~n",[Func, N, R, ElapsedTime]).
+
+
