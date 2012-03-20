@@ -17,7 +17,9 @@ compile: ebin/jaraki.beam src/jaraki_lexer.erl src/jaraki_parser.erl test/ebin/t
 test:   compile
 	@ clear
 	@ echo EUnit testing...
-	@ rm -f $(TEST_EBIN_DIR)/*.erl
+	@ rm -rf $(TEST_EBIN_DIR)/
+	@ mkdir -p $(TEST_EBIN_DIR)
+	@ $(ERLC) -o $(TEST_EBIN_DIR) test/test.erl
 	@ $(ERL) -eval 'eunit:test("test/ebin", [verbose]), halt().'
 	@ mv *.erl $(TEST_EBIN_DIR)
 	@ mv *.beam $(TEST_EBIN_DIR)
