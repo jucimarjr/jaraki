@@ -37,7 +37,7 @@ expression.
 Terminals
 package import class public static void main return sqrt print println
 '(' ')' '[' ']' '{' '}' ';' '=' '.' '.*' ','
-int_t float_t double_t boolean_t
+int_t long_t float_t double_t boolean_t
 'if' 'else' true false
 for while
 integer float
@@ -233,6 +233,7 @@ argument ->		var_value   			: '$1'.
 
 var_type -> void	: {line('$1'), unwrap('$1')}.
 var_type -> int_t	: {line('$1'), unwrap('$1')}.
+var_type -> long_t	: {line('$1'), unwrap('$1')}.
 var_type -> float_t	: {line('$1'), unwrap('$1')}.
 var_type -> double_t	: {line('$1'), unwrap('$1')}.
 var_type -> boolean_t	: {line('$1'), unwrap('$1')}.

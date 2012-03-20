@@ -12,7 +12,7 @@
 %% Definições dos tokens do analisador lexico do compilador
 
 Definitions.
-
+	
 Comment		= /\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/
 CommentInline	= //.*\n
 
@@ -27,6 +27,7 @@ Void				= void
 Main				= main
 Return				= return
 Integer				= int
+Long				= long
 Float				= float
 Double				= double
 Boolean				= boolean
@@ -79,6 +80,7 @@ Rules.
 {Main}		: {token, {main,	TokenLine, list_to_atom(TokenChars)}}.
 {Return}	: {token, {return,	TokenLine, list_to_atom(TokenChars)}}.
 {Integer}	: {token, {int_t,	TokenLine, list_to_atom(TokenChars)}}.
+{Long}		: {token, {long_t,	TokenLine, list_to_atom(TokenChars)}}.
 {Float}		: {token, {float_t,	TokenLine, list_to_atom(TokenChars)}}.
 {Double}	: {token, {double_t,	TokenLine, list_to_atom(TokenChars)}}.
 {Boolean}	: {token, {boolean_t,	TokenLine, list_to_atom(TokenChars)}}.
