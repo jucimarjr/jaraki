@@ -13,8 +13,8 @@
 
 Definitions.
 
-Comment		= /\*((.)||(\n)||(\r))*\*/
-CommentInline	= //(.)*\n
+Comment		= /\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/
+CommentInline	= //.*\n
 
 Package				= package
 
@@ -135,8 +135,8 @@ detect_special_char([$\\, SpecialChar | Rest], Output) ->
 	Char = case SpecialChar of
 		$\\	-> $\\;
 		$/	-> $/;
-		$\" -> $\";
-		$\' -> $\';
+		$\" 	-> $\";
+		$\' 	-> $\';
 		$b	-> $\b;
 		$d	-> $\d;
 		$e	-> $\e;
