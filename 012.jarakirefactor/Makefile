@@ -15,7 +15,9 @@ JAVA=java
 compile: ebin/jaraki.beam src/jaraki_lexer.erl src/jaraki_parser.erl test/ebin/test.beam 
 
 test:   compile
+	@ clear
 	@ echo EUnit testing...
+	@ rm -f $(TEST_EBIN_DIR)/*.erl
 	@ $(ERL) -eval 'eunit:test("test/ebin", [verbose]), halt().'
 	@ mv *.erl $(TEST_EBIN_DIR)
 	@ mv *.beam $(TEST_EBIN_DIR)
@@ -59,6 +61,7 @@ java: java_src/*.java
 	@ echo
 
 clean:
+	@ clear
 	@ echo Cleaning...
 	rm -f erl_crash.dump
 	rm -f *.erl
