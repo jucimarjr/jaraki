@@ -1,7 +1,7 @@
 package vetor;
 
-public class vetor1 {
-	// Faça um Programa que leia um vetor de 5 números inteiros e mostre-os.
+public class Vetor1 {
+	// 1 - Faça um Programa que leia um vetor de 5 números inteiros e mostre-os.
 	public static void main(String[] args) {
 		int[] vet = { 1, 3, 5, 7, 9 };
 

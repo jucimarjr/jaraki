@@ -2,9 +2,8 @@ package vetor;
 
 import java.util.Scanner;
 
-public class vetor2 {
-	// 2.Faça um Programa que leia um vetor de 10 números reais e mostre-os na
-	// ordem inversa.
+public class Vetor2 {
+	// 2.Faça um Programa que leia um vetor de 10 números reais e mostre-os na ordem inversa.
 	public static void main(String[] args) {
 		int[] vet = new int[10];
 

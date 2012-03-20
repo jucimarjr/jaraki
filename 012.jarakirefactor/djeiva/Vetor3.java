@@ -2,7 +2,7 @@ package vetor;
 
 import java.util.Scanner;
 
-public class vetor3 {
+public class Vetor3 {
 	// 3. Faça um Programa que leia 4 notas, mostre as notas e a média na tela. 
 	public static void main(String[] args) {
 		float[] vet = {8, 9, 7, 6};

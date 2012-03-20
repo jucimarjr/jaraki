@@ -1,6 +1,6 @@
 package vetor;
 
-public class vetor05 {
+public class Vetor05 {
 	public static void main(String[] args) {
 		int[] vet = { 1, 2, 3, 4, 5 };
 		int total;

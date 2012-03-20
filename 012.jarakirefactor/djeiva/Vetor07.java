@@ -1,6 +1,6 @@
 package vetor;
 
-public class vetor07 {
+public class Vetor07 {
 	public static void main(String[] args) {
 		int[] vet1 = {1, 3, 5, 7, 9}; 
 		int[] vet2 = {2, 4, 6, 8, 10}; 
