@@ -108,10 +108,10 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 			{var_declaration,
 				{var_type,{_VarLine, VarType}},
 				{var_list, VarList}
-			}
+			} = VarDeclaration
 		) ->
-			st:insert_var_list(st:get_scope(), VarList,
-						VarType, undefined);
+			st:insert_var_list(st:get_scope(), VarList,	VarType),
+			gen_erl_code:match_statement(VarDeclaration);
 		(Statement) ->
 			gen_erl_code:match_statement(Statement)
 		end,

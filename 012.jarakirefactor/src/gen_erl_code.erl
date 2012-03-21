@@ -20,7 +20,8 @@
 %%-----------------------------------------------------------------------------
 %% transformacoes de expressoes em java para erlang
 %% apenas uma unica expressao
-
+match_statement({var_declaration, VarType, VarList}) ->
+	create_declaration(var_declaration, VarType, VarList);
 %% transforma expressoes do tipo System.out.print em Erlang
 match_statement({Line, print, Content}) ->
 	create_print_function(Line, print, Content);
@@ -133,33 +134,55 @@ match_attr_expr({var, Line, VarName}) ->
 	rcall(Line, st, get,
 		[atom(Line, st:get_scope()), string(Line, VarName)]).
 
-%%-----------------------------------------------------------------------------
-%% Cria o elemento da east para as funcoes de impressao do java
-create_print_function(Line, print, Content) ->
 
-	PrintText = print_test(Content, Line, [], print),
-	PrintContent = print_list(Content, Line),
+create_declaration(var_declaration, {var_type, {VarLine, _VarType}},
+						{var_list, VarList}) ->
+	VarAstList = create_declaration_list(VarLine, VarList, []),
+	case VarAstList of
+		[] ->
+			no_operation;
+		_ ->
+			{block, VarLine, VarAstList}
+	end.
 
-	rcall(Line, io, format, [PrintText, PrintContent]);
+create_declaration_list(_VarLine, [], VarAstList) ->
+	lists:reverse(VarAstList, []);
+
+create_declaration_list(VarLine, [H| Rest], VarAstList) ->
+	{{var, VarName}, {var_value, VarValue}} = H,
+	case VarValue of
+		undefined -> create_declaration_list(VarLine, Rest, VarAstList);
+				_ -> VarAst = create_attribution(VarLine, VarName, VarValue),
+					create_declaration_list(VarLine, Rest, [VarAst| VarAstList])
+	end.
+
+ %%-----------------------------------------------------------------------------
+ %% Cria o elemento da east para as funcoes de impressao do java
+ create_print_function(Line, print, Content) ->
+	 PrintText = print_text(Content, Line, [], print),
+	 PrintContent = print_list(Content, Line),
+
+	 rcall(Line, io, format, [PrintText, PrintContent]);
 
 create_print_function(Line, println, Content) ->
 
-	PrintText = print_test(Content, Line, [], println),
+	PrintText = print_text(Content, Line, [], println),
 	PrintContent = print_list(Content, Line),
 
 	rcall(Line, io, format, [PrintText, PrintContent]).
 
-print_test([], Line, Text, print) ->
+print_text([], Line, Text, print) ->
 	string(Line, Text);
-print_test([], Line, Text, println) ->
+print_text([], Line, Text, println) ->
 	string(Line, Text ++ "~n");
-print_test([Head | L], Line, Text, _print) ->
-	{Type, _, _PrintElement} = Head,
+print_text([Head | L], Line, Text, _print) ->
+	{Type, _, PrintElement} = Head,
 	case Type of
 		identifier ->
-			print_test(L, Line, Text ++ "~p", _print);
+			st:get2(st:get_scope(), PrintElement),
+			print_text(L, Line, Text ++ "~p", _print);
 		text ->
-			print_test(L, Line, Text ++ "~s", _print)
+			print_text(L, Line, Text ++ "~s", _print)
 	end.
 
 print_list([], Line) ->
@@ -189,7 +212,7 @@ create_attribution(Line, VarName, VarValue) ->
 
 	TransformedVarValue = match_attr_expr(VarValue),
 	JavaNameAst = string(Line, VarName),
-	
+
 	{Type, _Value} = st:get2(st:get_scope(), VarName),	
 	TypeAst = atom(Line, Type),
 	ScopeAst = atom(Line, st:get_scope()),
@@ -200,7 +223,7 @@ create_attribution(Line, VarName, VarValue) ->
 			]).
 
 %%-----------------------------------------------------------------------------
-%% Cria a operacao de incremento ++
+%% Cia a operacao de incremento ++
 create_inc_op(Line, IncOp, {var, _VarLine, VarName} = VarAst) ->
 		Inc =
 			case IncOp of

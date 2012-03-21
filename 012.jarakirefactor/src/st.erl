@@ -12,13 +12,13 @@ destroy() ->
 %% VarValue na análise semântica: undefined indica que não foi inicializada
 %% TODO: verificar se variável já existe...
 %% TODO: duas variáveis
-insert_var_list(Scope, [{identifier, VarName} | []], Type, VarValue) ->
-	get_declared(Scope, VarName, Type, VarValue),			
+insert_var_list(Scope, [{{var, VarName}, _VarValue}	| []], Type) ->
+	get_declared(Scope, VarName, Type, undefined),
 	no_operation;
 
-insert_var_list(Scope, [{identifier, VarName} | Rest], Type, VarValue) ->
-	get_declared(Scope, VarName, Type, VarValue),	
-	insert_var_list(Scope, Rest, Type, VarValue).
+insert_var_list(Scope, [{{var, VarName}, _VarValue} | Rest], Type) ->
+	get_declared(Scope, VarName, Type, undefined),
+	insert_var_list(Scope, Rest, Type).
 
 %% Semântica - Key = {Scope, VarName}, Value = {Type, VarValue}
 put(Key, Value) ->

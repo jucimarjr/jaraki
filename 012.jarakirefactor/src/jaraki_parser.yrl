@@ -126,16 +126,13 @@ no_short_if_expr -> if_else_no_trailing : '$1'.
 %% Declaração de variáveis
 var_declaration -> var_type var_list ';':
 	{var_declaration, {var_type, '$1'}, {var_list, '$2'}}.
-
-var_list -> identifier '=' var_value			: 
-		[{line('$1'), attribution, {var, unwrap('$1')}, 
-			{var_value, '$3'}
-		}].
-var_list -> identifier '=' var_value ',' var_list	: 
-		[{line('$1'), attribution, {var, unwrap('$1')}, 
-			{var_value, '$3'}} | '$5'].
-var_list -> identifier			: [{identifier, unwrap('$1')}].
-var_list -> identifier	',' var_list	: [{identifier, unwrap('$1')} | '$3'].
+var_list -> identifier '=' var_value			:
+		[{{var, unwrap('$1')}, {var_value, '$3'}}].
+var_list -> identifier '=' var_value ',' var_list	:
+		[{{var, unwrap('$1')}, {var_value, '$3'}} | '$5'].
+var_list -> identifier	: [{{var, unwrap('$1')},{var_value, undefined}}].
+var_list -> identifier	',' var_list:
+		[{{var, unwrap('$1')}, {var_value, undefined}} | '$3'].
 
 %% Atribuições
 attribution ->	identifier '=' var_value ';':
