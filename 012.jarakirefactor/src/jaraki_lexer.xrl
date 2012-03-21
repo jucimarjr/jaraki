@@ -13,8 +13,8 @@
 
 Definitions.
 	
-Comment		= /\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/
-CommentInline	= //.*\n
+Comment				= /\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/
+EndOfLineComment	= //.*\n
 
 Package				= package
 
@@ -31,45 +31,57 @@ Long				= long
 Float				= float
 Double				= double
 Boolean				= boolean
-If				= if
+If					= if
 Else				= else
-For				= for
+For					= for
 While				= while
-True				= true
-False				= false
+
 Sqrt				= Math.sqrt
 Print				= System.out.print
 Println				= System.out.println
 Digit				= [0-9]
 Identifier			= [a-zA-Z_][a-zA-Z0-9_]*
 
-Text				= "(\\\^.|\\.|[^\"])*"
+StringLiteral		= "(\\\^.|\\.|[^\"])*"
+
+% BooleanLiteral: one of
+
+True	= true
+False	= false
+
+% End BooleanLiteral
+
+% Separator: one of
 
 OpenParentheses		= \(
 CloseParentheses	= \)
 OpenBrackets		= \[
 CloseBrackets		= \]
-OpenKeys		= \{
-CloseKeys		= \}
-Dot			= \.
-Comma			= ,
-Semicolon		= ;
-Equal			= =
-CompOp			= (<|<=|==|>=|>|!=)
-BoolOp			= (\&\&|\|\|!)
-%And			= (\&\&)
-%Or			= (\|\|)
-%Not			= (!)
+OpenKeys			= \{
+CloseKeys			= \}
+Dot					= \.
+Comma				= ,
+Semicolon			= ;
+
+% End Separator
+
+% Operator: one of
+AttributionOp	= =
+ComparatorOp	= (<|<=|==|>=|>|!=)
+BooleanOp		= (\&\&|\|\|!)
 AddOp			= (\+|-)
 MultOp			= (\*|/)
-RemOp			= (\%)
-IncOp			= (\+\+|--)
-WhiteSpace		= [\s|\n|\t]
+ReminderOp		= (\%)
+IncrementOp		= (\+\+|--)
+
+% End Operator
+
+WhiteSpace	= [\s|\n|\t|\f]
 
 Rules.
 
-{Comment}	: skip_token.
-{CommentInline}	: skip_token.
+{Comment}			: skip_token.
+{EndOfLineComment}	: skip_token.
 
 {Package}	: {token, {package,	TokenLine, list_to_atom(TokenChars)}}.
 {Import}	: {token, {import,	TokenLine, list_to_atom(TokenChars)}}.
@@ -88,14 +100,14 @@ Rules.
 {Else}		: {token, {'else',	TokenLine, list_to_atom(TokenChars)}}.
 {For}		: {token, {'for',	TokenLine, list_to_atom(TokenChars)}}.
 {While}		: {token, {'while',	TokenLine, list_to_atom(TokenChars)}}.
-{True}		: {token, {true,	TokenLine, list_to_atom(TokenChars)}}.
-{False}		: {token, {false,	TokenLine, list_to_atom(TokenChars)}}.
 {Sqrt}		: {token, {sqrt,	TokenLine, list_to_atom(TokenChars)}}.
 {Print}		: {token, {print,	TokenLine, list_to_atom(TokenChars)}}.
 {Println}	: {token, {println,	TokenLine, list_to_atom(TokenChars)}}.
+{True}		: {token, {true,	TokenLine, list_to_atom(TokenChars)}}.
+{False}		: {token, {false,	TokenLine, list_to_atom(TokenChars)}}.
 
 
-{ImportAll}		: {token, {list_to_atom(TokenChars), TokenLine}}.
+{ImportAll}			: {token, {list_to_atom(TokenChars), TokenLine}}.
 {OpenParentheses}	: {token, {list_to_atom(TokenChars), TokenLine}}.
 {CloseParentheses}	: {token, {list_to_atom(TokenChars), TokenLine}}.
 {OpenBrackets}		: {token, {list_to_atom(TokenChars), TokenLine}}.
@@ -105,13 +117,13 @@ Rules.
 {Dot}			: {token, {list_to_atom(TokenChars), TokenLine}}.
 {Comma}			: {token, {list_to_atom(TokenChars), TokenLine}}.
 {Semicolon}		: {token, {list_to_atom(TokenChars), TokenLine}}.
-{Equal}			: {token, {list_to_atom(TokenChars), TokenLine}}.
+{AttributionOp}	: {token, {list_to_atom(TokenChars), TokenLine}}.
 {AddOp}			: {token, {add_op, TokenLine, list_to_atom(TokenChars)}}.
 {MultOp}		: {token, {mult_op, TokenLine, list_to_atom(TokenChars)}}.
-{RemOp}			: {token, {rem_op, TokenLine, list_to_atom(TokenChars)}}.
-{IncOp}			: {token, {inc_op, TokenLine, list_to_atom(TokenChars)}}.
-{CompOp}		: {token, {comp_op, TokenLine, op(TokenChars)}}.
-{BoolOp}		: {token, {bool_op, TokenLine, op(TokenChars)}}.
+{ReminderOp}	: {token, {rem_op, TokenLine, list_to_atom(TokenChars)}}.
+{IncrementOp}	: {token, {inc_op, TokenLine, list_to_atom(TokenChars)}}.
+{ComparatorOp}	: {token, {comp_op, TokenLine, op(TokenChars)}}.
+{BooleanOp}		: {token, {bool_op, TokenLine, op(TokenChars)}}.
 %{And}			: {token, {and_op, TokenLine, list_to_atom(TokenChars)}}.
 %{Or}			: {token, {or_op, TokenLine, list_to_atom(TokenChars)}}.
 %{Not}			: {token, {not_op, TokenLine, list_to_atom(TokenChars)}}.
@@ -120,7 +132,7 @@ Rules.
 
 {Identifier}	: {token, {identifier, TokenLine, list_to_atom(TokenChars)}}.
 {WhiteSpace}+	: skip_token.
-{Text} 		: build_text(text, TokenChars, TokenLine, TokenLen).
+{StringLiteral}	: build_text(text, TokenChars, TokenLine, TokenLen).
 
 Erlang code.
 
@@ -163,5 +175,5 @@ op(OpChar) ->
 		"&&" -> 'and';
 		"||" -> 'or';
 		"!"  -> 'not';
-		_ ->    list_to_atom(OpChar)
+		_	->	list_to_atom(OpChar)
 	end.
