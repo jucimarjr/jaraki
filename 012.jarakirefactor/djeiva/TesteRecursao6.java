@@ -12,7 +12,7 @@ public class TesteRecursao6 {
 	public static void main(String[] args) {
 		int m;
 		long a;
-		m = 100;
+		m = 25;
 		a = x(m);
 		System.out.println(a);
 	}
