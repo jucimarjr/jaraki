@@ -76,8 +76,5 @@ main2(V_args) ->
 		end
 	),
 	erase({main, "i"}),
-	io:format("~p~n", [get({main, "s"})])
+	io:format("~p~n", [get({main, "s"})]),
 	erase().
-
-
-

@@ -67,6 +67,7 @@ clean:
 	@ echo Cleaning...
 	rm -f erl_crash.dump
 	rm -f *.erl
+	rm -f *.beam
 	rm -f *.java
 	rm -f $(SRC_DIR)/jaraki_lexer.erl
 	rm -f $(SRC_DIR)/jaraki_parser.erl
