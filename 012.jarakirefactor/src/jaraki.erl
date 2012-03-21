@@ -58,8 +58,6 @@ get_erl_file(JavaFileName) ->
 	create_erl_file(ErlangAST,ErlangFileName),
 	ErlangFileName.
 
-
-
 %%-----------------------------------------------------------------------------
 %% Mostra a versao, autores e ano do Jaraki.
 get_version() ->

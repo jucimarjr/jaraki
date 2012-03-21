@@ -98,6 +98,11 @@ print_erl_ast_from_erlang(ErlangFileName) ->
 %% calcula o tempo de execução de uma funcao em microssegundos
 get_runtime(Module, Func, N )->
 	{ElapsedTime, R} = timer:tc(Module, Func, [N]),
-	io:format("~p(~p): ~p [~p us]~n",[Func, N, R, ElapsedTime]).
+	io:format("~p(~p): ~p [~p us] [~p s] ~n",[Func, N, R, ElapsedTime, ElapsedTime/1000000]).
+
+get_runtime(Module, Func )->
+	{ElapsedTime, R} = timer:tc(Module, Func, []),
+	io:format("~p(~p): [~p us] [~p s] ~n",[Func, R, ElapsedTime, ElapsedTime/1000000]).
+
 
 
