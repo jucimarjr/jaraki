@@ -16,15 +16,16 @@ Definitions.
 Comment				= /\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/
 EndOfLineComment	= //.*\n
 
+% Keyword: one of
+
 Package				= package
 
 Import				= import
 ImportAll			= \.\*
-Class				= class
+Class					= class
 Public				= public
 Static				= static
 Void				= void
-Main				= main
 Return				= return
 Integer				= int
 Long				= long
@@ -36,13 +37,7 @@ Else				= else
 For					= for
 While				= while
 
-Sqrt				= Math.sqrt
-Print				= System.out.print
-Println				= System.out.println
-Digit				= [0-9]
-Identifier			= [a-zA-Z_][a-zA-Z0-9_]*
-
-StringLiteral		= "(\\\^.|\\.|[^\"])*"
+% End Keyword
 
 % BooleanLiteral: one of
 
@@ -50,6 +45,18 @@ True	= true
 False	= false
 
 % End BooleanLiteral
+
+Main				= main
+% TODO: incluir potencia;
+Sqrt				= Math.sqrt 
+Print				= System.out.print
+Println				= System.out.println
+Digit				= [0-9]
+Identifier			= [a-zA-Z_][a-zA-Z0-9_]*
+
+StringLiteral		= "(\\\^.|\\.|[^\"])*"
+
+
 
 % Separator: one of
 
@@ -124,9 +131,6 @@ Rules.
 {IncrementOp}	: {token, {inc_op, TokenLine, list_to_atom(TokenChars)}}.
 {ComparatorOp}	: {token, {comp_op, TokenLine, op(TokenChars)}}.
 {BooleanOp}		: {token, {bool_op, TokenLine, op(TokenChars)}}.
-%{And}			: {token, {and_op, TokenLine, list_to_atom(TokenChars)}}.
-%{Or}			: {token, {or_op, TokenLine, list_to_atom(TokenChars)}}.
-%{Not}			: {token, {not_op, TokenLine, list_to_atom(TokenChars)}}.
 {Digit}+		: {token, {integer, TokenLine, list_to_integer(TokenChars)}}.
 {Digit}+\.{Digit}+	: {token, {float, TokenLine, list_to_float(TokenChars)}}.
 
