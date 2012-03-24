@@ -23,15 +23,15 @@ add_expr mult_expr modulus_expr
 unary_expr literal
 comparation_expr bool_expr
 element_value_pair
-sqrt_expr
-print_expr print_content if_expr if_else_expr if_else_no_trailing
+sqrt_stmt
+print_stmt print_content if_stmt if_else_stmt if_else_no_trailing
 return_statement
-for_expr for_no_trailing
-while_expr while_no_trailing
-no_trailing_expr no_short_if_expr
+for_stmt for_no_trailing
+while_stmt while_no_trailing
+no_trailing_stmt no_short_if_stmt
 parameters_list	parameter
 argument argument_list
-for_update increment_expr
+for_update post_increment_expr
 statement.
 
 Terminals
@@ -107,23 +107,23 @@ block_statements -> statement block_statements	: ['$1'| '$2'].
 %%             ou sem trailing (no_trailing_expr)
 
 statement -> method_invocation ';'	: '$1'.
-statement -> for_expr				: '$1'.
-statement -> while_expr				: '$1'.
-statement -> if_expr				: '$1'.
-statement -> if_else_expr			: '$1'.
-statement -> no_trailing_expr		: '$1'.
+statement -> for_stmt				: '$1'.
+statement -> while_stmt				: '$1'.
+statement -> if_stmt				: '$1'.
+statement -> if_else_stmt			: '$1'.
+statement -> no_trailing_stmt		: '$1'.
 
 
-no_short_if_expr -> for_no_trailing						: '$1'.
-no_short_if_expr -> while_no_trailing					: '$1'.
-no_trailing_expr -> block								: '$1'.
-no_trailing_expr -> local_variable_declaration_statement: '$1'.
-no_trailing_expr -> element_value_pair					: '$1'.
-no_trailing_expr -> print_expr							: '$1'.
-no_trailing_expr -> increment_expr						: '$1'.
-no_trailing_expr -> return_statement					: '$1'.
-no_short_if_expr -> no_trailing_expr					: '$1'.
-no_short_if_expr -> if_else_no_trailing					: '$1'.
+no_short_if_stmt -> for_no_trailing						: '$1'.
+no_short_if_stmt -> while_no_trailing					: '$1'.
+no_trailing_stmt -> block								: '$1'.
+no_trailing_stmt -> local_variable_declaration_statement: '$1'.
+no_trailing_stmt -> element_value_pair					: '$1'.
+no_trailing_stmt -> print_stmt							: '$1'.
+no_trailing_stmt -> post_increment_expr					: '$1'.
+no_trailing_stmt -> return_statement					: '$1'.
+no_short_if_stmt -> no_trailing_stmt					: '$1'.
+no_short_if_stmt -> if_else_no_trailing					: '$1'.
 
 %% Declaração de variáveis
 local_variable_declaration_statement -> type variable_list ';':
@@ -141,14 +141,14 @@ element_value_pair ->	identifier '=' element_value ';':
 	{line('$1'),
 		attribution, {var, unwrap('$1')}, {var_value, '$3'}}.
 
-sqrt_expr -> sqrt '(' element_value ')': {sqrt, line('$1'), '$3'}.
+sqrt_stmt -> sqrt '(' element_value ')': {sqrt, line('$1'), '$3'}.
 
 %% trata expressoes do tipo [ System.out.print( texto + identificador ) ]
-print_expr -> print '(' print_content ')' ';':
+print_stmt -> print '(' print_content ')' ';':
 	   {line('$1'), print, '$3'}.
 
 %% trata expressoes do tipo [ System.out.println( texto + identificador ) ]
-print_expr -> println '(' print_content ')' ';':
+print_stmt -> println '(' print_content ')' ';':
 		   {line('$1'), println, '$3'}.
 
 
@@ -164,12 +164,12 @@ for_update -> identifier increment_op :
 				Var = {var, line('$1'), unwrap('$1')},
 				{inc_op, line('$1'), unwrap('$2'), Var}.
 
-increment_expr -> identifier increment_op ';':
+post_increment_expr -> identifier increment_op ';':
 				Var = {var, line('$1'), unwrap('$1')},
 				{inc_op, line('$1'), unwrap('$2'), Var}.
 
 %% BEGIN_FOR
-for_expr -> for '(' int_t identifier '=' integer ';' bool_expr ';'
+for_stmt -> for '(' int_t identifier '=' integer ';' bool_expr ';'
 				for_update  ')'  statement :
 			{line('$1'), for,
 				{for_init, {var_type, unwrap('$3')}, {var_name, unwrap('$4')}},
@@ -178,7 +178,7 @@ for_expr -> for '(' int_t identifier '=' integer ';' bool_expr ';'
 
 for_no_trailing -> for '(' int_t identifier '=' integer ';'
 					bool_expr ';'
-					for_update ')'  no_short_if_expr :
+					for_update ')'  no_short_if_stmt :
 			{line('$1'), for,
 				{for_init, {var_type, unwrap('$3')}, {var_name, unwrap('$4')}},
 				{for_start, '$6'}, {condition_expr, '$8'},
@@ -186,22 +186,22 @@ for_no_trailing -> for '(' int_t identifier '=' integer ';'
 %% END_FOR
 
 %%BEGIN WHILE
-while_expr -> while '(' bool_expr ')' statement:
+while_stmt -> while '(' bool_expr ')' statement:
 	{line('$1'), while, {condition_expr, '$3'}, {while_body, '$5'}}.
 
-while_no_trailing -> while '(' bool_expr ')' no_short_if_expr:
+while_no_trailing -> while '(' bool_expr ')' no_short_if_stmt:
 	{line('$1'), while, {condition_expr, '$3'}, {while_body, '$5'}}.
 %%END WHILE
 
 %% BEGIN_IF
-if_expr -> 'if' '(' bool_expr ')' statement:
+if_stmt -> 'if' '(' bool_expr ')' statement:
 	{line('$1'), 'if', {bool_expr, '$3'}, {if_expr, '$5'}}.
 
-if_else_expr -> 'if' '(' bool_expr ')' no_short_if_expr 'else' statement :
- 	{line('$1'), 'if', {bool_expr, '$3'}, {if_expr, '$5'}, {else_expr, '$7'}}.
+if_else_stmt -> 'if' '(' bool_expr ')' no_short_if_stmt 'else' statement :
+	{line('$1'), 'if', {bool_expr, '$3'}, {if_expr, '$5'}, {else_expr, '$7'}}.
 
-if_else_no_trailing -> 'if' '(' bool_expr ')' no_short_if_expr
-						'else' no_short_if_expr :
+if_else_no_trailing -> 'if' '(' bool_expr ')' no_short_if_stmt
+						'else' no_short_if_stmt :
 	{line('$1'), 'if', {bool_expr, '$3'}, {if_expr, '$5'}, {else_expr, '$7'}}.
 %% END_IF
 
@@ -266,7 +266,7 @@ unary_expr -> add_op literal    : {op, line('$1'), unwrap('$1'), '$2'}.
 unary_expr -> literal           : '$1'.
 
 literal -> method_invocation: '$1'.
-literal -> sqrt_expr : '$1'.
+literal -> sqrt_stmt : '$1'.
 literal -> integer : '$1'.
 literal -> float : '$1'.
 literal -> identifier :  {var, line('$1'), unwrap('$1')}.
