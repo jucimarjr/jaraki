@@ -78,7 +78,7 @@ ComparatorOp	= (<|<=|==|>=|>|!=)
 BooleanOp		= (\&\&|\|\|!)
 AddOp			= (\+|-)
 MultOp			= (\*|/)
-ReminderOp		= (\%)
+ModulusOp		= (\%)
 IncrementOp		= (\+\+|--)
 
 % End Operator
@@ -127,9 +127,9 @@ Rules.
 {AttributionOp}	: {token, {list_to_atom(TokenChars), TokenLine}}.
 {AddOp}			: {token, {add_op, TokenLine, list_to_atom(TokenChars)}}.
 {MultOp}		: {token, {mult_op, TokenLine, list_to_atom(TokenChars)}}.
-{ReminderOp}	: {token, {rem_op, TokenLine, list_to_atom(TokenChars)}}.
-{IncrementOp}	: {token, {inc_op, TokenLine, list_to_atom(TokenChars)}}.
-{ComparatorOp}	: {token, {comp_op, TokenLine, op(TokenChars)}}.
+{ModulusOp}		: {token, {modulus_op, TokenLine, list_to_atom(TokenChars)}}.
+{IncrementOp}	: {token, {increment_op, TokenLine, list_to_atom(TokenChars)}}.
+{ComparatorOp}	: {token, {comparation_op, TokenLine, op(TokenChars)}}.
 {BooleanOp}		: {token, {bool_op, TokenLine, op(TokenChars)}}.
 {Digit}+		: {token, {integer, TokenLine, list_to_integer(TokenChars)}}.
 {Digit}+\.{Digit}+	: {token, {float, TokenLine, list_to_float(TokenChars)}}.
