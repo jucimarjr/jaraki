@@ -11,6 +11,5 @@
 -module(jaraki_exception).
 -compile(export_all).
 
-handle_error(Msg) ->
-	throw({error, Msg}).
-	
+handle_error(Line, Msg) ->
+	throw({error, Msg, Line}).

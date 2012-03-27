@@ -1,5 +1,5 @@
 -module(st).
--compile(export_all).	
+-compile(export_all).
 
 new() ->
 	ets:new(dict, [named_table]).
@@ -12,13 +12,13 @@ destroy() ->
 %% VarValue na análise semântica: undefined indica que não foi inicializada
 %% TODO: verificar se variável já existe...
 %% TODO: duas variáveis
-insert_var_list(Scope, [{{var, VarName}, _VarValue}	| []], Type) ->
-	get_declared(Scope, VarName, Type, undefined),
+insert_var_list(Line, Scope, [{{var, VarName}, _VarValue}	| []], Type) ->
+	get_declared(Line, Scope, VarName, Type, undefined),
 	no_operation;
 
-insert_var_list(Scope, [{{var, VarName}, _VarValue} | Rest], Type) ->
-	get_declared(Scope, VarName, Type, undefined),
-	insert_var_list(Scope, Rest, Type).
+insert_var_list(Line, Scope, [{{var, VarName}, _VarValue} | Rest], Type) ->
+	get_declared(Line, Scope, VarName, Type, undefined),
+	insert_var_list(Line, Scope, Rest, Type).
 
 %% Semântica - Key = {Scope, VarName}, Value = {Type, VarValue}
 put(Key, Value) ->
@@ -33,22 +33,22 @@ delete(Scope, VarName) ->
 	ets:delete(dict, {Scope, VarName}).
 
 %% SEMÂNTICA
-get2(Scope, VarName) ->
+get2(Line, Scope, VarName) ->
 	VarValue = ets:lookup(dict, {Scope, VarName}),
 	case VarValue of
 		[{_Key , Value}] ->
 					Value;
 		[] ->
-			jaraki_exception:handle_error("Variable not declared")
+			jaraki_exception:handle_error(Line, "Variable not declared")
 	end.
 
-get_declared(Scope, VarName, Type, VarValue) ->
+get_declared(Line, Scope, VarName, Type, VarValue) ->
 	case ets:lookup(dict, {Scope, VarName}) of
-		[] ->	
+		[] ->
 			st:put({Scope, VarName}, {Type, VarValue});
-		[{_Key, _Value}] -> 
+		[{_Key, _Value}] ->
 			jaraki_exception:
-				handle_error("Variable already declared")
+				handle_error(Line, "Variable already declared")
 	end.
 
 put_scope(Scope) ->

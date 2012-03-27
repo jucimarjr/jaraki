@@ -20,11 +20,14 @@ compile(JavaFileName) ->
 		{'EXIT', Reason} ->
 			io:format("*******ERROR!~n"),
 			io:format("***Reason:~n~p", [Reason]);
-		{error, Reason} ->
+		{error, Reason, Line} ->
 			io:format("*******ERROR!~n"),
-			io:format("***Reason:~n~p", [Reason]);
+			io:format("***Reason:~n~p Line: ~p~n", [Reason, Line]);
 		ok ->
-			ok
+			ok;
+		X ->
+			io:format("*******UNEXPECTED ERROR!~n"),
+			io:format("***Reason:~n~p", [X])
 	end.
 
 %%-----------------------------------------------------------------------------
