@@ -57,7 +57,7 @@ get_erl_function({Line, _Type, {method, main}, Parameters,
 		'String' ->
 			ok;
 		_ ->
-			jaraki_exception:handle_error(
+			jaraki_exception:handle_error(Line,
 				"The args of the \"main method\" is not String")
 	end,
 	st:put_scope(main),
@@ -106,11 +106,11 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 	MappedErlangFun =
 		fun(
 			{var_declaration,
-				{var_type,{_VarLine, VarType}},
+				{var_type,{VarLine, VarType}},
 				{var_list, VarList}
 			} = VarDeclaration
 		) ->
-			st:insert_var_list(st:get_scope(), VarList,	VarType),
+			st:insert_var_list(VarLine, st:get_scope(), VarList,	VarType),
 			gen_erl_code:match_statement(VarDeclaration);
 		(Statement) ->
 			gen_erl_code:match_statement(Statement)

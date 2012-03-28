@@ -131,6 +131,7 @@ match_attr_expr({atom, _Line, false} = Element) ->
 match_attr_expr({op, Line, Op, LeftExp, RightExp}) ->
 	{op, Line, Op, match_attr_expr(LeftExp), match_attr_expr(RightExp)};
 match_attr_expr({var, Line, VarName}) ->
+	st:get2(Line, st:get_scope(), VarName),
 	rcall(Line, st, get,
 		[atom(Line, st:get_scope()), string(Line, VarName)]).
 
@@ -179,7 +180,7 @@ print_text([Head | L], Line, Text, _print) ->
 	{Type, _, PrintElement} = Head,
 	case Type of
 		identifier ->
-			st:get2(st:get_scope(), PrintElement),
+			st:get2(Line, st:get_scope(), PrintElement),
 			print_text(L, Line, Text ++ "~p", _print);
 		text ->
 			print_text(L, Line, Text ++ "~s", _print)
@@ -213,12 +214,12 @@ create_attribution(Line, VarName, VarValue) ->
 	TransformedVarValue = match_attr_expr(VarValue),
 	JavaNameAst = string(Line, VarName),
 
-	{Type, _Value} = st:get2(st:get_scope(), VarName),	
+	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),
 	TypeAst = atom(Line, Type),
 	ScopeAst = atom(Line, st:get_scope()),
 
 	rcall(Line, st, put, [
-				tuple(Line, [ScopeAst, JavaNameAst]), 
+				tuple(Line, [ScopeAst, JavaNameAst]),
 				tuple(Line, [TypeAst, TransformedVarValue])
 			]).
 
