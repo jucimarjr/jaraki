@@ -1,4 +1,4 @@
-public class Principal {
+public class Principal4 {
 
 	public static void main(String args[]){
 		Pessoa p = new Pessoa();

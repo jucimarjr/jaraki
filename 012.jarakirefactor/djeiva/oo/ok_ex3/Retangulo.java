@@ -1,6 +1,4 @@
-package Classes3;
-
-public class Retangulo {
+class Retangulo {
 	int ladoA;
 	int ladoB;
 
