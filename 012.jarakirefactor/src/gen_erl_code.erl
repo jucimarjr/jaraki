@@ -192,7 +192,7 @@ print_list([Element|L], Line) ->
 	{Type, _, PrintElement} = Element,
 	case Type of
 	identifier ->
-		Identifier = rcall(Line, st, get, [atom(Line, st:get_scope()), 
+		Identifier = rcall(Line, st, get, [atom(Line, st:get_scope()),
 				string(Line, PrintElement)]),
 		{cons, Line, Identifier, print_list(L, Line)};
 	text ->
@@ -202,7 +202,7 @@ end.
 %%---------------------------------------------------------------------------%%
 
 create_function_call(Line, FunctionName, ArgumentsList) ->
-	TransformedArgumentList = 
+	TransformedArgumentList =
 		lists:map(fun match_attr_expr/1, ArgumentsList),
 	call(Line, FunctionName, TransformedArgumentList).
 
@@ -210,11 +210,13 @@ create_function_call(Line, FunctionName, ArgumentsList) ->
 %%-----------------------------------------------------------------------------
 %% Cria o elemento da east para atribuiçao de variaveis do java
 create_attribution(Line, VarName, VarValue) ->
+	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),
+
+	jaraki_exception:check_var_type(Type, VarValue),
 
 	TransformedVarValue = match_attr_expr(VarValue),
 	JavaNameAst = string(Line, VarName),
 
-	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),
 	TypeAst = atom(Line, Type),
 	ScopeAst = atom(Line, st:get_scope()),
 
