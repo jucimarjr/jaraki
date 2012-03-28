@@ -11,8 +11,20 @@
 -module(jaraki_exception).
 -compile(export_all).
 
-handle_error(Line, Msg) ->
-	throw({error, Msg, Line}).
+handle_error(Line, Code) ->
+	st:put_error(Line, Code),
+	error.
+
+get_error_text(1) -> "Variable not declared";
+get_error_text(2) -> "Variable already declared";
+get_error_text(3) -> "Incompatible variable assignment type";
+get_error_text(4) -> "The args of the \"main method\" is not String".
+
+print_errors([]) ->
+	io:format("\n");
+print_errors([ {Line, Code} | Rest ]) ->
+	io:format("Line: #~p - ~s\n", [Line, get_error_text(Code)]),
+	print_errors(Rest).
 
 %%-----------------------------------------------------------------------------
 %% Casa expressoes matematicas a procura de variaveis para substituir seus nomes
@@ -44,8 +56,10 @@ check_var_type(AttrVarType, {var, Line, VarName}) ->
 	match_type(Line, AttrVarType, ExprVarType).
 
 match_type(_, int, int) -> ok;
+match_type(_, int, integer) -> ok;
 match_type(_, float, int) -> ok;
+match_type(_, float, integer) -> ok;
 match_type(Line, int, _) ->
-	handle_error(Line, "Incompatible type being assigned");
+	handle_error(Line, 3);
 match_type(Line, float, _) ->
-	handle_error(Line, "Incompatible type being assigned").
+	handle_error(Line, 3).

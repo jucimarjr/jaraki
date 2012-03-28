@@ -20,9 +20,10 @@ compile(JavaFileName) ->
 		{'EXIT', Reason} ->
 			io:format("*******ERROR!~n"),
 			io:format("***Reason:~n~p", [Reason]);
-		{error, Reason, Line} ->
+		{error, Errors} ->
 			io:format("*******ERROR!~n"),
-			io:format("***Reason:~n~p Line: ~p~n", [Reason, Line]);
+			io:format("***Reasons:\n"),
+			jaraki_exception:print_errors(Errors);
 		ok ->
 			ok;
 		X ->
