@@ -31,11 +31,12 @@ print_errors([ {Line, Code} | Rest ]) ->
 
 %% TODO: verificar tipo do retorno da função!!
 %%
-%% check_var_type(Type, {function_call, {Line, FunctionName},
-%%			{argument_list, ArgumentsList}}) ->
-%%	 create_function_call(Line, FunctionName, ArgumentsList);
-%% check_var_type(Type, {sqrt, Line, RightExp}) ->
-%%	 do_check_var_type(Type, double);
+check_var_type(_Type, {function_call, {_Line, _FunctionName}, _ArgsTuple}) ->
+	%% create_function_call(Line, FunctionName, ArgumentsList);
+	ok;
+check_var_type(_Type, {sqrt, _Line, _RightExp}) ->
+	%% match_type(Type, double);
+	ok;
 check_var_type(Type, {op, Line, Op, RightExp}) ->
 	{op, Line, Op, check_var_type(Type, RightExp)};
 check_var_type(Type, {integer, Line, _Value}) ->
@@ -55,10 +56,10 @@ check_var_type(AttrVarType, {var, Line, VarName}) ->
 	{ExprVarType, _Value} = st:get2(Line, st:get_scope(), VarName),
 	match_type(Line, AttrVarType, ExprVarType).
 
-match_type(_, int, int) -> ok;
 match_type(_, int, integer) -> ok;
 match_type(_, float, int) -> ok;
 match_type(_, float, integer) -> ok;
+match_type(_, Type, Type) -> ok;
 match_type(Line, int, _) ->
 	handle_error(Line, 3);
 match_type(Line, float, _) ->
