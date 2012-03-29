@@ -14,6 +14,8 @@ public class TestandoErro {
 
     System.out.println(a);
 
+	d = d + 1;
+
   }
 
 }
