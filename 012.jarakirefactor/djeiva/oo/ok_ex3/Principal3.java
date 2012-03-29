@@ -1,8 +1,6 @@
-package Classes3;
-
 import java.util.Scanner;
 
-public class Classes3Principal {
+class Principal3 {
 	public static void main(String args[]){
 		Scanner s = new Scanner(System.in);
 		
@@ -10,8 +8,8 @@ public class Classes3Principal {
 
 		System.out.println("Informe as medidas do local: ");
 		
-		r.ladoA = s.nextInt();
-		r.ladoB = s.nextInt();
+		r.mudarLadoA(s.nextInt());
+		r.mudarLadoB(s.nextInt());
 		
 		System.out.println("Rodapes necessarios: " + r.calcularPerimetro() + "m");
 		System.out.println("Piso necessario: " + r.calcularArea() + "m^2");

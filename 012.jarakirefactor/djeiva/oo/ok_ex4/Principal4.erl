@@ -1,4 +1,4 @@
--module(principal4).
+-module('Principal4').
 -export([main/1, printPessoa/1]).
 
 main(_V_args) ->
@@ -8,7 +8,7 @@ main(_V_args) ->
 	st:put({Scope, "p"},
 		{'Pessoa',
 			oo:new('Pessoa', [],
-				[{"nome", 'String', ""},
+				[{"nome", 'String', undefined},
 				{"idade", integer, 0},
 				{"peso", float, 0.0},
 				{"altura", float, 0.0}

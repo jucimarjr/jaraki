@@ -4,7 +4,7 @@ public class TestandoErro3 {
 
   public static void main(String[] args) {
 
-    float a, b, d=7;
+    float a, b;
     int c;
 
     

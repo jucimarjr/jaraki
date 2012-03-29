@@ -2,7 +2,9 @@
 -compile(export_all).
 
 new() ->
-	ets:new(dict, [named_table]).
+	ets:new(dict, [named_table]),
+	ets:insert(dict, {errors, []}),
+	ets:insert(dict, {scope, '__undefined__'}).
 
 destroy() ->
 	ets:delete(dict).
@@ -39,7 +41,7 @@ get2(Line, Scope, VarName) ->
 		[{_Key , Value}] ->
 					Value;
 		[] ->
-			jaraki_exception:handle_error(Line, "Variable not declared")
+			jaraki_exception:handle_error(Line, 1)
 	end.
 
 get_declared(Line, Scope, VarName, Type, VarValue) ->
@@ -48,7 +50,7 @@ get_declared(Line, Scope, VarName, Type, VarValue) ->
 			st:put({Scope, VarName}, {Type, VarValue});
 		[{_Key, _Value}] ->
 			jaraki_exception:
-				handle_error(Line, "Variable already declared")
+				handle_error(Line, 2)
 	end.
 
 put_scope(Scope) ->
@@ -57,3 +59,12 @@ put_scope(Scope) ->
 get_scope() ->
 	[{_Key, Scope}] = ets:lookup(dict, scope),
 	Scope.
+
+put_error(Line, Code) ->
+	[{_Key, Errors}] = ets:lookup(dict, errors),
+	NewErrors = [ {Line, Code} | Errors ],
+	ets:insert(dict, {errors, NewErrors}).
+
+get_errors() ->
+	[{_Key, Errors}] = ets:lookup(dict, errors),
+	lists:reverse(Errors, []).

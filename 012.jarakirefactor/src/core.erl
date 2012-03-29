@@ -12,7 +12,7 @@
 -export([transform_jast_to_east/2]).
 -import(gen_ast,
 	[
-		function/4, var/2, atom/2, call/3, rcall/4, 'case'/3, clause/4, 
+		function/4, var/2, atom/2, call/3, rcall/4, 'case'/3, clause/4,
 		'fun'/2, string/2, tuple/2, atom/2
 	]).
 -include("../include/jaraki_define.hrl").
@@ -31,8 +31,14 @@ transform_jast_to_east(JavaAST, ErlangModuleName) ->
 			JavaAST
 		),
 	ErlangModule = create_module(ErlangModuleName, ErlangModuleBody),
-	st:destroy(),
-	{ok, ErlangModule}.
+	case st:get_errors() of
+		[] ->
+			st:destroy(),
+			{ok, ErlangModule};
+		Errors ->
+			st:destroy(),
+			throw({error, Errors})
+	end.
 
 
 %%-----------------------------------------------------------------------------
@@ -57,11 +63,10 @@ get_erl_function({Line, _Type, {method, main}, Parameters,
 		'String' ->
 			ok;
 		_ ->
-			jaraki_exception:handle_error(Line,
-				"The args of the \"main method\" is not String")
+			jaraki_exception:handle_error(Line, 4)
 	end,
 	st:put_scope(main),
-	ErlangFunctionBody = 
+	ErlangFunctionBody =
 		get_erl_function_body(Line, JavaMethodBody, Parameters),
 	function(Line, main, Parameters, ErlangFunctionBody);
 

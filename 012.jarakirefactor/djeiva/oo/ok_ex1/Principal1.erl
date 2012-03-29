@@ -14,14 +14,22 @@ main(_V_args) ->
 				])}),
 
 	%% b.trocaCor("azul"); b.mostraCor(); b.trocaCor("preto"); b.mostraCor();
+	begin
 	Temp_Class1 = oo:get_class(st:get(Scope, "b")),
-	Temp_Class1:trocaCor(st:get(Scope, "b"), "azul"),
+	Temp_Class1:trocaCor(st:get(Scope, "b"), "azul")
+	end,
 
+	begin
 	Temp_Class2 = oo:get_class(st:get(Scope, "b")),
-	Temp_Class2:mostraCor(st:get(Scope, "b")),
+	Temp_Class2:mostraCor(st:get(Scope, "b"))
+	end,
 
+	begin
 	Temp_Class1 = oo:get_class(st:get(Scope, "b")),
-	Temp_Class1:trocaCor(st:get(Scope, "b"), "preto"),
+	Temp_Class1:trocaCor(st:get(Scope, "b"), "preto")
+	end,
 
+	begin
 	Temp_Class2 = oo:get_class(st:get(Scope, "b")),
-	Temp_Class2:mostraCor(st:get(Scope, "b")).
+	Temp_Class2:mostraCor(st:get(Scope, "b"))
+	end.

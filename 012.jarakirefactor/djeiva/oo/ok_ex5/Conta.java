@@ -1,4 +1,4 @@
-public class Conta {
+class Conta {
 	int numero;
 	String nome;
 	float saldo;
@@ -15,15 +15,15 @@ public class Conta {
 		this.saldo = saldo;
 	}
 
-	public void alterarNome(String nome ) {
+	public void alterarNome(String nome) {
 		this.nome = nome;
 	}
 
-	public void deposito(float quantia){
+	public void depositar(float quantia){
 		saldo = saldo + quantia;
 	}
 
-	public void saque(float quantia){
+	public void sacar(float quantia){
 		saldo = saldo - quantia;
 	}
 }
