@@ -1,5 +1,13 @@
-%%-----------------------------------------------------------------------------
+%% LUDUS - Laboratorio de Projetos Especiais em Engenharia da Computacao
+%% Aluno  : Daniel Henrique Braz Aquino ( dhbaquino@gmail.com )
+%%			Eden ( edenstark@gmail.com )
+%%			Helder Cunha Batista ( hcb007@gmail.com )
+%%			Josiane Rodrigues da Silva ( josi.enge@gmail.com )
+%%			Lídia Lizziane Serejo de Carvalho ( lidializz@gmail.com )
+%%			Rodrigo Barros Bernardino ( rbbernardino@gmail.com )
+%% Orientador : Prof Jucimar Jr ( jucimar.jr@gmail.com )
 %% Definições das regras do analisador sintatico do compilador
+
 Nonterminals
 start_parser
 import_list import_declaration
@@ -103,7 +111,6 @@ statement -> if_stmt				: '$1'.
 statement -> if_else_stmt			: '$1'.
 statement -> no_trailing_stmt		: '$1'.
 
-
 no_short_if_stmt -> for_no_trailing						: '$1'.
 no_short_if_stmt -> while_no_trailing					: '$1'.
 no_trailing_stmt -> block								: '$1'.
@@ -140,7 +147,6 @@ print_stmt -> print '(' print_content ')' ';':
 %% trata expressoes do tipo [ System.out.println( texto + identificador ) ]
 print_stmt -> println '(' print_content ')' ';':
 		   {line('$1'), println, '$3'}.
-
 
 print_content -> text : ['$1'].
 

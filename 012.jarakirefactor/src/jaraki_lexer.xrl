@@ -1,4 +1,11 @@
-%%-----------------------------------------------------------------------------
+%% LUDUS - Laboratorio de Projetos Especiais em Engenharia da Computacao
+%% Aluno  : Daniel Henrique Braz Aquino ( dhbaquino@gmail.com )
+%%			Eden ( edenstark@gmail.com )
+%%			Helder Cunha Batista ( hcb007@gmail.com )
+%%			Josiane Rodrigues da Silva ( josi.enge@gmail.com )
+%%			Lídia Lizziane Serejo de Carvalho ( lidializz@gmail.com )
+%%			Rodrigo Barros Bernardino ( rbbernardino@gmail.com )
+%% Orientador : Prof Jucimar Jr ( jucimar.jr@gmail.com )
 %% Definições dos tokens do analisador lexico do compilador
 
 Definitions.
@@ -45,8 +52,6 @@ Digit				= [0-9]
 Identifier			= [a-zA-Z_][a-zA-Z0-9_]*
 
 StringLiteral		= "(\\\^.|\\.|[^\"])*"
-
-
 
 % Separator: one of
 
@@ -102,7 +107,6 @@ Rules.
 {Println}	: {token, {println,	TokenLine, list_to_atom(TokenChars)}}.
 {True}		: {token, {true,	TokenLine, list_to_atom(TokenChars)}}.
 {False}		: {token, {false,	TokenLine, list_to_atom(TokenChars)}}.
-
 
 {ImportAll}			: {token, {list_to_atom(TokenChars), TokenLine}}.
 {OpenParentheses}	: {token, {list_to_atom(TokenChars), TokenLine}}.
