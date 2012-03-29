@@ -1,5 +1,5 @@
-test/ebin/
-java_src/class/
+*/test/ebin/
+*/java_src/class/
 *.beam
 *.*~
 *~
