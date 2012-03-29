@@ -40,7 +40,6 @@ transform_jast_to_east(JavaAST, ErlangModuleName) ->
 			throw({error, Errors})
 	end.
 
-
 %%-----------------------------------------------------------------------------
 %% Extrai o corpo do modulo erlang a partir de uma classe java
 %% TODO: Tratar atributos ("variáveis globais") da classe...
