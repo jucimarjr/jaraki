@@ -23,6 +23,7 @@ comparation_expr bool_expr
 element_value_pair
 sqrt_stmt
 print_stmt print_content if_stmt if_else_stmt if_else_no_trailing
+scanner_declaration_stmt next_int_stmt next_float_stmt next_line_stmt
 return_statement
 for_stmt for_no_trailing
 while_stmt while_no_trailing
@@ -33,9 +34,10 @@ for_update post_increment_expr
 statement.
 
 Terminals
-package import class public static void main return sqrt print println
+package import class public static void main return sqrt print println scanner
 '(' ')' '[' ']' '{' '}' ';' '=' '.' '.*' ','
 int_t long_t float_t double_t boolean_t
+next_int	next_line	next_float	'new'	system_in
 'if' 'else' true false
 for while
 integer float
@@ -61,6 +63,7 @@ import_list -> import import_declaration import_list	: ['$2' | '$3'].
 import_declaration -> identifier ';'					: ['$1'].
 import_declaration -> identifier '.*' ';'				: [{'$1', '$2'}].
 import_declaration -> identifier '.' import_declaration	: ['$1' | '$3'].
+import_declaration -> scanner ';' : ['$1'].
 
 class_list -> class_declaration				: ['$1'].
 class_list -> class_declaration class_list	: ['$1' | '$2'].
@@ -117,6 +120,7 @@ no_trailing_stmt -> block								: '$1'.
 no_trailing_stmt -> local_variable_declaration_statement: '$1'.
 no_trailing_stmt -> element_value_pair					: '$1'.
 no_trailing_stmt -> print_stmt							: '$1'.
+no_trailing_stmt -> scanner_declaration_stmt			: '$1'.
 no_trailing_stmt -> post_increment_expr					: '$1'.
 no_trailing_stmt -> return_statement					: '$1'.
 no_short_if_stmt -> no_trailing_stmt					: '$1'.
@@ -139,6 +143,18 @@ element_value_pair ->	identifier '=' element_value ';':
 		attribution, {var, unwrap('$1')}, {var_value, '$3'}}.
 
 sqrt_stmt -> sqrt '(' element_value ')': {sqrt, line('$1'), '$3'}.
+
+scanner_declaration_stmt ->	scanner identifier '='
+				'new' scanner '(' system_in ')' ';' :	no_operation.
+
+next_int_stmt -> identifier '.' next_int '(' ')' :
+					{next_int, line('$1'), unwrap('$1')}.
+
+next_float_stmt -> identifier '.' next_float '(' ')' :
+					{next_float, line('$1'),  unwrap('$1')}.
+
+next_line_stmt -> identifier '.' next_line '(' ')' :
+					{next_line, line('$1'),  unwrap('$1')}.
 
 %% trata expressoes do tipo [ System.out.print( texto + identificador ) ]
 print_stmt -> print '(' print_content ')' ';':
@@ -269,6 +285,10 @@ literal -> identifier :  {var, line('$1'), unwrap('$1')}.
 literal -> '(' add_expr ')' : '$2'.
 literal -> true : {atom, line('$1'), true}.
 literal -> false: {atom, line('$1'), false}.
+literal -> next_int_stmt		: '$1'.
+literal -> next_float_stmt		: '$1'.
+literal -> next_line_stmt		: '$1'.
+
 
 Erlang code.
 

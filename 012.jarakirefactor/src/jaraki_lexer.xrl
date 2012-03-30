@@ -45,9 +45,15 @@ False	= false
 
 Main				= main
 % TODO: incluir potencia;
-Sqrt				= Math.sqrt 
+Sqrt				= Math.sqrt
 Print				= System.out.print
 Println				= System.out.println
+Scanner				= Scanner
+SystemIn			= System\.in
+NextInt				= nextInt
+NextFloat			= nextFloat
+NextLine			= nextLine
+New					= new
 Digit				= [0-9]
 Identifier			= [a-zA-Z_][a-zA-Z0-9_]*
 
@@ -105,6 +111,12 @@ Rules.
 {Sqrt}		: {token, {sqrt,	TokenLine, list_to_atom(TokenChars)}}.
 {Print}		: {token, {print,	TokenLine, list_to_atom(TokenChars)}}.
 {Println}	: {token, {println,	TokenLine, list_to_atom(TokenChars)}}.
+{Scanner}	: {token, {scanner,	TokenLine, list_to_atom(TokenChars)}}.
+{SystemIn}	: {token, {system_in,	TokenLine, list_to_atom(TokenChars)}}.
+{NextInt}	: {token, {next_int,		TokenLine, list_to_atom(TokenChars)}}.
+{NextFloat}	: {token, {next_float,	TokenLine, list_to_atom(TokenChars)}}.
+{NextLine}	: {token, {next_line,	TokenLine, list_to_atom(TokenChars)}}.
+{New}		: {token, {'new',		TokenLine, list_to_atom(TokenChars)}}.
 {True}		: {token, {true,	TokenLine, list_to_atom(TokenChars)}}.
 {False}		: {token, {false,	TokenLine, list_to_atom(TokenChars)}}.
 
