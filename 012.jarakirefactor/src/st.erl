@@ -24,7 +24,11 @@ insert_var_list(Line, Scope, [{{var, VarName}, _VarValue} | Rest], Type) ->
 
 %% Semântica - Key = {Scope, VarName}, Value = {Type, VarValue}
 put(Key, Value) ->
-	ets:insert(dict, {Key, Value}).
+	case Value of
+	{Type, {ok, [ValueScanner]}} ->
+				ets:insert(dict, {Key, {Type, ValueScanner}});
+	_ ->ets:insert(dict, {Key, Value})
+	end.
 
 get(Scope, VarName) ->
 	VarValue = ets:lookup(dict, {Scope, VarName}),

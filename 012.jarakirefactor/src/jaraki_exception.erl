@@ -37,6 +37,15 @@ check_var_type(_Type, {function_call, {_Line, _FunctionName}, _ArgsTuple}) ->
 check_var_type(_Type, {sqrt, _Line, _RightExp}) ->
 	%% match_type(Type, double);
 	ok;
+check_var_type(_Type, {next_int, _Line, _VarScanner}) ->
+	%% match_type(Type, int);
+	ok;
+check_var_type(_Type, {next_float, _Line, _VarScanner}) ->
+	%% match_type(Type, float);
+	ok;
+check_var_type(_Type, {next_line, _Line, _VarScanner}) ->
+	%% match_type(Type, String);
+	ok;
 check_var_type(Type, {op, Line, Op, RightExp}) ->
 	{op, Line, Op, check_var_type(Type, RightExp)};
 check_var_type(Type, {integer, Line, _Value}) ->

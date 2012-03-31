@@ -22,6 +22,11 @@
 %% apenas uma unica expressao
 match_statement({var_declaration, VarType, VarList}) ->
 	create_declaration(var_declaration, VarType, VarList);
+
+%% Instanciação do Scanner é ignorado no parser
+match_statement(no_operation) ->
+	no_operation;
+
 %% transforma expressoes do tipo System.out.print em Erlang
 match_statement({Line, print, Content}) ->
 	create_print_function(Line, print, Content);
@@ -29,7 +34,6 @@ match_statement({Line, print, Content}) ->
 %% transforma expressoes System.out.println em Erlang
 match_statement({Line, println, Content}) ->
 	 create_print_function(Line, println, Content);
-
 
 %% transforma chamadas de funcoes em Erlang
 match_statement({function_call, {Line, FunctionName},
@@ -120,6 +124,12 @@ match_attr_expr({function_call, {Line, FunctionName},
 	create_function_call(Line, FunctionName, ArgumentsList);
 match_attr_expr({sqrt, Line, RightExp}) ->
 	rcall(Line, math, sqrt, [match_attr_expr(RightExp)]);
+match_attr_expr({next_int, Line, VarScanner})->
+	create_function_scanner(Line, VarScanner);
+match_attr_expr({next_float, Line, VarScanner})->
+	create_function_scanner(Line, VarScanner);
+match_attr_expr({next_line, Line, VarScanner})->
+	create_function_scanner(Line, VarScanner);
 match_attr_expr({integer, _Line, _Value} = Element) ->
 	Element;
 match_attr_expr({float, _Line, _Value} = Element) ->
@@ -134,7 +144,6 @@ match_attr_expr({var, Line, VarName}) ->
 	st:get2(Line, st:get_scope(), VarName),
 	rcall(Line, st, get,
 		[atom(Line, st:get_scope()), string(Line, VarName)]).
-
 
 create_declaration(var_declaration, {var_type, {VarLine, _VarType}},
 						{var_list, VarList}) ->
@@ -156,6 +165,15 @@ create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 				_ -> VarAst = create_attribution(VarLine, VarName, VarValue),
 					create_declaration_list(VarLine, Rest, [VarAst| VarAstList])
 	end.
+
+%-------------------------------------------------------------------------------
+% Cria elemento da east para Scanner
+% VarScanner é o nome da variável instanciada no scanner
+create_function_scanner(Line, _VarScanner) ->
+	 Prompt = string(Line, '>'),
+	 ConsoleContent = string(Line, '~d'),
+
+	 rcall(Line, io, fread, [Prompt, ConsoleContent]).
 
  %%-----------------------------------------------------------------------------
  %% Cria o elemento da east para as funcoes de impressao do java
@@ -211,7 +229,7 @@ create_function_call(Line, FunctionName, ArgumentsList) ->
 %% Cria o elemento da east para atribuiçao de variaveis do java
 create_attribution(Line, VarName, VarValue) ->
 	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),
-
+	
 	jaraki_exception:check_var_type(Type, VarValue),
 
 	TransformedVarValue = match_attr_expr(VarValue),
