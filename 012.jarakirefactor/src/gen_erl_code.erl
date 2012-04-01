@@ -125,11 +125,11 @@ match_attr_expr({function_call, {Line, FunctionName},
 match_attr_expr({sqrt, Line, RightExp}) ->
 	rcall(Line, math, sqrt, [match_attr_expr(RightExp)]);
 match_attr_expr({next_int, Line, VarScanner})->
-	create_function_scanner(Line, VarScanner);
+	create_function_scanner(next_int, Line, VarScanner);
 match_attr_expr({next_float, Line, VarScanner})->
-	create_function_scanner(Line, VarScanner);
+	create_function_scanner(next_float, Line, VarScanner);
 match_attr_expr({next_line, Line, VarScanner})->
-	create_function_scanner(Line, VarScanner);
+	create_function_scanner(next_line, Line, VarScanner);
 match_attr_expr({integer, _Line, _Value} = Element) ->
 	Element;
 match_attr_expr({float, _Line, _Value} = Element) ->
@@ -169,15 +169,22 @@ create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 %-------------------------------------------------------------------------------
 % Cria elemento da east para Scanner
 % VarScanner é o nome da variável instanciada no scanner
-create_function_scanner(Line, _VarScanner) ->
+create_function_scanner(next_int, Line, _VarScanner) ->
 	 Prompt = string(Line, '>'),
 	 ConsoleContent = string(Line, '~d'),
-
-	 rcall(Line, io, fread, [Prompt, ConsoleContent]).
+    rcall(Line, io, fread, [Prompt, ConsoleContent]);
+create_function_scanner(next_float, Line, _VarScanner) ->
+	 Prompt = string(Line, '>'),
+	 ConsoleContent = string(Line, '~f'),
+    rcall(Line, io, fread, [Prompt, ConsoleContent]);
+create_function_scanner(next_line, Line, _VarScanner) ->
+	 Prompt = string(Line, '>'),
+	 ConsoleContent = string(Line, '~s'),
+    rcall(Line, io, fread, [Prompt, ConsoleContent]).
 
  %%-----------------------------------------------------------------------------
  %% Cria o elemento da east para as funcoes de impressao do java
- create_print_function(Line, print, Content) ->
+create_print_function(Line, print, Content) ->
 	 PrintText = print_text(Content, Line, [], print),
 	 PrintContent = print_list(Content, Line),
 
@@ -198,8 +205,16 @@ print_text([Head | L], Line, Text, _print) ->
 	{Type, _, PrintElement} = Head,
 	case Type of
 		identifier ->
-			st:get2(Line, st:get_scope(), PrintElement),
+		Value = st:get2(Line, st:get_scope(), PrintElement),
+		{TypeId, _VarValue} = Value,
+		case TypeId of
+		    int ->
 			print_text(L, Line, Text ++ "~p", _print);
+		    float ->
+			print_text(L, Line, Text ++ "~f", _print);
+		    _ ->
+			print_text(L, Line, Text ++ "~s", _print)
+		end;
 		text ->
 			print_text(L, Line, Text ++ "~s", _print)
 	end.
