@@ -1,3 +1,5 @@
+package ex2;
+
 class Rica {
 	private double dinheiro;
 

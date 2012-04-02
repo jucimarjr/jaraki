@@ -1,4 +1,6 @@
-class Funcionario {
+package ex1;
+
+public class Funcionario {
 	String nome;
 	float salario;
 

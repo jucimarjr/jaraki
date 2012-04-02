@@ -1,3 +1,5 @@
+package ex3;
+
 class CamaroteInferior extends VIP {
 	private char localizacao;
 

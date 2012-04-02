@@ -1,6 +1,12 @@
+package ex3;
+
 class Ingresso {
 	private float valor;
 
+	public Ingresso(){
+		super();
+	}
+	
 	public Ingresso(float valor){
 		this.valor = valor;
 	}

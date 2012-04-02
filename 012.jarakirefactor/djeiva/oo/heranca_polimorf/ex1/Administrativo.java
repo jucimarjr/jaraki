@@ -1,12 +1,22 @@
+package ex1;
+
 // turno e adicional noturno
-class Administrativo extends Assistente {
+public class Administrativo extends Assistente {
 	char turno; // D - dia, N - noite
 	float adicionalNoturno;
+
+	public Administrativo(String nome, float salario, int matricula, char turno, float adicionalNoturno) {
+		this.nome = nome;
+		this.salario = salario;
+		this.matricula = matricula;
+		this.turno = turno;
+		this.adicionalNoturno = adicionalNoturno;
+	}
 
 	public void exibeDados() {
 		super.exibeDados();
 		String turnoExtenso;
-		float salarioTotal;
+		float salarioTotal = 0.0f;
 
 		if(turno == 'D') {
 			turnoExtenso = "diurno";

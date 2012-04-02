@@ -1,4 +1,6 @@
-class Assistente extends Funcionario {
+package ex1;
+
+public class Assistente extends Funcionario {
 	int matricula;
 
 	public int getMatricula() {

@@ -1,5 +1,7 @@
+package ex1;
+
 // bonus salarial
-class Tecnico extends Assistente {
+public class Tecnico extends Assistente {
 	float bonusSalarial;
 
 	public void exibeDados() {

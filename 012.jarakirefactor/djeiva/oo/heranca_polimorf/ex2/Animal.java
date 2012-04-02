@@ -1,3 +1,5 @@
+package ex2;
+
 class Animal {
 	private String nome;
 	private String raca;
