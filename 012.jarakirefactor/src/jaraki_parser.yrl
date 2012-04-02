@@ -36,7 +36,7 @@ statement.
 Terminals
 package import class public static void main return sqrt print println scanner
 '(' ')' '[' ']' '{' '}' ';' '=' '.' '.*' ','
-int_t long_t float_t double_t boolean_t
+string_t int_t long_t float_t double_t boolean_t
 next_int	next_line	next_float	'new'	system_in
 'if' 'else' true false
 for while
@@ -84,7 +84,7 @@ method_declaration -> public static type identifier
 
 method_declaration ->
 	public static type main
-	'(' identifier '[' ']' identifier ')' block:
+	'(' string_t '[' ']' identifier ')' block:
 		{line('$4'), '$3',
 			{method, unwrap('$4')},
 			[{line('$9'),
@@ -241,6 +241,7 @@ argument_list ->	argument ',' argument_list	: ['$1' | '$3'].
 
 argument ->		element_value			: '$1'.
 
+type -> string_t: {line('$1'), unwrap('$1')}.
 type -> void	: {line('$1'), unwrap('$1')}.
 type -> int_t	: {line('$1'), unwrap('$1')}.
 type -> long_t	: {line('$1'), unwrap('$1')}.

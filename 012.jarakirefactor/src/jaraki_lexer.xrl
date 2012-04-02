@@ -24,6 +24,7 @@ Public				= public
 Static				= static
 Void				= void
 Return				= return
+String				= String
 Integer				= int
 Long				= long
 Float				= float
@@ -99,6 +100,7 @@ Rules.
 {Void}		: {token, {void,	TokenLine, list_to_atom(TokenChars)}}.
 {Main}		: {token, {main,	TokenLine, list_to_atom(TokenChars)}}.
 {Return}	: {token, {return,	TokenLine, list_to_atom(TokenChars)}}.
+{String}	: {token, {string_t,TokenLine, list_to_atom(TokenChars)}}.
 {Integer}	: {token, {int_t,	TokenLine, list_to_atom(TokenChars)}}.
 {Long}		: {token, {long_t,	TokenLine, list_to_atom(TokenChars)}}.
 {Float}		: {token, {float_t,	TokenLine, list_to_atom(TokenChars)}}.
