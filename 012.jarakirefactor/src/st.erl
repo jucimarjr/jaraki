@@ -24,9 +24,9 @@ insert_var_list(Line, Scope, [{{var, VarName}, _VarValue} | Rest], Type) ->
 put_value(Key, Value) ->
 %% Semântica - Key = {Scope, VarName}, Value = {Type, VarValue}
 	case Value of
-	{Type, {ok, [ValueScanner]}} ->
-				put(Key, {Type, ValueScanner});
-	_ ->put(Key, Value)
+		{Type, {ok, [ValueScanner]}} ->
+			put(Key, {Type, ValueScanner});
+		_ ->put(Key, Value)
 	end.
 
 get_value(Scope, VarName) ->
@@ -60,14 +60,11 @@ put_scope(Scope) ->
 	put(dict, {scope, Scope}).
 
 get_scope() ->
-	Scope = get(scope),
-	Scope.
+	get(scope).
 
 put_error(Line, Code) ->
-	Errors = get(errors),
-	NewErrors = [ {Line, Code} | Errors ],
+	NewErrors = [{Line, Code} | get(errors)],
 	put(dict, {errors, NewErrors}).
 
 get_errors() ->
-	Errors = get(errors),
-	lists:reverse(Errors, []).
+	lists:reverse(get(errors), []).
