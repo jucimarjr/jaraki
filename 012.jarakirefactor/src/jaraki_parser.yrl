@@ -17,6 +17,7 @@ method_declaration
 block block_statements
 method_invocation
 local_variable_declaration_statement element_value type variable_list
+array_list array_initializer array
 add_expr mult_expr modulus_expr
 unary_expr literal
 comparation_expr bool_expr
@@ -137,10 +138,37 @@ variable_list -> identifier	: [{{var, unwrap('$1')},{var_value, undefined}}].
 variable_list -> identifier	',' variable_list:
 		[{{var, unwrap('$1')}, {var_value, undefined}} | '$3'].
 
+%% Declaração de vetor
+local_variable_declaration_statement ->  type '[' ']'  array_list ';':
+	{array_declaration, {var_type, '$1'}, {array_list, '$4'}}.
+
+array_list -> identifier: [{{var, unwrap('$1')},{var_value, undefined}}].
+
+array_list -> identifier ',' array_list:
+		[{{var, unwrap('$1')}, {var_value, undefined}} | '$3'].
+
+array_list -> identifier '=' '{' array_initializer '}':
+			[{{var, unwrap('$1')}, {var_value, '$4'}}].
+
+array_initializer -> literal : [{array_element, unwrap('$1')}].
+
+array_initializer -> literal ',' array_initializer:
+		[{array_element, unwrap('$1')} | '$3'].
+
 %% Atribuições
+%%TODO: Verificar element value
 element_value_pair ->	identifier '=' element_value ';':
-	{line('$1'),
-		attribution, {var, unwrap('$1')}, {var_value, '$3'}}.
+	{line('$1'), attribution, {var, unwrap('$1')}, {var_value, '$3'}}.
+
+%% Atribuição de array
+element_value_pair ->  identifier '[' integer ']' '=' element_value ';':
+	{line('$1'), array_attribution,
+		{{var,  unwrap('$1')}, {index, unwrap('$3')}}, {var_value, '$3'}}.
+
+element_value_pair ->  identifier '[' identifier ']' '=' element_value ';':
+	{line('$1'), array_attribution,
+		{{var,  unwrap('$1')}, {index, unwrap('$3')}}, {var_value, '$3'}}.
+%%--------------
 
 sqrt_stmt -> sqrt '(' element_value ')': {sqrt, line('$1'), '$3'}.
 
@@ -164,6 +192,7 @@ print_stmt -> print '(' print_content ')' ';':
 print_stmt -> println '(' print_content ')' ';':
 		   {line('$1'), println, '$3'}.
 
+
 print_content -> text : ['$1'].
 
 print_content -> identifier : ['$1'].
@@ -172,6 +201,18 @@ print_content -> text add_op print_content : ['$1' | '$3'].
 
 print_content -> identifier add_op print_content : ['$1' | '$3'].
 
+print_content -> array : ['$1'].
+
+%% Estrutura vetor
+%% TOD: Verificar ele como um array
+array ->
+	 identifier '[' integer ']' :
+			{{var, line('$1'), unwrap('$1')}, {index, unwrap('$3')}}.
+array ->
+	 identifier '[' identifier ']' :
+			{{var, line('$1'), unwrap('$1')},  {index, unwrap('$3')}}.
+
+%%
 for_update -> identifier increment_op :
 				Var = {var, line('$1'), unwrap('$1')},
 				{inc_op, line('$1'), unwrap('$2'), Var}.
