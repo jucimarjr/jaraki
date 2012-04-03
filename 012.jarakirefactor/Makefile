@@ -76,4 +76,5 @@ clean:
 	rm -rf $(JAVA_CLASS_DIR)/
 	find . -name  *.*~ -print0 | xargs -0
 	find . -name  *~ -print0 | xargs -0
+	clear
 	@ echo

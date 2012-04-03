@@ -37,7 +37,7 @@ main(V_args) ->
     st:new(),
     st:get_new_stack(main),	
     st:put({main, "args"}, {'String', V_args}),
-    st:put({main, "n"}, {int, 25}),
+    st:put({main, "n"}, {int, 50}),
     begin
       st:put({main, "i"}, {int, 0}),
       for(fun () -> st:get(main, "i") < st:get(main, "n") end,
