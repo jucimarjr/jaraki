@@ -91,14 +91,14 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 	MappedParamsFun =
 		fun ({_VarLine, {var_type, {_Line, VarType}},
 				{parameter, VarName}}) ->
-			st:put({st:get_scope(), VarName}, {VarType, undefined})
+			st:put_value({st:get_scope(), VarName}, {VarType, undefined})
 		end,
 	lists:map( MappedParamsFun, ParametersList),
 
 
 	ScopeAst = atom(Line, st:get_scope()),
 	InitArgs = [
-		rcall(Line, st, put, [
+		rcall(Line, st, put_value, [
 			tuple(Line,	[ScopeAst, string(Line, InitArgName)]),
 			tuple(Line,
 				[atom(Line, InitArgType),
@@ -120,18 +120,11 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 			gen_erl_code:match_statement(Statement)
 		end,
 
-	InitEts =
-		case st:get_scope() of
-			main -> [rcall(Line, st, new, [])];
-			_ -> [no_operation]
-		end,
-
 	ErlangStmtTemp1 = InitArgs ++
 				lists:map(MappedErlangFun, JavaMethodBody),
-	ErlangStmtTemp2 = InitEts ++ ErlangStmtTemp1,
 	ErlangStmt = [
 			Element ||
-			Element <- ErlangStmtTemp2,
+			Element <- ErlangStmtTemp1,
 			Element =/= no_operation
 			],
 	[{clause, Line, ErlangArgsList, [], ErlangStmt}].

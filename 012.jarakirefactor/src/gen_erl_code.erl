@@ -142,7 +142,7 @@ match_attr_expr({op, Line, Op, LeftExp, RightExp}) ->
 	{op, Line, Op, match_attr_expr(LeftExp), match_attr_expr(RightExp)};
 match_attr_expr({var, Line, VarName}) ->
 	st:get2(Line, st:get_scope(), VarName),
-	rcall(Line, st, get,
+	rcall(Line, st, get_value,
 		[atom(Line, st:get_scope()), string(Line, VarName)]).
 
 create_declaration(var_declaration, {var_type, {VarLine, _VarType}},
@@ -225,7 +225,7 @@ print_list([Element|L], Line) ->
 	{Type, _, PrintElement} = Element,
 	case Type of
 	identifier ->
-		Identifier = rcall(Line, st, get, [atom(Line, st:get_scope()),
+		Identifier = rcall(Line, st, get_value, [atom(Line, st:get_scope()),
 				string(Line, PrintElement)]),
 		{cons, Line, Identifier, print_list(L, Line)};
 	text ->
@@ -253,7 +253,7 @@ create_attribution(Line, VarName, VarValue) ->
 	TypeAst = atom(Line, Type),
 	ScopeAst = atom(Line, st:get_scope()),
 
-	rcall(Line, st, put, [
+	rcall(Line, st, put_value, [
 				tuple(Line, [ScopeAst, JavaNameAst]),
 				tuple(Line, [TypeAst, TransformedVarValue])
 			]).
@@ -295,11 +295,11 @@ create_for(Line, VarType, VarName, Start, CondExpr, IncExpr, Body) ->
 	JavaNameAst = string(Line, VarName),
 	TypeAst = atom(Line, VarType),
 	ScopeAst = {atom, Line, st:get_scope()},
-	InitAst = rcall(Line, st, put,[
+	InitAst = rcall(Line, st, put_value,[
 			tuple(Line, [ScopeAst, JavaNameAst]), 
 			tuple(Line, [TypeAst, Start])]),
 
-	st:put({st:get_scope(), VarName}, {VarType, undefined}),
+	st:put_value({st:get_scope(), VarName}, {VarType, undefined}),
 
 	CondAst = 'fun'(Line, [clause(Line, [], [], [match_attr_expr(CondExpr)])]),
 	IncAst = 'fun'(Line, [clause(Line, [], [], [match_statement(IncExpr)])]),

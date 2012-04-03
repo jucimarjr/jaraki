@@ -2,12 +2,11 @@
 -compile(export_all).
 
 new() ->
-	ets:new(dict, [named_table]),
-	ets:insert(dict, {errors, []}),
-	ets:insert(dict, {scope, '__undefined__'}).
+	put(errors, []),
+	put(scope, '__undefined__').
 
 destroy() ->
-	ets:delete(dict).
+	erase().
 
 %%SEMÂNTICA E GERAÇÃO DE CÓDIGO
 
@@ -22,53 +21,53 @@ insert_var_list(Line, Scope, [{{var, VarName}, _VarValue} | Rest], Type) ->
 	get_declared(Line, Scope, VarName, Type, undefined),
 	insert_var_list(Line, Scope, Rest, Type).
 
+put_value(Key, Value) ->
 %% Semântica - Key = {Scope, VarName}, Value = {Type, VarValue}
-put(Key, Value) ->
 	case Value of
 	{Type, {ok, [ValueScanner]}} ->
-				ets:insert(dict, {Key, {Type, ValueScanner}});
-	_ ->ets:insert(dict, {Key, Value})
+				put(Key, {Type, ValueScanner});
+	_ ->put(Key, Value)
 	end.
 
-get(Scope, VarName) ->
-	VarValue = ets:lookup(dict, {Scope, VarName}),
-	[{_Key , {_Type, Value}}] = VarValue,
+get_value(Scope, VarName) ->
+	VarValue = get({Scope, VarName}),
+	{_Type, Value} = VarValue,
 	Value.
 
 delete(Scope, VarName) ->
-	ets:delete(dict, {Scope, VarName}).
+	erase({Scope, VarName}).
 
 %% SEMÂNTICA
 get2(Line, Scope, VarName) ->
-	VarValue = ets:lookup(dict, {Scope, VarName}),
+	VarValue = get({Scope, VarName}),
 	case VarValue of
-		[{_Key , Value}] ->
-					Value;
-		[] ->
-			jaraki_exception:handle_error(Line, 1)
+		undefined ->
+			jaraki_exception:handle_error(Line, 1);
+		Value ->
+			Value
 	end.
 
 get_declared(Line, Scope, VarName, Type, VarValue) ->
-	case ets:lookup(dict, {Scope, VarName}) of
-		[] ->
-			st:put({Scope, VarName}, {Type, VarValue});
+	case get({Scope, VarName}) of
 		[{_Key, _Value}] ->
 			jaraki_exception:
-				handle_error(Line, 2)
+				handle_error(Line, 2);
+		_ ->
+			put_value({Scope, VarName}, {Type, VarValue})
 	end.
 
 put_scope(Scope) ->
-	ets:insert(dict, {scope, Scope}).
+	put(dict, {scope, Scope}).
 
 get_scope() ->
-	[{_Key, Scope}] = ets:lookup(dict, scope),
+	Scope = get(scope),
 	Scope.
 
 put_error(Line, Code) ->
-	[{_Key, Errors}] = ets:lookup(dict, errors),
+	Errors = get(errors),
 	NewErrors = [ {Line, Code} | Errors ],
-	ets:insert(dict, {errors, NewErrors}).
+	put(dict, {errors, NewErrors}).
 
 get_errors() ->
-	[{_Key, Errors}] = ets:lookup(dict, errors),
+	Errors = get(errors),
 	lists:reverse(Errors, []).
