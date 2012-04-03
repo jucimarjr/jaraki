@@ -89,14 +89,14 @@ get_declared(Line, Scope, VarName, Type, VarValue) ->
 	end.
 
 put_scope(Scope) ->
-	put(dict, {scope, Scope}).
+	put(scope, Scope).
 
 get_scope() ->
 	get(scope).
 
 put_error(Line, Code) ->
 	NewErrors = [{Line, Code} | get(errors)],
-	put(dict, {errors, NewErrors}).
+	put(errors, NewErrors).
 
 get_errors() ->
 	lists:reverse(get(errors), []).
