@@ -17,12 +17,13 @@ method_declaration
 block block_statements
 method_invocation
 local_variable_declaration_statement element_value type variable_list
-array_list array_initializer array
+array_declaration_list array_initializer array_access
+new_stmt
 add_expr mult_expr modulus_expr
 unary_expr literal
 comparation_expr bool_expr
 element_value_pair
-sqrt_stmt
+sqrt_stmt length_stmt
 print_stmt print_content if_stmt if_else_stmt if_else_no_trailing
 scanner_declaration_stmt next_int_stmt next_float_stmt next_line_stmt
 return_statement
@@ -36,6 +37,7 @@ statement.
 
 Terminals
 package import class public static void main return sqrt print println scanner
+length
 '(' ')' '[' ']' '{' '}' ';' '=' '.' '.*' ','
 string_t int_t long_t float_t double_t boolean_t
 next_int	next_line	next_float	'new'	system_in
@@ -139,17 +141,31 @@ variable_list -> identifier	',' variable_list:
 		[{{var, unwrap('$1')}, {var_value, undefined}} | '$3'].
 
 %% Declaração de vetor
-local_variable_declaration_statement ->  type '[' ']'  array_list ';':
+%% TODO: verificar array_initializer
+
+local_variable_declaration_statement ->  type '[' ']' array_declaration_list';':
 	{array_declaration, {var_type, '$1'}, {array_list, '$4'}}.
 
-array_list -> identifier: [{{var, unwrap('$1')},{var_value, undefined}}].
+%% ------------------------------------------
+array_declaration_list -> identifier:
+				[{{var, unwrap('$1')},{var_value, undefined}}].
 
-array_list -> identifier ',' array_list:
+array_declaration_list -> identifier ',' array_declaration_list:
 		[{{var, unwrap('$1')}, {var_value, undefined}} | '$3'].
 
-array_list -> identifier '=' '{' array_initializer '}':
+array_declaration_list -> identifier '=' '{' array_initializer '}':
 			[{{var, unwrap('$1')}, {var_value, '$4'}}].
 
+array_declaration_list -> identifier '=' new_stmt:
+			[{{var, unwrap('$1')}, {var_value, '$3'}}].
+
+new_stmt -> 'new' type '[' integer ']':
+		{new, array, {type, '$2'}, {index, unwrap('$4')}}.
+
+new_stmt -> 'new' type '[' identifier ']':
+		{new, array, {type, '$2'}, {index, unwrap('$4')}}.
+
+%% ------------------------------------------
 array_initializer -> literal : [{array_element, unwrap('$1')}].
 
 array_initializer -> literal ',' array_initializer:
@@ -161,14 +177,11 @@ element_value_pair ->	identifier '=' element_value ';':
 	{line('$1'), attribution, {var, unwrap('$1')}, {var_value, '$3'}}.
 
 %% Atribuição de array
-element_value_pair ->  identifier '[' integer ']' '=' element_value ';':
-	{line('$1'), array_attribution,
-		{{var,  unwrap('$1')}, {index, unwrap('$3')}}, {var_value, '$3'}}.
+element_value_pair ->  array_access '=' element_value ';':
+	{line('$1'), array_attribution, '$1', {var_value, '$3'}}.
 
-element_value_pair ->  identifier '[' identifier ']' '=' element_value ';':
-	{line('$1'), array_attribution,
-		{{var,  unwrap('$1')}, {index, unwrap('$3')}}, {var_value, '$3'}}.
 %%--------------
+length_stmt -> identifier '.' length : {length, line('$1'), unwrap('$1')}.
 
 sqrt_stmt -> sqrt '(' element_value ')': {sqrt, line('$1'), '$3'}.
 
@@ -201,16 +214,18 @@ print_content -> text add_op print_content : ['$1' | '$3'].
 
 print_content -> identifier add_op print_content : ['$1' | '$3'].
 
-print_content -> array : ['$1'].
+print_content -> array_access : ['$1'].
 
 %% Estrutura vetor
 %% TOD: Verificar ele como um array
-array ->
+array_access ->
 	 identifier '[' integer ']' :
-			{{var, line('$1'), unwrap('$1')}, {index, unwrap('$3')}}.
-array ->
+			{line('$1'), {var, line('$1'), unwrap('$1')},
+					{index, unwrap('$3')}}.
+array_access ->
 	 identifier '[' identifier ']' :
-			{{var, line('$1'), unwrap('$1')},  {index, unwrap('$3')}}.
+			{line('$1'), {var, line('$1'), unwrap('$1')},
+					{index, unwrap('$3')}}.
 
 %%
 for_update -> identifier increment_op :
@@ -319,20 +334,22 @@ modulus_expr -> unary_expr						: '$1'.
 unary_expr -> add_op literal    : {op, line('$1'), unwrap('$1'), '$2'}.
 unary_expr -> literal           : '$1'.
 
-literal -> method_invocation: '$1'.
-literal -> sqrt_stmt : '$1'.
-literal -> integer : '$1'.
-literal -> float : '$1'.
-literal -> identifier :  {var, line('$1'), unwrap('$1')}.
-literal -> '(' add_expr ')' : '$2'.
-literal -> true : {atom, line('$1'), true}.
-literal -> false: {atom, line('$1'), false}.
+literal -> method_invocation	: '$1'.
+literal -> sqrt_stmt			: '$1'.
+literal -> integer				: '$1'.
+literal -> float				: '$1'.
+literal -> identifier			:  {var, line('$1'), unwrap('$1')}.
+literal -> '(' add_expr ')'		: '$2'.
+literal -> true					: {atom, line('$1'), true}.
+literal -> false				: {atom, line('$1'), false}.
 literal -> next_int_stmt		: '$1'.
 literal -> next_float_stmt		: '$1'.
 literal -> next_line_stmt		: '$1'.
-
+literal -> array_access			: '$1'.
+literal -> length_stmt			: '$1'.
 
 Erlang code.
 
 unwrap({_, _, Value})	-> Value.
-line({_, Line, _})	-> Line.
+line({_, Line, _})	-> Line;
+line(_) -> throw("Erro ao usar funcao line no parser!!!!").

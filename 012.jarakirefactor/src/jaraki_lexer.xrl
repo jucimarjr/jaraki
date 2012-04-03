@@ -46,6 +46,7 @@ False	= false
 
 Main				= main
 % TODO: incluir potencia;
+Length				= length
 Sqrt				= Math.sqrt
 Print				= System.out.print
 Println				= System.out.println
@@ -110,6 +111,7 @@ Rules.
 {Else}		: {token, {'else',	TokenLine, list_to_atom(TokenChars)}}.
 {For}		: {token, {'for',	TokenLine, list_to_atom(TokenChars)}}.
 {While}		: {token, {'while',	TokenLine, list_to_atom(TokenChars)}}.
+{Length}	: {token, {length,	TokenLine, list_to_atom(TokenChars)}}.
 {Sqrt}		: {token, {sqrt,	TokenLine, list_to_atom(TokenChars)}}.
 {Print}		: {token, {print,	TokenLine, list_to_atom(TokenChars)}}.
 {Println}	: {token, {println,	TokenLine, list_to_atom(TokenChars)}}.

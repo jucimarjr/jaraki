@@ -7,7 +7,7 @@ public class Vetor07 {
 		
 		
 		for(int i=0; i < 5; i++)
-			vet1[i]= vet2[i];
+			vet1[i] = vet2[i];
 		
 		
 	}
