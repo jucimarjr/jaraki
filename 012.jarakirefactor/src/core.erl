@@ -116,6 +116,7 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 		) ->
 			st:insert_var_list(VarLine, st:get_scope(), VarList, VarType),
 			gen_erl_code:match_statement(VarDeclaration);
+
 		(Statement) ->
 			gen_erl_code:match_statement(Statement)
 		end,

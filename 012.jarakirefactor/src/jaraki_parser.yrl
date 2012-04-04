@@ -144,7 +144,7 @@ variable_list -> identifier	',' variable_list:
 %% TODO: verificar array_initializer
 
 local_variable_declaration_statement ->  type '[' ']' array_declaration_list';':
-	{array_declaration, {var_type, '$1'}, {array_list, '$4'}}.
+	{var_declaration, {var_type, '$1'}, {var_list, '$4'}}.
 
 %% ------------------------------------------
 array_declaration_list -> identifier:
