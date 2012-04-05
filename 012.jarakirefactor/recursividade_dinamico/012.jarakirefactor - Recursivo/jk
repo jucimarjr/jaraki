@@ -1,0 +1,131 @@
+#! /usr/bin/env escript
+
+%% FALTANDO:
+%%    - jaraki_compile retornar nome do arquivo gerado
+%%    - script capturar nome do arquivo gerado e compilá-lo e rodá-lo
+
+%% supondo o script no root do repositorio
+-define(JARAKI_PATH, element(2, file:get_cwd())).
+-define(LIBS_PATH, ?JARAKI_PATH ++ "/ebin").
+%-define(JAVA_EBIN_PATH, ?JARAKI_PATH ++ "/java_beam/ebin/").
+%-define(JAVA_ESRC_PATH, ?JARAKI_PATH ++ "/java_beam/src/").
+-define(SCRIPT_NAME, filename:basename(escript:script_name())).
+-define(COMPILE_OPTIONS,
+		[return_errors, nowarn_unused_vars]).%, {outdir, ?JAVA_EBIN_PATH}]).
+-define(ERROR(Msg),
+			io:format(
+					"*********ERROR!~n"
+					"***Reason: ~p~n~n", [Msg])).
+
+%%-----------------------------------------------------------------------------
+%% Imprime a ajuda, indica o que esse escript faz...
+
+help() ->
+	io:format(""
+	"Usage: "++?SCRIPT_NAME++" [options] [.erl | .java file] [arg1 arg2 ...]\n"
+	"\n"
+	"Options:\n"
+	"\t[-h | --help]  Prints this help\n\n"
+
+	"Modes:\n"
+	"\t.java file: Compile and run a java source with jaraki compiler\n\n"
+
+	"\t.erl file: Compile and run a erlang source generated with "
+					"jaraki compiler\n\n"
+
+	"\t\tThe .erl file should be generated with the jaraki compiler.\n"
+	"\t\tFirst I will compile the .erl file, then I will run it.\n\n"
+
+	"\t\tI will run the main method (function) on it.\n\n"
+
+	"\t\tIf especified, arg1, arg2, argN will be passed as arguments.\n"
+	"\t\tIf no argument is especified, an empty list is passed.\n\n").
+
+%%-----------------------------------------------------------------------------
+%% Funcao principal, executada ao chamar escript
+
+main([]) -> help();
+main(["-h"| _]) -> help();
+main(["--help"| _]) -> help();
+main([FileName | Args]) ->
+	case filename:extension(FileName) of
+		".erl" ->
+			compile_erl_src(FileName, Args);
+		".java" ->
+			compile_java_src(FileName, Args);
+		_ ->
+			?ERROR("Wrong file extension!\n\n")
+	end.
+
+compile_java_src(_,_) ->
+	io:format("to be finished...\n"
+				"jaraki:compile must return generated erlang file name...\n\n");
+
+compile_java_src(FileName, Args) ->
+	io:format("Compiling java source...\n"),
+	ErlFileName = os:cmd("./jkc " ++  FileName),
+	io:format("done!\n"),
+	%ErlFileName = filename:basename(FileName, ".java") ++ ".erl",
+	%os:cmd("mv "++ErlFileName++" "++?JAVA_ESRC_PATH),
+	%io:format(".erl generated at " ++ ?JAVA_ESRC_PATH++ErlFileName++"\n\n"),
+	%compile_erl_src(?JAVA_ESRC_PATH++ErlFileName, Args),
+	compile_erl_src(ErlFileName, Args).
+
+compile_erl_src(FileName, Args) ->
+	io:format("Compiling erlang source...\n"),
+	case compile:file(FileName, ?COMPILE_OPTIONS) of
+		{ok, ModuleName} ->
+			io:format("done!\n\n"),
+			load_libs(ModuleName, Args);
+
+		{error, [{_, [{_,_,{_, enoent}}]}], _} ->
+			Msg = "File not found!",
+			?ERROR(Msg);
+
+		{error, ErrorList, _WarningList} ->
+			?ERROR(ErrorList)
+	end.
+
+load_libs(ModuleName, Args) ->
+	io:format("Loading libs... "),
+	case code:add_pathz(?LIBS_PATH) of
+		true ->
+			io:format("done!\n\n"),
+			run(ModuleName, Args);
+
+		{error, Reason} ->
+			?ERROR("Cant load libs: " ++ Reason)
+	end.
+
+run(ModuleName, Args) ->
+	%code:add_pathz(?JAVA_EBIN_PATH),
+	io:format(
+			"Running Jaraki code, method main...\n"
+			"---------------------------------------\n\n"),
+
+	{_, _, StartTime} = now(),
+	ModuleName:main(Args),
+	{_, _, EndTime} = now(),
+
+	ElapsedTime = EndTime - StartTime,
+	io:format(
+			"\n"
+				"---------------------------------------\n"
+				"Execution finished with success!\n"
+				"Execution time: ~p us (~p s)"
+			"\n\n", [ElapsedTime, ElapsedTime/1000000]).
+
+
+	% compile:file(File, Options)
+	%	=>  {ok, ModuleName}
+	%	=>  {error, ErrorList, WarningList}
+	%	=>  {ok,ModuleName,Warnings}
+	%
+	%	opções úteis:
+	%		return_errors  -> retorna {error, ErrorList, WrningList}
+	%		{outdir, Dir}  -> óbvio
+	%		{i, IncludeDir} -> ||
+	%		nowarn_unused_vars
+
+	% compile:forms(Forms, Options)
+	%	análogo ao compile:file, mas recebe uma lista de forms em ABS Format
