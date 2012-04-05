@@ -121,8 +121,31 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 			gen_erl_code:match_statement(Statement)
 		end,
 
-	ErlangStmtTemp1 = InitArgs ++
-				lists:map(MappedErlangFun, JavaMethodBody),
+	New = 
+		case st:get_scope() of
+			main -> 
+				[rcall(Line, st, new, [])];
+			_ -> 
+				[]
+		end,
+
+	OldStack = 
+	case st:get_scope() of
+		main -> 
+			[rcall(Line, st, get_old_stack, 
+				[atom(Line, st:get_scope())]),
+			 rcall(Line,st, destroy, [])];
+		_ -> []
+	end,
+
+	ErlangStmtTemp1 = 
+		New ++ 
+		[rcall(Line, st, get_new_stack,[atom(Line, st:get_scope())])] 
+		++ 
+		InitArgs ++
+		lists:map(MappedErlangFun, JavaMethodBody) ++ 
+		OldStack,
+
 	ErlangStmt = [
 			Element ||
 			Element <- ErlangStmtTemp1,

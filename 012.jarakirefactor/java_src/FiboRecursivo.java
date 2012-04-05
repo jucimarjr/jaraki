@@ -15,7 +15,7 @@ public class FiboRecursivo {
 	
 	public static void main(String[] args) {
 		int a, n;
-		n = 10;
+		n = 100;
 		
 		for(int i = 0; i < n; i++){		
 			a = fibo(i);			

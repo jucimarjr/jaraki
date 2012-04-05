@@ -104,8 +104,12 @@ match_statement({inc_op, Line, IncOp, Variable}) ->
 	create_inc_op(Line, IncOp, Variable);
 
 %% casa expressões return;
-match_statement({_Line, return, Value}) ->
-	match_attr_expr(Value).
+match_statement({Line, return, Value}) ->
+	{block, Line,
+      		[{match, Line, var(Line,'Return'), match_attr_expr(Value)},
+		rcall(Line, st, get_old_stack, [atom(Line, st:get_scope())]),
+       		var(Line,'Return')]
+	}.
 
 %%-----------------------------------------------------------------------------
 %% casa expressoes/lista de expressoes dentro do IF,FOR,WHILE 
@@ -237,8 +241,16 @@ end.
 create_function_call(Line, FunctionName, ArgumentsList) ->
 	TransformedArgumentList =
 		lists:map(fun match_attr_expr/1, ArgumentsList),
-	call(Line, FunctionName, TransformedArgumentList).
+	FunctionCall = call(Line, FunctionName, TransformedArgumentList),
+	Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),
+	rcall(Line, st, return_function, 
+		[Fun, atom(Line, FunctionName), 
+			create_list(TransformedArgumentList, Line)]).
 
+create_list([], Line) ->
+	{nil, Line};
+create_list([Element| Rest], Line) ->
+	{cons, Line, Element, create_list(Rest, Line)}.
 
 %%-----------------------------------------------------------------------------
 %% Cria o elemento da east para atribuiçao de variaveis do java
@@ -255,8 +267,7 @@ create_attribution(Line, VarName, VarValue) ->
 
 	rcall(Line, st, put_value, [
 				tuple(Line, [ScopeAst, JavaNameAst]),
-				tuple(Line, [TypeAst, TransformedVarValue])
-			]).
+				tuple(Line, [TypeAst, TransformedVarValue])]).
 
 %%-----------------------------------------------------------------------------
 %% Cia a operacao de incremento ++

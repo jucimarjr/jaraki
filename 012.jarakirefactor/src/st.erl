@@ -6,7 +6,7 @@ new() ->
 	put(scope, '__undefined__').
 
 destroy() ->
-	erase().
+	erase(), ok.
 
 %%SEMÂNTICA E GERAÇÃO DE CÓDIGO
 
@@ -21,26 +21,70 @@ insert_var_list(Line, Scope, [{{var, VarName}, _VarValue} | Rest], Type) ->
 	get_declared(Line, Scope, VarName, Type, undefined),
 	insert_var_list(Line, Scope, Rest, Type).
 
-put_value(Key, Value) ->
+put_value({Scope, Var}, Value) ->
 %% Semântica - Key = {Scope, VarName}, Value = {Type, VarValue}
 	case Value of
 		{Type, {ok, [ValueScanner]}} ->
-			put(Key, {Type, ValueScanner});
-		_ ->put(Key, Value)
+		put({Scope, Var, get_stack(Scope)}, {Type, ValueScanner});
+		_ -> 
+		put({Scope, Var, get_stack(Scope)}, Value)
 	end.
 
 get_value(Scope, VarName) ->
-	VarValue = get({Scope, VarName}),
+	VarValue = get({Scope, VarName, get_stack(Scope)}),
 	{_Type, Value} = VarValue,
 	Value.
+
+return_function(Fun, Scope, Parameters) ->
+	case st:get_return(Scope, Parameters) of 
+	  {ok, Return} -> 
+		Return;
+	  no_value -> 
+		Return = Fun(),
+		st:put_return({Scope, Parameters}, Return),
+		Return
+	end.
 
 delete(Scope, VarName) ->
 	erase({Scope, VarName}).
 
+%% Funções de Pilha
+
+get_stack(Scope) ->
+	case get(Scope) of
+		undefined -> 0;
+		_ -> get(Scope)
+	end.
+
+get_new_stack(Scope) ->
+	case get(Scope) of
+		undefined ->
+			NewStack = 1,
+			put(Scope, NewStack),
+			NewStack;
+		Stack ->
+			NewStack = Stack + 1, 
+			put(Scope, NewStack),
+			NewStack
+	end.
+
+get_old_stack(Scope) ->
+	put(Scope, get(Scope) - 1).
+
+get_return(Scope, Parameters) ->
+	case get({Scope, Parameters}) of
+		undefined -> 
+			no_value;	    
+		Return -> 
+			{ok, Return}
+	end.
+
+put_return({Scope, Parameters}, Return) ->
+	put({Scope, Parameters}, Return).
+
 %% SEMÂNTICA
 get2(Line, Scope, VarName) ->
-	VarValue = get({Scope, VarName}),
-	case VarValue of
+	case get({Scope, VarName, get_stack(Scope)}) of
 		undefined ->
 			jaraki_exception:handle_error(Line, 1);
 		Value ->
