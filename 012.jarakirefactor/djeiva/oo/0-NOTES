@@ -1,0 +1,9 @@
+Ao compilar um módulo, será necessário checar todos os métodos da superclasse
+Se houver herança, criar chamada "proxy"
+Se houver sobrescrita de métodos, acrescentar nova cláusula no topo da função do módulo atual
+
+Verificar possível mudança: realmente é preciso declarar as cláusulas dos métodos da superclasse??? o.o
+
+POSSÍVEIS FACILITADORES DE IMPLEMENTAÇÃO:
+1 - mudar chamada de métodos para usar apply
+2 - mudar nome da classe no escopo para ?MODULE
