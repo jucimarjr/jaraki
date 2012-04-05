@@ -255,8 +255,7 @@ create_list([Element| Rest], Line) ->
 %%-----------------------------------------------------------------------------
 %% Cria o elemento da east para atribuiçao de variaveis do java
 create_attribution(Line, VarName, VarValue) ->
-	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),
-	
+	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),	
 	jaraki_exception:check_var_type(Type, VarValue),
 
 	TransformedVarValue = match_attr_expr(VarValue),

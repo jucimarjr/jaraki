@@ -92,12 +92,11 @@ get2(Line, Scope, VarName) ->
 	end.
 
 get_declared(Line, Scope, VarName, Type, VarValue) ->
-	case get({Scope, VarName}) of
-		[{_Key, _Value}] ->
-			jaraki_exception:
-				handle_error(Line, 2);
-		_ ->
-			put_value({Scope, VarName}, {Type, VarValue})
+	case get({Scope, VarName, get_stack(Scope)}) of
+		undefined ->
+			put_value({Scope, VarName}, {Type, VarValue});
+		_Value ->
+			{jaraki_exception:handle_error(Line, 2), undefined}
 	end.
 
 put_scope(Scope) ->
