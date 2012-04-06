@@ -21,8 +21,8 @@ insert_var_list(Line, Scope, [{{var, VarName}, _VarValue} | Rest], Type) ->
 	get_declared(Line, Scope, VarName, Type, undefined),
 	insert_var_list(Line, Scope, Rest, Type).
 
-put_value({Scope, Var}, Value) ->
 %% Semântica - Key = {Scope, VarName}, Value = {Type, VarValue}
+put_value({Scope, Var}, Value) ->
 	case Value of
 		{Type, {ok, [ValueScanner]}} ->
 		put({Scope, Var, get_stack(Scope)}, {Type, ValueScanner});
@@ -34,16 +34,6 @@ get_value(Scope, VarName) ->
 	VarValue = get({Scope, VarName, get_stack(Scope)}),
 	{_Type, Value} = VarValue,
 	Value.
-
-return_function(Fun, Scope, Parameters) ->
-	case st:get_return(Scope, Parameters) of 
-	  {ok, Return} -> 
-		Return;
-	  no_value -> 
-		Return = Fun(),
-		st:put_return({Scope, Parameters}, Return),
-		Return
-	end.
 
 delete(Scope, VarName) ->
 	erase({Scope, VarName}).
@@ -81,6 +71,16 @@ get_return(Scope, Parameters) ->
 
 put_return({Scope, Parameters}, Return) ->
 	put({Scope, Parameters}, Return).
+
+return_function(Fun, Scope, Parameters) ->
+	case st:get_return(Scope, Parameters) of 
+	  {ok, Return} -> 
+		Return;
+	  no_value -> 
+		Return = Fun(),
+		st:put_return({Scope, Parameters}, Return),
+		Return
+	end.
 
 %% SEMÂNTICA
 get2(Line, Scope, VarName) ->

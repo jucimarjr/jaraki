@@ -216,15 +216,17 @@ print_text([Head | L], Line, Text, _print) ->
 	{Type, _, PrintElement} = Head,
 	case Type of
 		identifier ->
-		Value = st:get2(Line, st:get_scope(), PrintElement),
-		{TypeId, _VarValue} = Value,
-		case TypeId of
-		    int ->
-			print_text(L, Line, Text ++ "~p", _print);
-		    float ->
-			print_text(L, Line, Text ++ "~f", _print);
-		    _ ->
-			print_text(L, Line, Text ++ "~s", _print)
+		case st:get2(Line, st:get_scope(), PrintElement) of
+			{TypeId, _VarValue} ->
+			case TypeId of
+				int ->
+				print_text(L, Line, Text ++ "~p", _print);
+				float ->
+				print_text(L, Line, Text ++ "~f", _print);
+				_ ->
+				print_text(L, Line, Text ++ "~s", _print)
+			end;
+			_ -> no_operation
 		end;
 		text ->
 			print_text(L, Line, Text ++ "~s", _print)
@@ -262,18 +264,19 @@ create_list([Element| Rest], Line) ->
 %%-----------------------------------------------------------------------------
 %% Cria o elemento da east para atribuiçao de variaveis do java
 create_attribution(Line, VarName, VarValue) ->
-	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),	
-	jaraki_exception:check_var_type(Type, VarValue),
-
-	TransformedVarValue = match_attr_expr(VarValue),
-	JavaNameAst = string(Line, VarName),
-
-	TypeAst = atom(Line, Type),
-	ScopeAst = atom(Line, st:get_scope()),
-
-	rcall(Line, st, put_value, [
+	
+	case st:get2(Line, st:get_scope(), VarName) of	
+		{Type, _Value} -> 	
+			jaraki_exception:check_var_type(Type, VarValue),
+			TransformedVarValue = match_attr_expr(VarValue),	
+			JavaNameAst = string(Line, VarName),
+			TypeAst = atom(Line, Type),
+			ScopeAst = atom(Line, st:get_scope()),
+			rcall(Line, st, put_value, [
 				tuple(Line, [ScopeAst, JavaNameAst]),
-				tuple(Line, [TypeAst, TransformedVarValue])]).
+				tuple(Line, [TypeAst, TransformedVarValue])]);
+		_ -> no_operation
+	end.
 
 %% Transforma os elementos do array - vet = {1, 2 ,3}
 create_array_values(_Line, _VarName, _Type, [], ArrayElementsAst, _Index) ->
