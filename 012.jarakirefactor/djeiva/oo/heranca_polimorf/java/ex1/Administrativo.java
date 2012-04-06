@@ -6,9 +6,7 @@ public class Administrativo extends Assistente {
 	float adicionalNoturno;
 
 	public Administrativo(String nome, float salario, int matricula, char turno, float adicionalNoturno) {
-		this.nome = nome;
-		this.salario = salario;
-		this.matricula = matricula;
+		super(nome, salario, matricula);
 		this.turno = turno;
 		this.adicionalNoturno = adicionalNoturno;
 	}

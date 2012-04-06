@@ -24,12 +24,29 @@
 					V_adicionalNoturno) ->
 	Scope = {'__constructor__', 'Administrativo'},
 
+	%% declarando parâmetros recebidos
 	st:put({Scope, "nome"}, {'String', V_nome}),
 	st:put({Scope, "salario"}, {float, V_salario}),
 	st:put({Scope, "matricula"}, {integer, V_matricula}),
 	st:put({Scope, "turno"}, {char, V_turno}),
-	st:put({Scope, "adicionalNoturno"}, {float, V_adicionalNoturno}).
-%% terminar...
+	st:put({Scope, "adicionalNoturno"}, {float, V_adicionalNoturno}),
+
+	%% determinado em tempo de compilação quem é a classe super
+	%% super(Args...)
+	'Assistente':'__constructor__'(
+		ObjectID,
+		st:get(Scope, "nome"),
+		st:get(Scope, "salario"), st:get(Scope, "matricula")),
+
+	%% atualizando os objetos...
+	%% this.attrb = var
+	oo:update_attribute(ObjectID, {"turno", char, st:get(Scope, "turno")}),
+	oo:update_attribute(ObjectID,
+		{"adicionalNoturno", float, st:get(Scope, "adicionalNoturno")}),
+
+	%% como todo construtor, deve retornar o ObjectID!
+	%% por enquanto isso não está sendo usado, mas por precaução...
+	ObjectID.
 
 
 %% da superclasse
@@ -40,8 +57,7 @@ getMatricula(ObjectID) ->
 exibeDados(ObjectID) ->
 	Scope = {exibeDados, 'Administrativo'},
 
-	Temp_Class1 = oo:super(ObjectID),
-	Temp_Class1:exibeDados(),
+	'Assistente':exibeDados(ObjectID),
 
 	st:put({Scope, "turnoExtenso"}, {'String', undefined}),
 	st:put({Scope, "salarioTotal"}, {'float', 0.0}),

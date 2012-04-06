@@ -4,6 +4,54 @@ Se houver sobrescrita de métodos, acrescentar nova cláusula no topo da funçã
 
 Verificar possível mudança: realmente é preciso declarar as cláusulas dos métodos da superclasse??? o.o
 
-POSSÍVEIS FACILITADORES DE IMPLEMENTAÇÃO:
-1 - mudar chamada de métodos para usar apply
+-------------------------------------------------------------------
+POSSÍVEIS FACILITADORES DE IMPLEMENTAÇÃO
+-------------------------------------------------------------------
+1 - mudar chamada de métodos para usar apply, com uma nova função em oo.erl!!
 2 - mudar nome da classe no escopo para ?MODULE
+
+-------------------------------------------------------------------
+				DETALHES PARA Compilador
+-------------------------------------------------------------------
+- super.ideentifier é resolvido em tempo de compilação!
+	- para métodos, chama o da super classe idenpendente de qualquer implementação ou visibilidade na superclasse
+	- para atributos, acessa o campo independente de qualquer visibilidade e referencia campo instanciado na superclasse!
+
+
+
+
+-------------------------------------------------------------------
+                      A IMPLEMENTAR??
+-------------------------------------------------------------------
+1- Múltiplos campos entre super e subclasses
+
+Ao se instanciar um objeto de uma classe, os campos visíveis na superclasse são mantidos separadamente dos da subclasse.
+Além disso, os campos da super classe são inicializados ANTES dos da subclasse.
+
+Isso significa que no seguinte exemplo:
+-------------------------------------------------------------------
+interface I           { int x = 0; }
+class T1 implements I { int x = 1; }
+class T2 extends T1   { int x = 2; }
+class T3 extends T2 {
+    int x = 3;
+    void test() {
+        System.out.println("x=\t\t"          + x);
+        System.out.println("super.x=\t\t"    + super.x);
+    }
+}
+class Test {
+    public static void main(String[] args) {
+        new T3().test();
+    }
+}
+-------------------------------------------------------------------
+a seguinte saída será gerada:
+x=              3
+super.x=        2
+-------------------------------------------------------------------
+
+Além disso, é possível acessar os campos da superclasse T1, por exemplo, fazendo (T1)super.x, que retornaria 1... =/
+
+-------------------------------------------------------------------
+-------------------------------------------------------------------
