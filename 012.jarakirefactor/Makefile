@@ -67,14 +67,15 @@ clean:
 	@ echo Cleaning...
 	rm -f erl_crash.dump
 	rm -f *.erl
-	rm -f *.beam
 	rm -f *.java
 	rm -f $(SRC_DIR)/jaraki_lexer.erl
 	rm -f $(SRC_DIR)/jaraki_parser.erl
-	rm -rf $(EBIN_DIR)/*.beam
+	rm -rf $(EBIN_DIR)/
 	rm -rf $(TEST_EBIN_DIR)/
 	rm -rf $(JAVA_CLASS_DIR)/
 	find . -name  *.*~ -print0 | xargs -0
 	find . -name  *~ -print0 | xargs -0
+	find . -name  *.beam -print0 | xargs -0
+	find . -name  *.class -print0 | xargs -0
 	clear
 	@ echo

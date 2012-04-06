@@ -1,6 +1,6 @@
 package vetor;
 
-public class vetor4 {
+public class Vetor4 {
 	// 4. Faça um Programa que leia um vetor de 10 caracteres, 
 	//e diga quantas consoantes foram lidas. Imprima as consoantes. 
 	public static void main(String[] args) {
