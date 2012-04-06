@@ -18,7 +18,7 @@
 %%		void exibeDados()
 
 -module('Administrativo').
--export([exibeDados/1, getMatricula/1]).
+-export([exibeDados/1, getMatricula/1, '__constructor__'/6]).
 
 '__constructor__'(ObjectID, V_nome, V_salario, V_matricula, V_turno,
 					V_adicionalNoturno) ->

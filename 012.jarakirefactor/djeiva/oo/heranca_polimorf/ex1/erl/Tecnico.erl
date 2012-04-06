@@ -28,7 +28,7 @@ exibeDados(ObjectID) ->
 
 %% da superclasse Assistente
 exibeDados(ObjectID) ->
-	'Assistente':exibeDados(ObjectID).
+	'Assistente':exibeDados(ObjectID);
 
 %% da superclasse Funcionario
 exibeDados(ObjectID) ->
