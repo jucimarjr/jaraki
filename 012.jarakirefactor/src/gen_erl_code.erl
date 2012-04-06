@@ -165,8 +165,15 @@ create_declaration_list(_VarLine, [], VarAstList) ->
 create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 	{{var, VarName}, {var_value, VarValue}} = H,
 	case VarValue of
-		undefined -> create_declaration_list(VarLine, Rest, VarAstList);
-				_ -> VarAst = create_attribution(VarLine, VarName, VarValue),
+		undefined ->
+				create_declaration_list(VarLine, Rest, VarAstList);
+
+		{array_initializer, ArrayElementsList} ->
+			ArrayAst = create_array_attribution(VarLine,
+							 VarName, ArrayElementsList),
+				create_declaration_list(VarLine, Rest, [ArrayAst| VarAstList]);
+
+		_ -> VarAst = create_attribution(VarLine, VarName, VarValue),
 					create_declaration_list(VarLine, Rest, [VarAst| VarAstList])
 	end.
 
@@ -176,7 +183,7 @@ create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 create_function_scanner(next_int, Line, _VarScanner) ->
 	 Prompt = string(Line, '>'),
 	 ConsoleContent = string(Line, '~d'),
-    rcall(Line, io, fread, [Prompt, ConsoleContent]);
+	rcall(Line, io, fread, [Prompt, ConsoleContent]);
 create_function_scanner(next_float, Line, _VarScanner) ->
 	 Prompt = string(Line, '>'),
 	 ConsoleContent = string(Line, '~f'),
@@ -268,8 +275,57 @@ create_attribution(Line, VarName, VarValue) ->
 				tuple(Line, [ScopeAst, JavaNameAst]),
 				tuple(Line, [TypeAst, TransformedVarValue])]).
 
+%% Transforma os elementos do array - vet = {1, 2 ,3}
+create_array_values(_Line, _VarName, _Type, [], ArrayElementsAst, _Index) ->
+	lists:reverse(ArrayElementsAst, []);
+
+create_array_values(Line , VarName, Type, [H| Rest], ArrayElementsAst, Index) ->
+	{array_element, ElementArray} =  H,
+
+	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),
+	%jaraki_exception:check_var_type(Type, VarValue),
+	JavaNameAst = string(Line, VarName),
+	TypeAst = atom(Line, Type),
+	ScopeAst = atom(Line, st:get_scope()),
+
+
+	ArrayGetAst = rcall(Line, st, get_value, [ScopeAst, JavaNameAst]),
+
+	ArraySetAst = rcall(Line, array, set, [{integer, Line, Index},
+		{integer, Line, ElementArray}, ArrayGetAst]),
+
+	ElementAst = rcall(Line, st, put_value, [
+				tuple(Line, [ScopeAst, JavaNameAst]),
+				tuple(Line, [TypeAst, ArraySetAst])]),
+
+	create_array_values(Line, VarName, Type, Rest,
+						[ElementAst|ArrayElementsAst], Index+1).
+
+%%Array inicializado
+create_array_attribution(Line, VarName, [{array_element, ElementArray} |
+					RestArray]) ->
+	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),
+	%jaraki_exception:check_var_type(Type, VarValue),
+	JavaNameAst = string(Line, VarName),
+	TypeAst = atom(Line, Type),
+	ScopeAst = atom(Line, st:get_scope()),
+
+%% Usado para o primeiro elemento do array initializer
+	ArrayNew = rcall(Line, array, new, []),
+
+	HeadSetAst = rcall(Line, array, set, [{integer, Line, 0},
+								{integer, Line, ElementArray}, ArrayNew]),
+
+	ArrayHeadAst = rcall(Line, st, put_value, [
+				tuple(Line, [ScopeAst, JavaNameAst]),
+				tuple(Line, [TypeAst, HeadSetAst])]),
+
+	ArrayRestAst = create_array_values(Line, VarName, Type, RestArray, [], 1),
+
+	{block, Line, lists:flatten([ArrayHeadAst, ArrayRestAst])}.
+
 %%-----------------------------------------------------------------------------
-%% Cia a operacao de incremento ++
+%% Cia a operacao de in	cremento ++
 create_inc_op(Line, IncOp, {var, _VarLine, VarName} = VarAst) ->
 		Inc =
 			case IncOp of

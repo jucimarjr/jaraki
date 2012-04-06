@@ -154,7 +154,7 @@ array_declaration_list -> identifier ',' array_declaration_list:
 		[{{var, unwrap('$1')}, {var_value, undefined}} | '$3'].
 
 array_declaration_list -> identifier '=' '{' array_initializer '}':
-			[{{var, unwrap('$1')}, {var_value, '$4'}}].
+			[{{var, unwrap('$1')}, {var_value, {array_initializer, '$4'}}}].
 
 array_declaration_list -> identifier '=' new_stmt:
 			[{{var, unwrap('$1')}, {var_value, '$3'}}].
