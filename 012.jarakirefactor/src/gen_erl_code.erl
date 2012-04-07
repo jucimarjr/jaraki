@@ -213,38 +213,66 @@ print_text([], Line, Text, print) ->
 print_text([], Line, Text, println) ->
 	string(Line, Text ++ "~n");
 print_text([Head | L], Line, Text, _print) ->
-	{Type, _, PrintElement} = Head,
-	case Type of
-		identifier ->
+	case Head of
+	{_L, {var, _, PrintElement}, _ArrayIndex} ->
 		case st:get2(Line, st:get_scope(), PrintElement) of
 			{TypeId, _VarValue} ->
-			case TypeId of
+				case TypeId of
 				int ->
-				print_text(L, Line, Text ++ "~p", _print);
+					print_text(L, Line, Text ++ "~p", _print);
 				float ->
-				print_text(L, Line, Text ++ "~f", _print);
+					print_text(L, Line, Text ++ "~f", _print);
 				_ ->
-				print_text(L, Line, Text ++ "~s", _print)
-			end;
+					print_text(L, Line, Text ++ "~s", _print)
+				end;
 			_ -> no_operation
 		end;
+	{Type, _, PrintElement} ->
+		case Type of
+			identifier ->
+			case st:get2(Line, st:get_scope(), PrintElement) of
+				{TypeId, _VarValue} ->
+				case TypeId of
+				int ->
+					print_text(L, Line, Text ++ "~p", _print);
+				float ->
+					print_text(L, Line, Text ++ "~f", _print);
+				_ ->
+					print_text(L, Line, Text ++ "~s", _print)
+				end;
+			_ -> no_operation
+			end;
 		text ->
 			print_text(L, Line, Text ++ "~s", _print)
+		end
 	end.
 
 print_list([], Line) ->
 	{nil, Line};
 print_list([Element|L], Line) ->
-	{Type, _, PrintElement} = Element,
-	case Type of
-	identifier ->
-		Identifier = rcall(Line, st, get_value, [atom(Line, st:get_scope()),
+	case Element of
+		{_L, {var, _, PrintElement}, {index, ArrayIndex} } ->
+			IndexGetAst =
+				case is_integer(ArrayIndex) of
+					true  -> {integer, Line, ArrayIndex};
+					false -> rcall(Line, st, get_value,[atom(Line, 
+						st:get_scope()), string(Line, ArrayIndex)])
+				end,
+			ValueGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
 				string(Line, PrintElement)]),
-		{cons, Line, Identifier, print_list(L, Line)};
-	text ->
-		{cons, Line, string(Line, PrintElement), print_list(L, Line)}
-end.
-
+			ArrayAst = rcall(Line, array, get, [IndexGetAst, ValueGetAst]),
+			{cons, Line, ArrayAst, print_list(L, Line)};
+		 {Type, _, PrintElement} ->
+			case Type of
+				identifier ->
+				Identifier =
+					rcall(Line, st, get_value, [atom(Line, st:get_scope()),
+					string(Line, PrintElement)]),
+				 {cons, Line, Identifier, print_list(L, Line)};
+				text ->
+				{cons, Line, string(Line, PrintElement), print_list(L, Line)}
+			end
+	end.
 %%---------------------------------------------------------------------------%%
 
 create_function_call(Line, FunctionName, ArgumentsList) ->
@@ -290,7 +318,6 @@ create_array_values(Line , VarName, Type, [H| Rest], ArrayElementsAst, Index) ->
 	JavaNameAst = string(Line, VarName),
 	TypeAst = atom(Line, Type),
 	ScopeAst = atom(Line, st:get_scope()),
-
 
 	ArrayGetAst = rcall(Line, st, get_value, [ScopeAst, JavaNameAst]),
 

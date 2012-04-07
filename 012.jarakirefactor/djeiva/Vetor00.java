@@ -5,7 +5,7 @@ public class Vetor00 {
         int a, b,i,  c, d;
         a = 1;
         int[] vet = {1, 2, 3};
-      //  int[] vetor = {3,4,5,6,6};
+        int[] vetor = {3,4,5,6,6};
 		//int[] vet, vet2;
 		//vet[1] = 2;
 	}
