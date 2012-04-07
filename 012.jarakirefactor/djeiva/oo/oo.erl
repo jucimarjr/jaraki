@@ -1,5 +1,5 @@
 -module(oo).
--export([new/3, update_attribute/2, get_attribute/2, get_class/1, super/1]).
+-export([new/3, update_attribute/2, get_attribute/2, get_class/1]).
 
 %%	ClassName:
 %%		atom()
@@ -59,8 +59,3 @@ get_attribute(ObjectID, VarName) ->
 	Key = {object_var, ObjectID, VarName},
 	[{_Key, {_Type, Value}}] = ets:lookup(dict, Key),
 	Value.
-
-super(ObjectID) ->
-	Key = {object, ObjectID},
-	[{_Key, {_ClassName, SuperClasses}}] = ets:lookup(dict, Key),
-	hd(SuperClasses).

@@ -84,7 +84,7 @@ load_libs(ModuleName, TestDir, Args) ->
 
 load_code(ModuleName, TestDir, Args) ->
 	io:format("Loading your code... "),
-	case code:add_pathz(TestDir) of
+	case code:add_pathz(TestDir++"/ebin") of
 		true ->
 			io:format("done!\n\n"),
 			run(ModuleName, Args);

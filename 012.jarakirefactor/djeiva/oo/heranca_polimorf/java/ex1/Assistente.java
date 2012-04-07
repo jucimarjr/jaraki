@@ -3,6 +3,12 @@ package ex1;
 public class Assistente extends Funcionario {
 	int matricula;
 
+	public Assistente(String nome, float salario, int matricula) {
+		this.nome = nome;
+		this.salario = salario;
+		this.matricula = matricula;
+	}
+
 	public int getMatricula() {
 		return matricula;
 	}
