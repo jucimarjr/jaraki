@@ -1,0 +1,54 @@
+-module(vetor01).
+
+-compile(export_all).
+
+-import(loop, [for/3, while/2]).
+
+main(V_args) ->
+    st:new(),
+    st:get_new_stack(main),
+    st:put_value({main, "args"}, {'String', V_args}),
+    st:put_value({main, "a"}, {int, 2}),
+    st:put_value({main, "b"}, {int, 4}),
+    begin
+      begin
+	st:put_value({main, "vet"},
+		     {int, array:set(0, 1, array:new())}),
+	st:put_value({main, "vet"},
+		     {int, array:set(1, 2, st:get_value(main, "vet"))}),
+	st:put_value({main, "vet"},
+		     {int, array:set(2, 3, st:get_value(main, "vet"))})
+      end
+    end,
+    begin
+      begin
+	st:put_value({main, "vetor"},
+		     {int, array:set(0, 3, array:new())}),
+	st:put_value({main, "vetor"},
+		     {int, array:set(1, 4, st:get_value(main, "vetor"))}),
+	st:put_value({main, "vetor"},
+		     {int, array:set(2, 5, st:get_value(main, "vetor"))}),
+	st:put_value({main, "vetor"},
+		     {int, array:set(3, 6, st:get_value(main, "vetor"))}),
+	st:put_value({main, "vetor"},
+		     {int, array:set(4, 6, st:get_value(main, "vetor"))})
+      end
+    end,
+    st:put_value({main, "vet"},
+		 {int, array:set(2, 7, st:get_value(main, "vet"))}),
+    st:put_value({main, "vetor"},
+		 {int,
+		  array:set(0, st:get_value(main, "a") + 5,
+			    st:get_value(main, "vetor"))}),
+    st:put_value({main, "vetor"},
+		 {int,
+		  array:set(1,
+			    st:get_value(main, "a") * st:get_value(main, "b"),
+			    st:get_value(main, "vetor"))}),
+    io:format("~p~n",
+	      [array:get(0, st:get_value(main, "vetor"))]),
+    io:format("~p~n",
+	      [array:get(1, st:get_value(main, "vetor"))]),
+    st:get_old_stack(main),
+    st:destroy().
+
