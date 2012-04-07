@@ -145,7 +145,7 @@ variable_list -> identifier	',' variable_list:
 
 local_variable_declaration_statement ->  type '[' ']' array_declaration_list';':
 	{var_declaration, {var_type, '$1'}, {var_list, '$4'}}.
-
+	
 %% ------------------------------------------
 array_declaration_list -> identifier:
 				[{{var, unwrap('$1')},{var_value, undefined}}].
@@ -177,8 +177,13 @@ element_value_pair ->	identifier '=' element_value ';':
 	{line('$1'), attribution, {var, unwrap('$1')}, {var_value, '$3'}}.
 
 %% Atribuição de array
-element_value_pair ->  array_access '=' element_value ';':
-	{line('$1'), array_attribution, '$1', {var_value, '$3'}}.
+element_value_pair ->   identifier '[' integer ']' '=' element_value ';':
+	{line('$1'), array_attribution,
+			{{var, unwrap('$1')},{index, unwrap('$3')}}, {var_value, '$6'}}.
+
+element_value_pair ->   identifier '[' identifier ']' '=' element_value ';':
+	{line('$1'), array_attribution,
+			{{var, unwrap('$1')},{index, unwrap('$3')}}, {var_value, '$6'}}.
 
 %%--------------
 length_stmt -> identifier '.' length : {length, line('$1'), unwrap('$1')}.

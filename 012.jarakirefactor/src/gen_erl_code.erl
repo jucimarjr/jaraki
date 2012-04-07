@@ -12,7 +12,7 @@
 -compile(export_all).
 -import(gen_ast,
 	[
-		function/4, var/2, atom/2, call/3, rcall/4, 'case'/3, clause/4, 
+		function/4, var/2, atom/2, call/3, rcall/4, 'case'/3, clause/4,
 		'fun'/2, string/2, tuple/2, atom/2
 	]).
 -include("../include/jaraki_define.hrl").
@@ -49,6 +49,16 @@ match_statement(
 		{var_value, VarValue}}
 	) ->
 	create_attribution(Line, VarName, VarValue);
+
+%% Cara expressoes do tipo array = valor
+match_statement(
+	{	Line,
+		array_attribution,
+		{{var, ArrayName},
+		{index, ArrayIndex}},
+		{var_value, ArrayValue}
+	}) ->
+	create_attribution(Line, ArrayName, ArrayIndex, ArrayValue);
 
 %% Casa expressoes if-then
 match_statement(
@@ -106,13 +116,13 @@ match_statement({inc_op, Line, IncOp, Variable}) ->
 %% casa expressões return;
 match_statement({Line, return, Value}) ->
 	{block, Line,
-      		[{match, Line, var(Line,'Return'), match_attr_expr(Value)},
+		[{match, Line, var(Line,'Return'), match_attr_expr(Value)},
 		rcall(Line, st, get_old_stack, [atom(Line, st:get_scope())]),
-       		var(Line,'Return')]
+		var(Line,'Return')]
 	}.
 
 %%-----------------------------------------------------------------------------
-%% casa expressoes/lista de expressoes dentro do IF,FOR,WHILE 
+%% casa expressoes/lista de expressoes dentro do IF,FOR,WHILE
 match_inner_stmt({block, StatementList}) ->
 	lists:map(fun match_statement/1, StatementList);
 match_inner_stmt(Statement) ->
@@ -169,7 +179,7 @@ create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 				create_declaration_list(VarLine, Rest, VarAstList);
 
 		{array_initializer, ArrayElementsList} ->
-			ArrayAst = create_array_attribution(VarLine,
+			ArrayAst = create_array_initializer(VarLine,
 							 VarName, ArrayElementsList),
 				create_declaration_list(VarLine, Rest, [ArrayAst| VarAstList]);
 
@@ -187,11 +197,11 @@ create_function_scanner(next_int, Line, _VarScanner) ->
 create_function_scanner(next_float, Line, _VarScanner) ->
 	 Prompt = string(Line, '>'),
 	 ConsoleContent = string(Line, '~f'),
-    rcall(Line, io, fread, [Prompt, ConsoleContent]);
+	rcall(Line, io, fread, [Prompt, ConsoleContent]);
 create_function_scanner(next_line, Line, _VarScanner) ->
 	 Prompt = string(Line, '>'),
 	 ConsoleContent = string(Line, '~s'),
-    rcall(Line, io, fread, [Prompt, ConsoleContent]).
+	rcall(Line, io, fread, [Prompt, ConsoleContent]).
 
  %%-----------------------------------------------------------------------------
  %% Cria o elemento da east para as funcoes de impressao do java
@@ -255,13 +265,16 @@ print_list([Element|L], Line) ->
 			IndexGetAst =
 				case is_integer(ArrayIndex) of
 					true  -> {integer, Line, ArrayIndex};
-					false -> rcall(Line, st, get_value,[atom(Line, 
+					false -> rcall(Line, st, get_value,[atom(Line,
 						st:get_scope()), string(Line, ArrayIndex)])
 				end,
+
 			ValueGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
 				string(Line, PrintElement)]),
 			ArrayAst = rcall(Line, array, get, [IndexGetAst, ValueGetAst]),
+
 			{cons, Line, ArrayAst, print_list(L, Line)};
+
 		 {Type, _, PrintElement} ->
 			case Type of
 				identifier ->
@@ -280,8 +293,8 @@ create_function_call(Line, FunctionName, ArgumentsList) ->
 		lists:map(fun match_attr_expr/1, ArgumentsList),
 	FunctionCall = call(Line, FunctionName, TransformedArgumentList),
 	Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),
-	rcall(Line, st, return_function, 
-		[Fun, atom(Line, FunctionName), 
+	rcall(Line, st, return_function,
+		[Fun, atom(Line, FunctionName),
 			create_list(TransformedArgumentList, Line)]).
 
 create_list([], Line) ->
@@ -292,17 +305,37 @@ create_list([Element| Rest], Line) ->
 %%-----------------------------------------------------------------------------
 %% Cria o elemento da east para atribuiçao de variaveis do java
 create_attribution(Line, VarName, VarValue) ->
-	
-	case st:get2(Line, st:get_scope(), VarName) of	
-		{Type, _Value} -> 	
+
+	case st:get2(Line, st:get_scope(), VarName) of
+		{Type, _Value} ->
 			jaraki_exception:check_var_type(Type, VarValue),
-			TransformedVarValue = match_attr_expr(VarValue),	
+			TransformedVarValue = match_attr_expr(VarValue),
 			JavaNameAst = string(Line, VarName),
 			TypeAst = atom(Line, Type),
 			ScopeAst = atom(Line, st:get_scope()),
 			rcall(Line, st, put_value, [
 				tuple(Line, [ScopeAst, JavaNameAst]),
 				tuple(Line, [TypeAst, TransformedVarValue])]);
+		_ -> no_operation
+	end.
+%%------------------------------------------------------------------------------
+%% Cria elemento da east para atribuicao de array
+create_attribution(Line, ArrayName, ArrayIndex, VarValue) ->
+	case st:get2(Line, st:get_scope(), ArrayName) of
+		{Type, _Value} ->
+			%%jaraki_exception:check_var_type(Type, ArrayValue),
+			TransformedVarValue = match_attr_expr(VarValue),
+			JavaNameAst = string(Line, ArrayName),
+			TypeAst = atom(Line, Type),
+			ScopeAst = atom(Line, st:get_scope()),
+
+			ArrayGetAst = rcall(Line, st, get_value, [ScopeAst, JavaNameAst]),
+			ArraySetAst = rcall(Line, array, set, [{integer, Line, ArrayIndex},
+			TransformedVarValue, ArrayGetAst]),
+
+			rcall(Line, st, put_value, [
+				tuple(Line, [ScopeAst, JavaNameAst]),
+				tuple(Line, [TypeAst, ArraySetAst])]);
 		_ -> no_operation
 	end.
 
@@ -332,7 +365,7 @@ create_array_values(Line , VarName, Type, [H| Rest], ArrayElementsAst, Index) ->
 						[ElementAst|ArrayElementsAst], Index+1).
 
 %%Array inicializado
-create_array_attribution(Line, VarName, [{array_element, ElementArray} |
+create_array_initializer(Line, VarName, [{array_element, ElementArray} |
 					RestArray]) ->
 	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),
 	%jaraki_exception:check_var_type(Type, VarValue),
@@ -355,7 +388,7 @@ create_array_attribution(Line, VarName, [{array_element, ElementArray} |
 	{block, Line, lists:flatten([ArrayHeadAst, ArrayRestAst])}.
 
 %%-----------------------------------------------------------------------------
-%% Cia a operacao de in	cremento ++
+%% Cria a operacao de incremento ++
 create_inc_op(Line, IncOp, {var, _VarLine, VarName} = VarAst) ->
 		Inc =
 			case IncOp of

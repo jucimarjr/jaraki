@@ -12,8 +12,10 @@ main(V_Args) ->
 	 st:put_value({main, "vet"}, {'int[]', array:set(2, 3,  st:get_value(main, "vet"))}),
 
      st:put_value({main, "n"}, {int, 3}),
-
-     begin
+	
+    st:put_value({main, "vet"}, {'int[]', array:set(2, 7, st:get_value(main, "vet"))}),
+     
+   begin
       st:put_value({main, "i"}, {int, 0}),
       for(fun () ->
 		  st:get_value(main, "i") < st:get_value(main, "n")
