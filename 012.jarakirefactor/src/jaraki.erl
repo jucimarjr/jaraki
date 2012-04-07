@@ -20,6 +20,8 @@ compile({beam,JavaFileName}) ->
 	
 	ErlangFile = get_erl_file(JavaFileName),
 	
+	erl_tidy:file(ErlangFile,[{backups,false}]),
+
 	compile:file(ErlangFile),
 
 	{_, _, EndTime} = now(),
