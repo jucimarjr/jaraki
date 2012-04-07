@@ -124,7 +124,8 @@ match_statement({Line, return, Value}) ->
 %%-----------------------------------------------------------------------------
 %% casa expressoes/lista de expressoes dentro do IF,FOR,WHILE
 match_inner_stmt({block, StatementList}) ->
-	lists:map(fun match_statement/1, StatementList);
+	[match_statement(V) || V <- StatementList];
+
 match_inner_stmt(Statement) ->
 	[match_statement(Statement)].
 
@@ -289,8 +290,7 @@ print_list([Element|L], Line) ->
 %%---------------------------------------------------------------------------%%
 
 create_function_call(Line, FunctionName, ArgumentsList) ->
-	TransformedArgumentList =
-		lists:map(fun match_attr_expr/1, ArgumentsList),
+	TransformedArgumentList = [match_attr_expr(V) || V <- ArgumentsList],	
 	FunctionCall = call(Line, FunctionName, TransformedArgumentList),
 	Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),
 	rcall(Line, st, return_function,

@@ -71,19 +71,15 @@ get_version() ->
 %%-----------------------------------------------------------------------------
 %% Extrai o nome do arquivo .erl a partir do java ast
 get_erl_filename(ErlangModuleName) ->
-	ErlangFileName = atom_to_list(ErlangModuleName) ++ ".erl",
-	ErlangFileName.
+    atom_to_list(ErlangModuleName) ++ ".erl".
 
 %%-----------------------------------------------------------------------------
 %% Extrai o nome do modulo erlang partir do java ast
 %% o nome do modulo eh o nome da classe
 get_erl_modulename(JavaAST) ->
 	[{_Line, {class, JavaClassName}, _JavaClassBody}] = JavaAST,
-	ErlangModuleName = 
-		list_to_atom(
-			string:to_lower(atom_to_list(JavaClassName))
-		),
-	ErlangModuleName.	
+	list_to_atom(string:to_lower(atom_to_list(JavaClassName))).
+
 
 %%-----------------------------------------------------------------------------
 %% Cria o arquivo .erl no sistema de arquivos
