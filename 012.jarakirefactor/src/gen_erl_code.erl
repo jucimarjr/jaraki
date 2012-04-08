@@ -158,7 +158,19 @@ match_attr_expr({op, Line, Op, LeftExp, RightExp}) ->
 match_attr_expr({var, Line, VarName}) ->
 	st:get2(Line, st:get_scope(), VarName),
 	rcall(Line, st, get_value,
-		[atom(Line, st:get_scope()), string(Line, VarName)]).
+		  [atom(Line, st:get_scope()), string(Line, VarName)]);
+match_attr_expr({{var, Line, VarName}, {index, ArrayIndex}}) ->
+	st:get2(Line, st:get_scope(), VarName),
+		IndexAst = case is_integer(ArrayIndex) of
+			true  -> {integer, Line, ArrayIndex};
+			false -> rcall(Line, st, get_value,[atom(Line,
+					 st:get_scope()), string(Line, ArrayIndex)])
+		end,
+
+			ArrayGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
+				string(Line, VarName)]),
+			rcall(Line, array, get, [IndexAst, ArrayGetAst]).
+
 
 create_declaration(var_declaration, {var_type, {VarLine, _VarType}},
 						{var_list, VarList}) ->
@@ -225,7 +237,7 @@ print_text([], Line, Text, println) ->
 	string(Line, Text ++ "~n");
 print_text([Head | L], Line, Text, _print) ->
 	case Head of
-	{_L, {var, _, PrintElement}, _ArrayIndex} ->
+	{{var, _, PrintElement}, _ArrayIndex} ->
 		case st:get2(Line, st:get_scope(), PrintElement) of
 			{TypeId, _VarValue} ->
 				case TypeId of
@@ -262,7 +274,7 @@ print_list([], Line) ->
 	{nil, Line};
 print_list([Element|L], Line) ->
 	case Element of
-		{_L, {var, _, PrintElement}, {index, ArrayIndex} } ->
+		{{var, _, PrintElement}, {index, ArrayIndex} } ->
 			IndexGetAst =
 				case is_integer(ArrayIndex) of
 					true  -> {integer, Line, ArrayIndex};
@@ -290,7 +302,7 @@ print_list([Element|L], Line) ->
 %%---------------------------------------------------------------------------%%
 
 create_function_call(Line, FunctionName, ArgumentsList) ->
-	TransformedArgumentList = [match_attr_expr(V) || V <- ArgumentsList],	
+	TransformedArgumentList = [match_attr_expr(V) || V <- ArgumentsList],
 	FunctionCall = call(Line, FunctionName, TransformedArgumentList),
 	Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),
 	rcall(Line, st, return_function,
@@ -323,15 +335,21 @@ create_attribution(Line, VarName, VarValue) ->
 create_attribution(Line, ArrayName, ArrayIndex, VarValue) ->
 	case st:get2(Line, st:get_scope(), ArrayName) of
 		{Type, _Value} ->
-			%%jaraki_exception:check_var_type(Type, ArrayValue),
+			jaraki_exception:check_var_type(Type, VarValue),
 			TransformedVarValue = match_attr_expr(VarValue),
 			JavaNameAst = string(Line, ArrayName),
 			TypeAst = atom(Line, Type),
 			ScopeAst = atom(Line, st:get_scope()),
+			IndexAst = case is_integer(ArrayIndex) of
+				true  -> {integer, Line, ArrayIndex};
+				false -> rcall(Line, st, get_value,[atom(Line,
+					 st:get_scope()), string(Line, ArrayIndex)])
+			end,
 
 			ArrayGetAst = rcall(Line, st, get_value, [ScopeAst, JavaNameAst]),
-			ArraySetAst = rcall(Line, array, set, [{integer, Line, ArrayIndex},
-			TransformedVarValue, ArrayGetAst]),
+
+			ArraySetAst = rcall(Line, array, set, [IndexAst,
+					TransformedVarValue, ArrayGetAst]),
 
 			rcall(Line, st, put_value, [
 				tuple(Line, [ScopeAst, JavaNameAst]),

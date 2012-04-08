@@ -56,6 +56,7 @@ check_var_type(Type, {atom, Line, true}) ->
 	match_type(Line, Type, boolean);
 check_var_type(Type, {atom, Line, false}) ->
 	match_type(Line, Type, boolean);
+
 check_var_type(Type, {op, Line, Op, LeftExp, RightExp}) ->
 	{op, Line, Op,
 		check_var_type(Type, LeftExp),
@@ -63,7 +64,11 @@ check_var_type(Type, {op, Line, Op, LeftExp, RightExp}) ->
 
 check_var_type(AttrVarType, {var, Line, VarName}) ->
 	{ExprVarType, _Value} = st:get2(Line, st:get_scope(), VarName),
-	match_type(Line, AttrVarType, ExprVarType).
+	match_type(Line, AttrVarType, ExprVarType);
+
+check_var_type(AttrArrayType, {{var, Line, ArrayName}, {index, _ArrayIndex}}) ->
+	{ExprVarType, _Value} = st:get2(Line, st:get_scope(), ArrayName),
+	match_type(Line, AttrArrayType, ExprVarType).
 
 match_type(_, int, integer) -> ok;
 match_type(_, float, int) -> ok;

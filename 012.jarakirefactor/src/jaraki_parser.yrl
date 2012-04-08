@@ -225,11 +225,11 @@ print_content -> array_access : ['$1'].
 %% TOD: Verificar ele como um array
 array_access ->
 	 identifier '[' integer ']' :
-			{line('$1'), {var, line('$1'), unwrap('$1')},
+			{{var, line('$1'), unwrap('$1')},
 					{index, unwrap('$3')}}.
 array_access ->
 	 identifier '[' identifier ']' :
-			{line('$1'), {var, line('$1'), unwrap('$1')},
+			{{var, line('$1'), unwrap('$1')},
 					{index, unwrap('$3')}}.
 
 %%
