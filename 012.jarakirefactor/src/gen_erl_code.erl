@@ -196,6 +196,10 @@ create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 							 VarName, ArrayElementsList),
 				create_declaration_list(VarLine, Rest, [ArrayAst| VarAstList]);
 
+		 {new, array, {type, ArrayType}, {index, ArrayLength}} ->
+			ArrayAst = create_array(VarLine, VarName, ArrayType, ArrayLength),
+				create_declaration_list(VarLine, Rest, [ArrayAst| VarAstList]);
+
 		_ -> VarAst = create_attribution(VarLine, VarName, VarValue),
 					create_declaration_list(VarLine, Rest, [VarAst| VarAstList])
 	end.
@@ -335,7 +339,7 @@ create_attribution(Line, VarName, VarValue) ->
 create_attribution(Line, ArrayName, ArrayIndex, VarValue) ->
 	case st:get2(Line, st:get_scope(), ArrayName) of
 		{Type, _Value} ->
-			jaraki_exception:check_var_type(Type, VarValue),
+			%jaraki_exception:check_var_type(Type, VarValue),
 			TransformedVarValue = match_attr_expr(VarValue),
 			JavaNameAst = string(Line, ArrayName),
 			TypeAst = atom(Line, Type),
@@ -381,12 +385,12 @@ create_array_values(Line , VarName, Type, [H| Rest], ArrayElementsAst, Index) ->
 
 	create_array_values(Line, VarName, Type, Rest,
 						[ElementAst|ArrayElementsAst], Index+1).
-
-%%Array inicializado
+%% ------------------------------------------------------------------
+%% Inicializador de array
 create_array_initializer(Line, VarName, [{array_element, ElementArray} |
 					RestArray]) ->
 	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),
-	%jaraki_exception:check_var_type(Type, VarValue),
+	%jaraki_exception:check_var_type(Type, ElementArray),
 	JavaNameAst = string(Line, VarName),
 	TypeAst = atom(Line, Type),
 	ScopeAst = atom(Line, st:get_scope()),
@@ -404,6 +408,29 @@ create_array_initializer(Line, VarName, [{array_element, ElementArray} |
 	ArrayRestAst = create_array_values(Line, VarName, Type, RestArray, [], 1),
 
 	{block, Line, lists:flatten([ArrayHeadAst, ArrayRestAst])}.
+
+%%-----------------------------------------------------------------------------
+%% Cria a expressão de criação de array
+create_array(Line, VarName, {_L, Type}, ArrayLength) ->
+	%jaraki_exception:check_var_type(Type, {var, VarLine, VarName}),
+
+	JavaNameAst = string(Line, VarName),
+	TypeAst = atom(Line, Type),
+	ScopeAst = atom(Line, st:get_scope()),
+	IndexAst =
+		case is_integer(ArrayLength) of
+			true  -> {integer, Line, ArrayLength};
+			false -> rcall(Line, st, get_value,[atom(Line,
+					 st:get_scope()), string(Line, ArrayLength)])
+		end,
+
+%% Usado para a instanciação do array, cria um tamanho fixo
+	ArrayNew = rcall(Line, array, new, [IndexAst]),
+
+	rcall(Line, st, put_value, [
+		tuple(Line, [ScopeAst, JavaNameAst]),
+			tuple(Line, [TypeAst, ArrayNew])]).
+
 
 %%-----------------------------------------------------------------------------
 %% Cria a operacao de incremento ++

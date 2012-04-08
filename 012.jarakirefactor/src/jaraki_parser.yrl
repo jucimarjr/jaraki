@@ -145,7 +145,7 @@ variable_list -> identifier	',' variable_list:
 
 local_variable_declaration_statement ->  type '[' ']' array_declaration_list';':
 	{var_declaration, {var_type, '$1'}, {var_list, '$4'}}.
-	
+
 %% ------------------------------------------
 array_declaration_list -> identifier:
 				[{{var, unwrap('$1')},{var_value, undefined}}].
