@@ -70,7 +70,10 @@ check_var_type(AttrArrayType, {{var, Line, ArrayName}, {index, _ArrayIndex}}) ->
 	{ExprVarType, _Value} = st:get2(Line, st:get_scope(), ArrayName),
 	match_type(Line, AttrArrayType, ExprVarType).
 
+
 match_type(_, int, integer) -> ok;
+match_type(_, long, integer) -> ok;
+match_type(_, double, integer) -> ok;
 match_type(_, float, int) -> ok;
 match_type(_, float, integer) -> ok;
 match_type(_, Type, Type) -> ok;

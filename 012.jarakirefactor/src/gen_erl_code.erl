@@ -262,7 +262,11 @@ print_text([Head | L], Line, Text, _print) ->
 				case TypeId of
 				int ->
 					print_text(L, Line, Text ++ "~p", _print);
+				long ->
+					print_text(L, Line, Text ++ "~p", _print);
 				float ->
+					print_text(L, Line, Text ++ "~f", _print);
+				double ->
 					print_text(L, Line, Text ++ "~f", _print);
 				_ ->
 					print_text(L, Line, Text ++ "~s", _print)
@@ -305,7 +309,7 @@ print_list([Element|L], Line) ->
 	end.
 %%---------------------------------------------------------------------------%%
 
-create_function_call(Line, FunctionName, ArgumentsList) ->
+create_function_call(Line,	 FunctionName, ArgumentsList) ->
 	TransformedArgumentList = [match_attr_expr(V) || V <- ArgumentsList],
 	FunctionCall = call(Line, FunctionName, TransformedArgumentList),
 	Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),
