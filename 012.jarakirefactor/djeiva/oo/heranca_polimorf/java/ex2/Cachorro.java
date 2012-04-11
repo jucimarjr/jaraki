@@ -1,6 +1,10 @@
 package ex2;
 
-class Cachorro extends Animal {
+public class Cachorro extends Animal {
+	public Cachorro(String nome) {
+		super(nome);
+	}
+
 	public void late() {
 		System.out.println("Au! Au!");
 	}

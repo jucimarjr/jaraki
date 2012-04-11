@@ -7,4 +7,16 @@ class Pessoa {
 	public Pessoa() {
 		this.nome = "Pessoa sem nome";
 	}
+
+	public Pessoa(String nome){
+		this.nome = nome;
+	}
+
+	public int getIdade() {
+		return idade;
+	}
+
+	public String getNome() {
+		return nome;
+	}
 }

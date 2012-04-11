@@ -1,6 +1,6 @@
 package ex2;
 
-class Animal {
+public class Animal {
 	private String nome;
 	private String raca;
 
@@ -14,7 +14,12 @@ class Animal {
 		this.raca = "Viralata_=(";
 	}
 
+	public Animal(String nome, String raca) {
+		this.nome = nome;
+		this.raca = raca;
+	}
+	
 	public void caminha() {
-		System.out.println("Caminhei!!\n" + "Nome: " + nome);
+		System.out.println(nome + " diz: Caminhei!!");
 	}
 }

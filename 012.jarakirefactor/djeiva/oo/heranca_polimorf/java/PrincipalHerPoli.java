@@ -1,4 +1,5 @@
 import ex1.*;
+import ex2.*;
 
 public class PrincipalHerPoli{
 	public static void main(String[] args) {
@@ -8,5 +9,15 @@ public class PrincipalHerPoli{
 		adm.exibeDados();
 		System.out.println("");
 		tecnico.exibeDados();
+		System.out.println("");
+		
+		Cachorro cachorro = new Cachorro("Dogui");
+		Gato gato = new Gato("Keti");
+
+		cachorro.late();
+		gato.mia();
+		
+		cachorro.caminha();
+		gato.caminha();
 	}
 }
