@@ -137,6 +137,7 @@ match_attr_expr({op, Line, Op, RightExp}) ->
 match_attr_expr({function_call, {Line, FunctionName},
 			{argument_list, ArgumentsList}}) ->
 	create_function_call(Line, FunctionName, ArgumentsList);
+
 match_attr_expr({sqrt, Line, RightExp}) ->
 	rcall(Line, math, sqrt, [match_attr_expr(RightExp)]);
 match_attr_expr({next_int, Line, VarScanner})->
@@ -145,6 +146,11 @@ match_attr_expr({next_float, Line, VarScanner})->
 	create_function_scanner(next_float, Line, VarScanner);
 match_attr_expr({next_line, Line, VarScanner})->
 	create_function_scanner(next_line, Line, VarScanner);
+match_attr_expr({length, Line, VarLength})->
+	ArrayGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
+			string(Line, VarLength)]),
+	rcall(Line, array, size, [ArrayGetAst]);
+
 match_attr_expr({integer, _Line, _Value} = Element) ->
 	Element;
 match_attr_expr({float, _Line, _Value} = Element) ->
