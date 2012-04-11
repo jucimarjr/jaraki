@@ -1,7 +1,7 @@
 package ex3;
 
-class Normal extends Ingresso {
-	public void imprimeTipo() {
-		System.out.println("Ingresso Normal");
+public class Normal extends Ingresso {
+	public Normal(float valor){
+		super(valor, "Normal");
 	}
 }

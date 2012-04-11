@@ -1,7 +1,11 @@
 package ex3;
 
-class CamaroteInferior extends VIP {
+public class CamaroteInferior extends VIP {
 	private char localizacao;
+
+	public CamaroteInferior(float valor, float adicional){
+		super(valor, adicional);
+	}
 
 	public char getLocalizacao() {
 		return localizacao;

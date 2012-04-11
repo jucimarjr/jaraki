@@ -1,14 +1,12 @@
 package ex3;
 
-class Ingresso {
+public class Ingresso {
 	private float valor;
+	private String tipo;
 
-	public Ingresso(){
-		super();
-	}
-	
-	public Ingresso(float valor){
+	public Ingresso(float valor, String tipo){
 		this.valor = valor;
+		this.tipo = tipo;
 	}
 
 	public float getValor() {
@@ -17,5 +15,9 @@ class Ingresso {
 
 	public void imprimeValor() {
 		System.out.println("Valor: " + valor);
+	}
+
+	public void imprimeTipo() {
+		System.out.println("Tipo do ingresso " + tipo);
 	}
 }
