@@ -2,7 +2,7 @@ package selectionSort;
 
 public class SelectionSort {
 
-	public static int[] selectionSort(int vetor[]) {
+	public static int[] selectionSort(int[] vetor) {
 		int index, aux;
 
 		for (int i = 0; i < vetor.length; i++) {
@@ -24,7 +24,7 @@ public class SelectionSort {
 
 	public static void main(String[] args) {
 
-		int vetor[] = {5,2,1,4,3,50,25};
+		int[] vetor = {5,2,1,4,3,50,25};
 		
 		selectionSort(vetor);
 		

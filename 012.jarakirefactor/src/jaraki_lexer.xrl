@@ -86,7 +86,7 @@ IncrementOp		= (\+\+|--)
 
 % End Operator
 
-WhiteSpace	= [\s|\n|\t|\f]
+WhiteSpace	= [\r|\s|\n|\t|\f]
 
 Rules.
 

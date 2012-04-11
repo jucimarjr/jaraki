@@ -7,24 +7,25 @@
 
 main(V_Args) ->
     st:new(),
-    begin
-      Array_vet = array:set(0, 1, array:new()),
-      Array_vet1 = array:set(1, 2, Array_vet),
-      Array_vet2 = array:set(2, 3, Array_vet1),
+  	 st:put_value({main, "vet"}, {'int[]', array:set(0, 1, array:new())}),
+	 st:put_value({main, "vet"}, {'int[]', array:set(1, 2, st:get_value(main, "vet"))}),
+	 st:put_value({main, "vet"},  {'int[]',array:set(2, 3, st:get_value(main, "vet"))}),
 
-      st:insert({"vet", Array_vet2})
-    end,
-    begin Var_n1 = 2, st:insert({"n", Var_n1}) end,
-    begin
-      st:insert({"i", 0}),
-      for(fun () -> st:get("i") =< st:get("n") end,
-	  fun () -> st:insert({"i", st:get("i") + 1}) end,
+     st:put_value({main, "n"}, {int, 2}),
+
+     begin
+      st:put_value({main, "i"}, {int, 0}),
+      for(fun () ->
+		  st:get_value(main, "i") < st:get_value(main, "n")
+	  end,
 	  fun () ->
-		  Var_i2 = st:get("i"),
-		  Array_vet3 = st:get("vet"),
-		  io:format("~p~n", [array:get(Var_i2, Array_vet3)])
+		  st:put_value({main, "i"},
+			       {int, st:get_value(main, "i") + 1})
+	  end,
+	  fun () ->
+		  io:format("~p~n", [array:get(  st:get_value(main, "i"), st:get_value(main, "vet")  )])
 	  end),
-      st:delete("i"),
-      Array_vet4 = st:get("vet")
-    end.
+      st:delete(main, "i")
+     end.
 
+ 
