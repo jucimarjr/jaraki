@@ -114,8 +114,8 @@ Rules.
 {While}		: {token, {'while',	TokenLine, list_to_atom(TokenChars)}}.
 {Length}	: {token, {length,	TokenLine, list_to_atom(TokenChars)}}.
 {Sqrt}		: {token, {sqrt,	TokenLine, list_to_atom(TokenChars)}}.
-{Print}		: {token, {print,	TokenLine, list_to_atom(TokenChars)}}.
-{Println}	: {token, {println,	TokenLine, list_to_atom(TokenChars)}}.
+{Print}		: {token, {print,	TokenLine, unwrap_print(TokenChars)}}.
+{Println}	: {token, {print,	TokenLine, unwrap_print(TokenChars)}}.
 {Scanner}	: {token, {scanner,	TokenLine, list_to_atom(TokenChars)}}.
 {SystemIn}	: {token, {system_in,	TokenLine, list_to_atom(TokenChars)}}.
 {NextInt}	: {token, {next_int,		TokenLine, list_to_atom(TokenChars)}}.
@@ -192,3 +192,6 @@ op(OpChar) ->
 		"!"  -> 'not';
 		_	->	list_to_atom(OpChar)
 	end.
+
+unwrap_print("System.out." ++ Print) ->
+	list_to_atom(Print).

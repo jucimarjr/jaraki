@@ -14,7 +14,9 @@ public class BuscaSequencial {
 
 		int[] vetor = {5,9,20,3};
 		int chave = 0;
-		System.out.println(buscaSequencial(chave, vetor));
+		int temp;
+		temp = buscaSequencial(chave, vetor);
+		System.out.println(temp);
 	}
 
 }

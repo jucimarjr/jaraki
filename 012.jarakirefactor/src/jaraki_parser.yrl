@@ -37,7 +37,7 @@ statement.
 
 Terminals
 package import class public static void %% main, obsoleto
-return sqrt print println scanner
+return sqrt print scanner
 length
 '(' ')' '[' ']' '{' '}' ';' '=' '.' '.*' ','
 string_t int_t long_t float_t double_t boolean_t
@@ -85,6 +85,17 @@ method_declaration -> public static type identifier '(' ')' block:
 method_declaration -> public static type identifier
 					'(' parameters_list ')' block:
 			{line('$4'), '$3', {method, unwrap('$4')}, '$6', '$8'}.
+
+method_declaration -> public static type '[' ']' identifier '(' ')' block:
+			{line('$6'),
+				make_array_type('$3'),
+				{method, unwrap('$6')}, [], '$9'}.
+
+method_declaration -> public static type '[' ']' identifier
+					'(' parameters_list ')' block:
+			{line('$6'),
+				make_array_type('$3'),
+				{method, unwrap('$6')}, '$8', '$10'}.
 
 %% método main na análise sintática obsoleto
 %% method_declaration ->
@@ -212,13 +223,9 @@ next_line_stmt -> identifier '.' next_line '(' ')' :
 					{next_line, line('$1'),  unwrap('$1')}.
 
 %% trata expressoes do tipo [ System.out.print( texto + identificador ) ]
+%% print e println têm o MESMO TOKEN, mas diferentes valores!!!
 print_stmt -> print '(' print_content ')' ';':
-	   {line('$1'), print, '$3'}.
-
-%% trata expressoes do tipo [ System.out.println( texto + identificador ) ]
-print_stmt -> println '(' print_content ')' ';':
-		   {line('$1'), println, '$3'}.
-
+	   {line('$1'), unwrap('$1'), '$3'}.
 
 print_content -> text : ['$1'].
 
@@ -229,6 +236,8 @@ print_content -> text add_op print_content : ['$1' | '$3'].
 print_content -> identifier add_op print_content : ['$1' | '$3'].
 
 print_content -> array_access : ['$1'].
+
+print_content -> array_access add_op print_content : ['$1' | '$3'].
 
 %% Estrutura vetor
 %% TOD: Verificar ele como um array
