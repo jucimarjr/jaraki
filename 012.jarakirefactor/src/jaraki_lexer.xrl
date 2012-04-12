@@ -44,7 +44,7 @@ False	= false
 
 % End BooleanLiteral
 
-Main				= main
+%% Main				= main OBSOLETO
 % TODO: incluir potencia;
 Length				= length
 Sqrt				= Math.sqrt
@@ -99,7 +99,8 @@ Rules.
 {Public}	: {token, {public,	TokenLine, list_to_atom(TokenChars)}}.
 {Static}	: {token, {static,	TokenLine, list_to_atom(TokenChars)}}.
 {Void}		: {token, {void,	TokenLine, list_to_atom(TokenChars)}}.
-{Main}		: {token, {main,	TokenLine, list_to_atom(TokenChars)}}.
+%% Main OBSOLETO
+%%{Main}		: {token, {main,	TokenLine, list_to_atom(TokenChars)}}.
 {Return}	: {token, {return,	TokenLine, list_to_atom(TokenChars)}}.
 {String}	: {token, {string_t,TokenLine, list_to_atom(TokenChars)}}.
 {Integer}	: {token, {int_t,	TokenLine, list_to_atom(TokenChars)}}.

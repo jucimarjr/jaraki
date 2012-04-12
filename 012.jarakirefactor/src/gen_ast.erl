@@ -46,3 +46,8 @@ string(Line, String) when is_atom(String) ->
 	{string, Line, atom_to_list(String)};
 string(Line, String) when is_list(String) ->
 	{string, Line, String}.
+
+type_to_ast(Line, {array, PrimitiveType}) ->
+	tuple(Line,	[atom(Line, array),	atom(Line, PrimitiveType)]);
+type_to_ast(Line, PrimitiveType) ->
+	atom(Line, PrimitiveType).

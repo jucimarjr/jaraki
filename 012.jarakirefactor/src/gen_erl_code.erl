@@ -249,14 +249,14 @@ print_text([Head | L], Line, Text, _print) ->
 	case Head of
 	{{var, _, PrintElement}, _ArrayIndex} ->
 		case st:get2(Line, st:get_scope(), PrintElement) of
-			{TypeId, _VarValue} ->
+			{{array, TypeId}, _VarValue} ->
 				case TypeId of
-				int ->
-					print_text(L, Line, Text ++ "~p", _print);
-				float ->
-					print_text(L, Line, Text ++ "~f", _print);
-				_ ->
-					print_text(L, Line, Text ++ "~s", _print)
+					int ->
+						print_text(L, Line, Text ++ "~p", _print);
+					float ->
+						print_text(L, Line, Text ++ "~f", _print);
+					_ ->
+						print_text(L, Line, Text ++ "~s", _print)
 				end;
 			_ -> no_operation
 		end;
@@ -265,18 +265,18 @@ print_text([Head | L], Line, Text, _print) ->
 			identifier ->
 			case st:get2(Line, st:get_scope(), PrintElement) of
 				{TypeId, _VarValue} ->
-				case TypeId of
-				int ->
-					print_text(L, Line, Text ++ "~p", _print);
-				long ->
-					print_text(L, Line, Text ++ "~p", _print);
-				float ->
-					print_text(L, Line, Text ++ "~f", _print);
-				double ->
-					print_text(L, Line, Text ++ "~f", _print);
-				_ ->
-					print_text(L, Line, Text ++ "~s", _print)
-				end;
+					case TypeId of
+						int ->
+							print_text(L, Line, Text ++ "~p", _print);
+						long ->
+							print_text(L, Line, Text ++ "~p", _print);
+						float ->
+							print_text(L, Line, Text ++ "~f", _print);
+						double ->
+							print_text(L, Line, Text ++ "~f", _print);
+						_ ->
+							print_text(L, Line, Text ++ "~s", _print)
+					end;
 			_ -> no_operation
 			end;
 		text ->
@@ -334,10 +334,10 @@ create_attribution(Line, VarName, VarValue) ->
 
 	case st:get2(Line, st:get_scope(), VarName) of
 		{Type, _Value} ->
+			TypeAst = gen_ast:type_to_ast(Line, Type),
 			jaraki_exception:check_var_type(Type, VarValue),
 			TransformedVarValue = match_attr_expr(VarValue),
 			JavaNameAst = string(Line, VarName),
-			TypeAst = atom(Line, Type),
 			ScopeAst = atom(Line, st:get_scope()),
 			rcall(Line, st, put_value, [
 				tuple(Line, [ScopeAst, JavaNameAst]),
@@ -348,11 +348,11 @@ create_attribution(Line, VarName, VarValue) ->
 %% Cria elemento da east para atribuicao de array
 create_attribution(Line, ArrayName, ArrayIndex, VarValue) ->
 	case st:get2(Line, st:get_scope(), ArrayName) of
-		{Type, _Value} ->
-			%jaraki_exception:check_var_type(Type, VarValue),
+		{{array, PrimitiveType} = Type, _Value} ->
+			jaraki_exception:check_var_type(PrimitiveType, VarValue),
 			TransformedVarValue = match_attr_expr(VarValue),
 			JavaNameAst = string(Line, ArrayName),
-			TypeAst = atom(Line, Type),
+			TypeAst = gen_ast:type_to_ast(Line, Type),
 			ScopeAst = atom(Line, st:get_scope()),
 			IndexAst = case is_integer(ArrayIndex) of
 				true  -> {integer, Line, ArrayIndex};
@@ -381,7 +381,7 @@ create_array_values(Line , VarName, Type, [H| Rest], ArrayElementsAst, Index) ->
 	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),
 	%jaraki_exception:check_var_type(Type, VarValue),
 	JavaNameAst = string(Line, VarName),
-	TypeAst = atom(Line, Type),
+	TypeAst = gen_ast:type_to_ast(Line, Type),
 	ScopeAst = atom(Line, st:get_scope()),
 
 	ArrayGetAst = rcall(Line, st, get_value, [ScopeAst, JavaNameAst]),
@@ -402,7 +402,7 @@ create_array_initializer(Line, VarName, [{array_element, ElementArray} |
 	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),
 	%jaraki_exception:check_var_type(Type, ElementArray),
 	JavaNameAst = string(Line, VarName),
-	TypeAst = atom(Line, Type),
+	TypeAst = gen_ast:type_to_ast(Line, Type),
 	ScopeAst = atom(Line, st:get_scope()),
 
 %% Usado para o primeiro elemento do array initializer
@@ -425,7 +425,7 @@ create_array(Line, VarName, {_L, Type}, ArrayLength) ->
 	%jaraki_exception:check_var_type(Type, {var, VarLine, VarName}),
 
 	JavaNameAst = string(Line, VarName),
-	TypeAst = atom(Line, Type),
+	TypeAst = gen_ast:type_to_ast(Line, Type),
 	ScopeAst = atom(Line, st:get_scope()),
 	IndexAst =
 		case is_integer(ArrayLength) of
@@ -477,7 +477,7 @@ create_if(Line, Condition, IfExpr, ElseExpr) ->
 %% Cria o FOR
 create_for(Line, VarType, VarName, Start, CondExpr, IncExpr, Body) ->
 	JavaNameAst = string(Line, VarName),
-	TypeAst = atom(Line, VarType),
+	TypeAst = gen_ast:type_to_ast(Line, VarType),
 	ScopeAst = {atom, Line, st:get_scope()},
 	InitAst = rcall(Line, st, put_value,[
 			tuple(Line, [ScopeAst, JavaNameAst]), 

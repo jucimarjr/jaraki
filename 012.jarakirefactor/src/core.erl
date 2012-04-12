@@ -53,7 +53,7 @@ get_erl_function({Line, _Type, {method, main}, Parameters,
 	[{_Line, {var_type, {_Line, ArgClass}}, _ArgName}] = Parameters,
 
 	case ArgClass of
-		'String' ->
+		{array, 'String'} ->
 			ok;
 		_ ->
 			jaraki_exception:handle_error(Line, 4)
@@ -95,7 +95,7 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 		rcall(Line, st, put_value, [
 			tuple(Line,	[ScopeAst, string(Line, InitArgName)]),
 			tuple(Line,
-				[atom(Line, InitArgType),
+				[gen_ast:type_to_ast(Line, InitArgType),
 					var(Line, "V_" ++ atom_to_list(InitArgName))])]) ||
 		({_Line, {var_type, {_Line, InitArgType}},
 				{parameter, InitArgName}}) <-ParametersList

@@ -18,7 +18,8 @@ handle_error(Line, Code) ->
 get_error_text(1) -> "Variable not declared";
 get_error_text(2) -> "Variable already declared";
 get_error_text(3) -> "Incompatible variable assignment type";
-get_error_text(4) -> "The args of the \"main method\" is not String".
+get_error_text(4) -> "The unique argument of the \"main method\""
+					"is not String[]".
 
 print_errors([]) ->
 	io:format("\n");
@@ -67,7 +68,7 @@ check_var_type(AttrVarType, {var, Line, VarName}) ->
 	match_type(Line, AttrVarType, ExprVarType);
 
 check_var_type(AttrArrayType, {{var, Line, ArrayName}, {index, _ArrayIndex}}) ->
-	{ExprVarType, _Value} = st:get2(Line, st:get_scope(), ArrayName),
+	{{array, ExprVarType}, _Value} = st:get2(Line, st:get_scope(), ArrayName),
 	match_type(Line, AttrArrayType, ExprVarType).
 
 
@@ -77,7 +78,5 @@ match_type(_, double, integer) -> ok;
 match_type(_, float, int) -> ok;
 match_type(_, float, integer) -> ok;
 match_type(_, Type, Type) -> ok;
-match_type(Line, int, _) ->
-	handle_error(Line, 3);
-match_type(Line, float, _) ->
+match_type(Line, _, _) ->
 	handle_error(Line, 3).

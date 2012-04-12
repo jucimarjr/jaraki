@@ -36,7 +36,8 @@ for_update post_increment_expr
 statement.
 
 Terminals
-package import class public static void main return sqrt print println scanner
+package import class public static void %% main, obsoleto
+return sqrt print println scanner
 length
 '(' ')' '[' ']' '{' '}' ';' '=' '.' '.*' ','
 string_t int_t long_t float_t double_t boolean_t
@@ -85,21 +86,27 @@ method_declaration -> public static type identifier
 					'(' parameters_list ')' block:
 			{line('$4'), '$3', {method, unwrap('$4')}, '$6', '$8'}.
 
-method_declaration ->
-	public static type main
-	'(' string_t '[' ']' identifier ')' block:
-		{line('$4'), '$3',
-			{method, unwrap('$4')},
-			[{line('$9'),
-				{var_type, {line('$6'), unwrap('$6')}},
-				{parameter, unwrap('$9')}}
-			], '$11'}.
+%% método main na análise sintática obsoleto
+%% method_declaration ->
+%% 	public static type main
+%% 	'(' string_t '[' ']' identifier ')' block:
+%% 		{line('$4'), '$3',
+%% 			{method, unwrap('$4')},
+%% 			[{line('$9'),
+%% 				{var_type, {line('$6'), unwrap('$6')}},
+%% 				{parameter, unwrap('$9')}}
+%% 			], '$11'}.
 
 parameters_list -> parameter				: ['$1'].
 parameters_list -> parameter ',' parameters_list	: ['$1' | '$3'].
 
 parameter -> type identifier: {line('$2'), {var_type, '$1'},
 						{parameter, unwrap('$2')}}.
+
+parameter -> type '[' ']' identifier:
+			{line('$4'),
+				{var_type, make_array_type('$1')},
+				{parameter, unwrap('$4')}}.
 
 block -> '{' block_statements '}'	: {block, '$2'}.
 block -> '{' '}': {block, []}.
@@ -144,7 +151,9 @@ variable_list -> identifier	',' variable_list:
 %% TODO: verificar array_initializer
 
 local_variable_declaration_statement ->  type '[' ']' array_declaration_list';':
-	{var_declaration, {var_type, '$1'}, {var_list, '$4'}}.
+	{var_declaration,
+		{var_type, make_array_type('$1')},
+		{var_list, '$4'}}.
 
 %% ------------------------------------------
 array_declaration_list -> identifier:
@@ -357,4 +366,8 @@ Erlang code.
 
 unwrap({_, _, Value})	-> Value.
 line({_, Line, _})	-> Line;
-line(_) -> throw("Erro ao usar funcao line no parser!!!!").
+line(X) ->
+	Msg = "Erro ao usar funcao line no parser! " ++
+		  "Aki:  " ++ lists:flatten(io_lib:format("~p", [X])),
+	throw(Msg).
+make_array_type({Line, PrimitiveType}) -> {Line, {array, PrimitiveType}}.
