@@ -1,0 +1,47 @@
+
+public class QuickSort {
+	public static int[] quick_sort(int []v,int ini, int fim) {
+		int meio;
+
+		if (ini < fim) {
+			meio = partition(v, ini, fim);
+			quick_sort(v, ini, meio);
+			quick_sort(v, meio + 1, fim);
+		}
+		return v;
+	}
+
+	public static int partition(int []v, int ini, int fim) {
+		int pivo, topo, i;
+		pivo = v[ini];
+		topo = ini;
+
+		for (i = ini + 1; i < fim; i++) {
+			if (v[i] < pivo) {
+				v[topo] = v[i];
+				v[i] = v[topo + 1];
+				topo++; 
+			}
+		}
+		v[topo] = pivo;
+		return topo;
+	}
+
+	public static void main(String[] args) {
+
+		int[] vet = new int[10];
+		vet[0] = 301;
+		vet[1] = 203;
+		vet[2] = 481;
+		vet[3] = 890;
+		vet[4] = 204;
+		vet[5] = 1230;
+		vet[6] = 30;
+		vet[7] = 12;
+		vet[8] = 5;
+		vet[9] = 145;	
+		int[] newvet = quick_sort(vet, 0, vet.length);
+		for(int i=0; i<= newvet.length-1; i++)
+			System.out.println(newvet[i]);	
+	}
+}
