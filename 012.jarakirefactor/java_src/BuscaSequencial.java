@@ -13,7 +13,7 @@ public class BuscaSequencial {
 	public static void main(String[] args) {
 
 		int[] vetor = {5,9,20,3};
-		int chave = 0;
+		int chave = 3;
 		int temp;
 		temp = buscaSequencial(chave, vetor);
 		System.out.println(temp);

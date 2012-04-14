@@ -55,20 +55,9 @@ class MergeSort{
 
 	public static void main(String[] args) {
 
-		int[] vet = new int[12];
-		vet[0] = 301;
-		vet[1] = 203;
-		vet[2] = 481;
-		vet[3] = 890;
-		vet[4] = 204;
-		vet[5] = 1230;
-		vet[6] = 30;
-		vet[7] = 12;
-		vet[8] = 5;
-		vet[9] = 145;
-		vet[10] = 146;
-		vet[11] = 100;
+		int[] vet = {8,5,2,7,1,10,4,3,6,50,9,25};
 		int[] newvet = merge(vet, 0, vet.length-1);
+
 		for(int i=0; i<= newvet.length-1; i++)
 			System.out.println(newvet[i]);	
 	}
