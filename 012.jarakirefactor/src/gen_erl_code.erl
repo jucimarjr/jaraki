@@ -167,15 +167,11 @@ match_attr_expr({var, Line, VarName}) ->
 		  [atom(Line, st:get_scope()), string(Line, VarName)]);
 match_attr_expr({{var, Line, VarName}, {index, ArrayIndex}}) ->
 	st:get2(Line, st:get_scope(), VarName),
-		IndexAst = case is_integer(ArrayIndex) of
-			true  -> {integer, Line, ArrayIndex};
-			false -> rcall(Line, st, get_value,[atom(Line,
-					 st:get_scope()), string(Line, ArrayIndex)])
-		end,
+	IndexAst = match_attr_expr(ArrayIndex),
 
-			ArrayGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
+	ArrayGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
 				string(Line, VarName)]),
-			rcall(Line, array, get, [IndexAst, ArrayGetAst]).
+	rcall(Line, array, get, [IndexAst, ArrayGetAst]).
 
 
 create_declaration(var_declaration, {var_type, {VarLine, _VarType}},
@@ -289,12 +285,7 @@ print_list([], Line) ->
 print_list([Element|L], Line) ->
 	case Element of
 		{{var, _, PrintElement}, {index, ArrayIndex} } ->
-			IndexGetAst =
-				case is_integer(ArrayIndex) of
-					true  -> {integer, Line, ArrayIndex};
-					false -> rcall(Line, st, get_value,[atom(Line,
-						st:get_scope()), string(Line, ArrayIndex)])
-				end,
+			IndexGetAst = match_attr_expr(ArrayIndex),
 
 			ValueGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
 				string(Line, PrintElement)]),
@@ -354,12 +345,7 @@ create_attribution(Line, ArrayName, ArrayIndex, VarValue) ->
 			JavaNameAst = string(Line, ArrayName),
 			TypeAst = gen_ast:type_to_ast(Line, Type),
 			ScopeAst = atom(Line, st:get_scope()),
-			IndexAst = case is_integer(ArrayIndex) of
-				true  -> {integer, Line, ArrayIndex};
-				false -> rcall(Line, st, get_value,[atom(Line,
-					 st:get_scope()), string(Line, ArrayIndex)])
-			end,
-
+			IndexAst = match_attr_expr(ArrayIndex),
 			ArrayGetAst = rcall(Line, st, get_value, [ScopeAst, JavaNameAst]),
 
 			ArraySetAst = rcall(Line, array, set, [IndexAst,

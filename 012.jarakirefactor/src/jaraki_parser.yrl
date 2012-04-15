@@ -216,13 +216,9 @@ element_value_pair ->	identifier '=' element_value ';':
 	{line('$1'), attribution, {var, unwrap('$1')}, {var_value, '$3'}}.
 
 %% Atribuição de array
-element_value_pair ->   identifier '[' integer ']' '=' element_value ';':
+element_value_pair ->   identifier '[' element_value ']' '=' element_value ';':
 	{line('$1'), array_attribution,
-			{{var, unwrap('$1')},{index, unwrap('$3')}}, {var_value, '$6'}}.
-
-element_value_pair ->   identifier '[' identifier ']' '=' element_value ';':
-	{line('$1'), array_attribution,
-			{{var, unwrap('$1')},{index, unwrap('$3')}}, {var_value, '$6'}}.
+			{{var, unwrap('$1')},{index, '$3'}}, {var_value, '$6'}}.
 
 %%--------------
 length_stmt -> identifier '.' length : {length, line('$1'), unwrap('$1')}.
@@ -261,13 +257,9 @@ print_content -> array_access add_op print_content : ['$1' | '$3'].
 %% Estrutura vetor
 %% TOD: Verificar ele como um array
 array_access ->
-	 identifier '[' integer ']' :
+	 identifier '[' element_value ']' :
 			{{var, line('$1'), unwrap('$1')},
-					{index, unwrap('$3')}}.
-array_access ->
-	 identifier '[' identifier ']' :
-			{{var, line('$1'), unwrap('$1')},
-					{index, unwrap('$3')}}.
+					{index, '$3'}}.
 
 %%
 for_update -> identifier increment_op :
