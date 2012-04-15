@@ -17,7 +17,7 @@ method_declaration
 block block_statements
 method_invocation
 local_variable_declaration_statement element_value type variable_list
-array_declaration_list array_initializer array_access
+array_declaration_list array_declaration_list2 array_initializer array_access
 new_stmt
 add_expr mult_expr modulus_expr
 unary_expr literal
@@ -166,6 +166,11 @@ local_variable_declaration_statement ->  type '[' ']' array_declaration_list';':
 		{var_type, make_array_type('$1')},
 		{var_list, '$4'}}.
 
+local_variable_declaration_statement ->  type  array_declaration_list2';':
+	{var_declaration,
+		{var_type, make_array_type('$1')},
+		{var_list, '$2'}}.
+
 %% ------------------------------------------
 array_declaration_list -> identifier:
 				[{{var, unwrap('$1')},{var_value, undefined}}].
@@ -184,6 +189,20 @@ new_stmt -> 'new' type '[' integer ']':
 
 new_stmt -> 'new' type '[' identifier ']':
 		{new, array, {type, '$2'}, {index, unwrap('$4')}}.
+
+%% Array com tipo após identifier
+%% ------------------------------------------
+array_declaration_list2 -> identifier '[' ']':
+				[{{var, unwrap('$1')},{var_value, undefined}}].
+
+array_declaration_list2 -> identifier '[' ']' ',' array_declaration_list:
+		[{{var, unwrap('$1')}, {var_value, undefined}} | '$5'].
+
+array_declaration_list2 -> identifier '[' ']' '=' '{' array_initializer '}':
+			[{{var, unwrap('$1')}, {var_value, {array_initializer, '$6'}}}].
+
+array_declaration_list2 -> identifier '[' ']' '=' new_stmt:
+			[{{var, unwrap('$1')}, {var_value, '$5'}}].
 
 %% ------------------------------------------
 array_initializer -> literal : [{array_element, unwrap('$1')}].
