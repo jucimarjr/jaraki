@@ -2,11 +2,14 @@ package insertionSort;
 
 public class InsertionSort {
 
-	public static int[] insertionSort(int vetor[]) {
+	public static int[] insertionSort(int[] vetor) {
+
+		int a;
+
 		for (int i = 1; i < vetor.length; i++) {
-			int a = vetor[i];
-			int j;
-			for (j = i - 1; j >= 0 && vetor[j] > a; j--) {
+			
+			a =  vetor[i];
+			for (int j = i - 1; j >= 0 && vetor[j] > a; j--) {
 				vetor[j + 1] = vetor[j];
 				vetor[j] = a;
 			}

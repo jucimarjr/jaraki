@@ -271,20 +271,22 @@ post_increment_expr -> identifier increment_op ';':
 				{inc_op, line('$1'), unwrap('$2'), Var}.
 
 %% BEGIN_FOR
-for_stmt -> for '(' int_t identifier '=' integer ';' bool_expr ';'
+for_stmt -> for '(' int_t identifier '=' add_expr ';' bool_expr ';'
 				for_update  ')'  statement :
 			{line('$1'), for,
 				{for_init, {var_type, unwrap('$3')}, {var_name, unwrap('$4')}},
 				{for_start, '$6'}, {condition_expr, '$8'},
 				{inc_expr, '$10'}, {for_body, '$12'}}.
 
-for_no_trailing -> for '(' int_t identifier '=' integer ';'
+for_no_trailing -> for '(' int_t identifier '=' add_expr ';'
 					bool_expr ';'
 					for_update ')'  no_short_if_stmt :
 			{line('$1'), for,
 				{for_init, {var_type, unwrap('$3')}, {var_name, unwrap('$4')}},
 				{for_start, '$6'}, {condition_expr, '$8'},
 				{inc_expr, '$10'}, {for_body, '$12'}}.
+
+
 %% END_FOR
 
 %%BEGIN WHILE
