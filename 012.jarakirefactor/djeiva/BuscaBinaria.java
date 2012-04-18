@@ -31,15 +31,15 @@ public class BuscaBinaria
 
 	public static void main( String[] args )
 	{
-		int numero = 0;
+		int numero = 0, posicao;
 		int[] lista = new int[100];
 
 		for(int i=0; i<100; i++)
 			lista[i] = i;
 
 		numero = 120;
-		
-		System.out.println(BuscaBinaria(lista, numero));
+		posicao = BuscaBinaria(lista, numero);
+		System.out.println(posicao);
 		
 	}
 

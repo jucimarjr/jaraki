@@ -466,8 +466,8 @@ create_for(Line, VarType, VarName, Start, CondExpr, IncExpr, Body) ->
 	TypeAst = gen_ast:type_to_ast(Line, VarType),
 	ScopeAst = {atom, Line, st:get_scope()},
 	InitAst = rcall(Line, st, put_value,[
-			tuple(Line, [ScopeAst, JavaNameAst]), 
-			tuple(Line, [TypeAst, Start])]),
+			tuple(Line, [ScopeAst, JavaNameAst]),
+			tuple(Line, [TypeAst, match_attr_expr(Start)])]),
 
 	st:put_value({st:get_scope(), VarName}, {VarType, undefined}),
 

@@ -25,7 +25,7 @@ public class BubbleSort {
 
 		int[] vetor = {5,2,1,4,3};
 		
-		bubbleSort(vetor);
+		vetor = bubbleSort(vetor);
 		
 		for (int i = 0; i < vetor.length; i++) {
 			System.out.print(vetor[i]+" ");

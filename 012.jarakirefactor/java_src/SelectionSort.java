@@ -26,7 +26,7 @@ public class SelectionSort {
 
 		int[] vetor = {5,2,1,4,3,50,25};
 		
-		selectionSort(vetor);
+		vetor = selectionSort(vetor);
 		
 		for (int i = 0; i < vetor.length; i++) {
 			System.out.print(vetor[i]+" ");
