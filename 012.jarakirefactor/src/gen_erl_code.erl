@@ -330,9 +330,16 @@ create_attribution(Line, VarName, VarValue) ->
 			TransformedVarValue = match_attr_expr(VarValue),
 			JavaNameAst = string(Line, VarName),
 			ScopeAst = atom(Line, st:get_scope()),
+			CheckInt = gen_ast:check_int(Type),
+			NewTransformedVarValue =
+				case CheckInt of
+					other_type -> TransformedVarValue;
+					_ -> call(Line, trunc, [TransformedVarValue])
+				end,
+
 			rcall(Line, st, put_value, [
 				tuple(Line, [ScopeAst, JavaNameAst]),
-				tuple(Line, [TypeAst, TransformedVarValue])]);
+				tuple(Line, [TypeAst, NewTransformedVarValue])]);
 		_ -> no_operation
 	end.
 %%------------------------------------------------------------------------------

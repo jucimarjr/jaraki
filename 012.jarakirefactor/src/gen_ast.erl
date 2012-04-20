@@ -51,3 +51,14 @@ type_to_ast(Line, {array, PrimitiveType}) ->
 	tuple(Line,	[atom(Line, array),	atom(Line, PrimitiveType)]);
 type_to_ast(Line, PrimitiveType) ->
 	atom(Line, PrimitiveType).
+
+check_int({array, PrimitiveType}) ->
+	case PrimitiveType of
+		int -> ok;
+		_ -> other_type
+	end;
+check_int(PrimitiveType) ->
+	case PrimitiveType of
+		int -> ok;
+		_ -> other_type
+	end.
