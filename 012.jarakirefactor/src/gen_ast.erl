@@ -52,11 +52,8 @@ type_to_ast(Line, {array, PrimitiveType}) ->
 type_to_ast(Line, PrimitiveType) ->
 	atom(Line, PrimitiveType).
 
-check_int({array, PrimitiveType}) ->
-	case PrimitiveType of
-		int -> ok;
-		_ -> other_type
-	end;
+check_int({array, _PrimitiveType}) ->
+	other_type;
 check_int(PrimitiveType) ->
 	case PrimitiveType of
 		int -> ok;

@@ -1,22 +1,22 @@
 
 public class QuickSort {
-	public static int[] quick_sort(int []v,int ini, int fim) {
+	public static int[] quick_sort(int[] v,int ini, int fim) {
 		int meio;
 
 		if (ini < fim) {
 			meio = partition(v, ini, fim);
-			quick_sort(v, ini, meio);
-			quick_sort(v, meio + 1, fim);
+			v = quick_sort(v, ini, meio);
+			v = quick_sort(v, meio + 1, fim);
 		}
 		return v;
 	}
 
 	public static int partition(int []v, int ini, int fim) {
-		int pivo, topo, i;
+		int pivo, topo;
 		pivo = v[ini];
 		topo = ini;
 
-		for (i = ini + 1; i < fim; i++) {
+		for (int i = ini + 1; i < fim; i++) {
 			if (v[i] < pivo) {
 				v[topo] = v[i];
 				v[i] = v[topo + 1];
@@ -30,9 +30,9 @@ public class QuickSort {
 	public static void main(String[] args) {
 
 		int[] vet = {8,5,2,7,1,10,4,3,6,50,9,25};
-		int[] newvet = quick_sort(vet, 0, vet.length);
+		vet = quick_sort(vet, 0, vet.length);
 
-		for(int i=0; i<= newvet.length-1; i++)
-			System.out.println(newvet[i]);	
+		for(int i=0; i< newvet.length; i++)
+			System.out.println(vet[i]);	
 	}
 }
