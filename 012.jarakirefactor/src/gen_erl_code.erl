@@ -364,53 +364,32 @@ create_attribution(Line, ArrayName, ArrayIndex, VarValue) ->
 		_ -> no_operation
 	end.
 
-%% Transforma os elementos do array - vet = {1, 2 ,3}
-create_array_values(_Line, _VarName, _Type, [], ArrayElementsAst, _Index) ->
-	lists:reverse(ArrayElementsAst, []);
+%% Transforma os elementos do array - vet = {valor1, valor2}
+create_array_values(Line, [{array_element, Value} | []]) ->
+	{cons, Line, {integer, Line, Value}, {nil, Line}};
 
-create_array_values(Line , VarName, Type, [H| Rest], ArrayElementsAst, Index) ->
-	{array_element, ElementArray} =  H,
+create_array_values(Line,
+						[{array_element, Value} | Rest]) ->
+	Lists =  {cons, Line, {integer, Line, Value},
+				create_array_values(Line, Rest)},
+	Lists.
 
-	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),
-	%jaraki_exception:check_var_type(Type, VarValue),
-	JavaNameAst = string(Line, VarName),
-	TypeAst = gen_ast:type_to_ast(Line, Type),
-	ScopeAst = atom(Line, st:get_scope()),
-
-	ArrayGetAst = rcall(Line, st, get_value, [ScopeAst, JavaNameAst]),
-
-	ArraySetAst = rcall(Line, array, set, [{integer, Line, Index},
-		{integer, Line, ElementArray}, ArrayGetAst]),
-
-	ElementAst = rcall(Line, st, put_value, [
-				tuple(Line, [ScopeAst, JavaNameAst]),
-				tuple(Line, [TypeAst, ArraySetAst])]),
-
-	create_array_values(Line, VarName, Type, Rest,
-						[ElementAst|ArrayElementsAst], Index+1).
 %% ------------------------------------------------------------------
 %% Inicializador de array
-create_array_initializer(Line, VarName, [{array_element, ElementArray} |
-					RestArray]) ->
+create_array_initializer(Line, VarName, ArrayValues) ->
 	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),
 	%jaraki_exception:check_var_type(Type, ElementArray),
 	JavaNameAst = string(Line, VarName),
 	TypeAst = gen_ast:type_to_ast(Line, Type),
 	ScopeAst = atom(Line, st:get_scope()),
 
-%% Usado para o primeiro elemento do array initializer
-	ArrayNew = rcall(Line, array, new, []),
+	ArrayValuesAst = rcall(Line, array, from_list,
+					[create_array_values(Line,  ArrayValues)]),
+	ArrayAst = rcall(Line, st, put_value, [
+		tuple(Line, [ScopeAst, JavaNameAst]),
+			tuple(Line, [TypeAst, ArrayValuesAst])]),
 
-	HeadSetAst = rcall(Line, array, set, [{integer, Line, 0},
-								{integer, Line, ElementArray}, ArrayNew]),
-
-	ArrayHeadAst = rcall(Line, st, put_value, [
-				tuple(Line, [ScopeAst, JavaNameAst]),
-				tuple(Line, [TypeAst, HeadSetAst])]),
-
-	ArrayRestAst = create_array_values(Line, VarName, Type, RestArray, [], 1),
-
-	{block, Line, lists:flatten([ArrayHeadAst, ArrayRestAst])}.
+	{block, Line, [ArrayAst]}.
 
 %%-----------------------------------------------------------------------------
 %% Cria a expressão de criação de array

@@ -2,7 +2,7 @@
 public class QuickSort {
 	public static int[] quick_sort(int[] v,int ini, int fim) {
 		int meio;
-
+		
 		if (ini < fim) {
 			meio = partition(v, ini, fim);
 			v = quick_sort(v, ini, meio);
@@ -32,7 +32,7 @@ public class QuickSort {
 		int[] vet = {8,5,2,7,1,10,4,3,6,50,9,25};
 		vet = quick_sort(vet, 0, vet.length);
 
-		for(int i=0; i< newvet.length; i++)
+		for(int i=0; i< vet.length; i++)
 			System.out.println(vet[i]);	
 	}
 }
