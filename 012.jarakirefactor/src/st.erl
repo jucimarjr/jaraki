@@ -25,30 +25,13 @@ insert_var_list(Line, Scope, [{{var, VarName}, _VarValue} | Rest], Type) ->
 put_value({Scope, Var}, Value) ->
 	case Value of
 		{Type, {ok, [ValueScanner]}} ->
-			case Type of
-				{array, _} ->
-					put({array_scope, Var, 0}, {Type, ValueScanner});
-				_ ->
-					put({Scope, Var, get_stack(Scope)}, {Type, ValueScanner})
-			end;
-		{Type, _} ->
-			case Type of
-				{array, _} ->
-					put({array_scope, Var, 0}, Value);
-		_ ->
-					put({Scope, Var, get_stack(Scope)}, Value)
-			end
+		put({Scope, Var, get_stack(Scope)}, {Type, ValueScanner});
+		_ -> 
+		put({Scope, Var, get_stack(Scope)}, Value)
 	end.
 
-%% Código gerado
 get_value(Scope, VarName) ->
-	VarValue =
-		case Scope of
-			array_scope ->
-				get({Scope, VarName, 0});
-			_ ->
-				get({Scope, VarName, get_stack(Scope)})
-		end,
+	VarValue = get({Scope, VarName, get_stack(Scope)}),
 	{_Type, Value} = VarValue,
 	Value.
 
@@ -80,9 +63,9 @@ get_old_stack(Scope) ->
 
 get_return(Scope, Parameters) ->
 	case get({Scope, Parameters}) of
-		undefined ->
-			no_value;
-		Return ->
+		undefined -> 
+			no_value;	    
+		Return -> 
 			{ok, Return}
 	end.
 
@@ -115,7 +98,6 @@ get_declared(Line, Scope, VarName, Type, VarValue) ->
 		_Value ->
 			{jaraki_exception:handle_error(Line, 2), undefined}
 	end.
-
 
 put_scope(Scope) ->
 	put(scope, Scope).
