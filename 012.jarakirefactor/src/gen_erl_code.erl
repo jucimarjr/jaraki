@@ -23,7 +23,7 @@
 match_statement({var_declaration, VarType, VarList}) ->
 	create_declaration(var_declaration, VarType, VarList);
 
-%% Instanciação do Scanner é ignorado no parser
+%% Instanciação do Scanner e Random é ignorado no parser
 match_statement(no_operation) ->
 	no_operation;
 
@@ -146,6 +146,8 @@ match_attr_expr({next_float, Line, VarScanner})->
 	create_function_scanner(next_float, Line, VarScanner);
 match_attr_expr({next_line, Line, VarScanner})->
 	create_function_scanner(next_line, Line, VarScanner);
+match_attr_expr({next_int, Line, VarRandom, {random, RandomValue}})->
+	create_function_random(next_int, Line, VarRandom, RandomValue);
 match_attr_expr({length, Line, VarLength})->
 	ArrayGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
 			string(Line, VarLength)]),
@@ -221,6 +223,13 @@ create_function_scanner(next_line, Line, _VarScanner) ->
 	 Prompt = string(Line, '>'),
 	 ConsoleContent = string(Line, '~s'),
 	rcall(Line, io, fread, [Prompt, ConsoleContent]).
+
+%-------------------------------------------------------------------------------
+% Cria elemento da east para Random
+create_function_random(next_int, Line, _VarRandom, RandomValue) ->
+
+	rcall(Line, random, uniform, [RandomValue]).
+
 
  %%-----------------------------------------------------------------------------
  %% Cria o elemento da east para as funcoes de impressao do java

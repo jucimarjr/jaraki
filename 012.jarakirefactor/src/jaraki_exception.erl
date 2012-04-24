@@ -47,6 +47,9 @@ check_var_type(_Type, {next_float, _Line, _VarScanner}) ->
 check_var_type(_Type, {next_line, _Line, _VarScanner}) ->
 	%% match_type(Type, String);
 	ok;
+check_var_type(_Type, {next_int, _Line, _VarRandom, {random, _RandomValue}}) ->
+	%% match_type(Type, int);
+	ok;
 check_var_type(Type, {op, Line, Op, RightExp}) ->
 	{op, Line, Op, check_var_type(Type, RightExp)};
 check_var_type(Type, {integer, Line, _Value}) ->

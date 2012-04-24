@@ -50,6 +50,7 @@ Length				= length
 Sqrt				= Math.sqrt
 Print				= System.out.print
 Println				= System.out.println
+Random				= Random
 Scanner				= Scanner
 SystemIn			= System\.in
 NextInt				= nextInt
@@ -78,7 +79,7 @@ Semicolon			= ;
 % Operator: one of
 AttributionOp	= =
 ComparatorOp	= (<|<=|==|>=|>|!=)
-BooleanOp		= (\&\&|\|\|!)
+BooleanOp		= (\&\&|!|'\|''\|')
 AddOp			= (\+|-)
 MultOp			= (\*|/)
 ModulusOp		= (\%)
@@ -116,6 +117,7 @@ Rules.
 {Sqrt}		: {token, {sqrt,	TokenLine, list_to_atom(TokenChars)}}.
 {Print}		: {token, {print,	TokenLine, unwrap_print(TokenChars)}}.
 {Println}	: {token, {print,	TokenLine, unwrap_print(TokenChars)}}.
+{Random}	: {token, {random,	TokenLine, list_to_atom(TokenChars)}}.
 {Scanner}	: {token, {scanner,	TokenLine, list_to_atom(TokenChars)}}.
 {SystemIn}	: {token, {system_in,	TokenLine, list_to_atom(TokenChars)}}.
 {NextInt}	: {token, {next_int,		TokenLine, list_to_atom(TokenChars)}}.

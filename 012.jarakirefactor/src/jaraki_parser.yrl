@@ -26,6 +26,7 @@ element_value_pair
 sqrt_stmt length_stmt
 print_stmt print_content if_stmt if_else_stmt if_else_no_trailing
 scanner_declaration_stmt next_int_stmt next_float_stmt next_line_stmt
+random_declaration_stmt
 return_statement
 for_stmt for_no_trailing
 while_stmt while_no_trailing
@@ -37,7 +38,7 @@ statement.
 
 Terminals
 package import class public static void %% main, obsoleto
-return sqrt print scanner
+return sqrt random print scanner
 length
 '(' ')' '[' ']' '{' '}' ';' '=' '.' '.*' ','
 string_t int_t long_t float_t double_t boolean_t
@@ -68,6 +69,7 @@ import_declaration -> identifier ';'					: ['$1'].
 import_declaration -> identifier '.*' ';'				: [{'$1', '$2'}].
 import_declaration -> identifier '.' import_declaration	: ['$1' | '$3'].
 import_declaration -> scanner ';' : ['$1'].
+import_declaration -> random ';' : ['$1'].
 
 class_list -> class_declaration				: ['$1'].
 class_list -> class_declaration class_list	: ['$1' | '$2'].
@@ -142,6 +144,7 @@ no_trailing_stmt -> local_variable_declaration_statement: '$1'.
 no_trailing_stmt -> element_value_pair					: '$1'.
 no_trailing_stmt -> print_stmt							: '$1'.
 no_trailing_stmt -> scanner_declaration_stmt			: '$1'.
+no_trailing_stmt -> random_declaration_stmt			: '$1'.
 no_trailing_stmt -> post_increment_expr					: '$1'.
 no_trailing_stmt -> return_statement					: '$1'.
 no_short_if_stmt -> no_trailing_stmt					: '$1'.
@@ -225,14 +228,23 @@ length_stmt -> identifier '.' length : {length, line('$1'), unwrap('$1')}.
 
 sqrt_stmt -> sqrt '(' element_value ')': {sqrt, line('$1'), '$3'}.
 
+random_declaration_stmt -> random identifier '='
+				'new' random '(' ')' ';' :	no_operation.
+
 scanner_declaration_stmt ->	scanner identifier '='
 				'new' scanner '(' system_in ')' ';' :	no_operation.
 
 next_int_stmt -> identifier '.' next_int '(' ')' :
 					{next_int, line('$1'), unwrap('$1')}.
 
+next_int_stmt -> identifier '.' next_int '(' integer ')' :
+					{next_int, line('$1'), unwrap('$1'), {random, '$5'}}.
+
 next_float_stmt -> identifier '.' next_float '(' ')' :
 					{next_float, line('$1'),  unwrap('$1')}.
+
+next_float_stmt -> identifier '.' next_float '(' float ')' :
+					{next_float, line('$1'),  unwrap('$1'), {random, '$5'}}.
 
 next_line_stmt -> identifier '.' next_line '(' ')' :
 					{next_line, line('$1'),  unwrap('$1')}.
