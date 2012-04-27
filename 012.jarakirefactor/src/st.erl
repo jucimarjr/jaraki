@@ -3,7 +3,8 @@
 
 new() ->
 	put(errors, []),
-	put(scope, '__undefined__').
+	put(scope, '__undefined__'),
+	put(array_index, 0).
 
 destroy() ->
 	erase(), ok.
@@ -111,3 +112,13 @@ put_error(Line, Code) ->
 
 get_errors() ->
 	lists:reverse(get(errors), []).
+
+lookup(Key) ->
+	get(Key).
+
+insert(Key, Value) ->
+	put(Key, Value).
+
+update_counter(DictVar, Increment) ->
+	IndexValue = lookup({DictVar, Increment}),
+	insert(DictVar, IndexValue + Increment).
