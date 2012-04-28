@@ -4,7 +4,7 @@
 new() ->
 	put(errors, []),
 	put(scope, '__undefined__'),
-	put(array_index, 0).
+	put(array_address, 0).
 
 destroy() ->
 	erase(), ok.
@@ -120,5 +120,5 @@ insert(Key, Value) ->
 	put(Key, Value).
 
 update_counter(DictVar, Increment) ->
-	IndexValue = lookup({DictVar, Increment}),
+	IndexValue = lookup(DictVar),
 	insert(DictVar, IndexValue + Increment).

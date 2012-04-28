@@ -9,13 +9,28 @@
 %% Objetivo : Array
 
 -module(vector).
--export([new/1, get/1]).
+-export([new/1, access_array/2, put_array/3]).
+-import(st, [update_counter/2, lookup/1, insert/2]).
 
+%% new - Cria o endereço para o vetor declarado
 new(ArrayValue) ->
-	ArrayIndex = st:update_counter(array_index, 1),
-	st:insert({array_dict, ArrayIndex}, ArrayValue).
+	ArrayAddress = st:update_counter(array_address, 1),
+	st:insert({array_dict, ArrayAddress}, ArrayValue),
+	ArrayAddress.
 
-get(ArrayIndex) ->
-	Key = {array_dict, ArrayIndex},
+%% get_vector - Retorna o valor do vetor da posição Address
+%% Address - "posição de memória" do vetor
+get_vector(Address) ->
+	Key = {array_dict, Address},
 	ArrayValue = st:lookup(Key),
 	ArrayValue.
+
+%% ArrayIndex - índice do vetor, ArrayAddr - "posição de memória" do vetor
+access_array(ArrayIndex, ArrayAddr) ->	
+	Array = get_vector(ArrayAddr),
+	Value = array:get(ArrayIndex, Array),
+	Value.
+
+put_array(ArrayIndex, ArrayValue, ArrayAddr) ->
+	Array = get_vector(ArrayAddr),
+	array:set(ArrayIndex, ArrayValue, Array).
