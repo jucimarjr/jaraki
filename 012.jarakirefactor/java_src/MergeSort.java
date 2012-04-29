@@ -1,11 +1,13 @@
-class MergeSort{
+public class MergeSort{
 
 	public static int[] merge(int[] vet, int inicio, int fim) {
 		int[] vet3 = new int[vet.length];
-		if (inicio < fim) {
-			int meio = (inicio + fim) / 2;
-			int[] vet1 = merge(vet, inicio, meio);
-			int[] vet2 = merge(vet1, meio + 1, fim);
+		int[] vet1, vet2;
+		int meio;
+		if (inicio < fim) {			
+			meio = (inicio + fim) / 2;
+			vet1 = merge(vet, inicio, meio);
+			vet2 = merge(vet1, meio + 1, fim);
 			vet3 = mesclar(vet2, inicio, meio, fim);
 		}
 		else {
@@ -56,7 +58,8 @@ class MergeSort{
 	public static void main(String[] args) {
 
 		int[] vet = {8,5,2,7,1,10,4,3,6,50,9,25};
-		int[] newvet = merge(vet, 0, vet.length-1);
+		int[] newvet;
+		newvet = merge(vet, 0, vet.length-1);
 
 		for(int i=0; i<= newvet.length-1; i++)
 			System.out.println(newvet[i]);	

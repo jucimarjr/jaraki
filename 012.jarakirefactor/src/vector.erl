@@ -9,7 +9,7 @@
 %% Objetivo : Array
 
 -module(vector).
--export([new/1, access_array/2, put_array/3]).
+-export([new/1, access_vector/2, set_vector/3, size_vector/1]).
 -import(st, [update_counter/2, lookup/1, insert/2]).
 
 %% new - Cria o endereço para o vetor declarado
@@ -26,11 +26,18 @@ get_vector(Address) ->
 	ArrayValue.
 
 %% ArrayIndex - índice do vetor, ArrayAddr - "posição de memória" do vetor
-access_array(ArrayIndex, ArrayAddr) ->	
+access_vector(ArrayIndex, ArrayAddr) ->	
 	Array = get_vector(ArrayAddr),
 	Value = array:get(ArrayIndex, Array),
 	Value.
 
-put_array(ArrayIndex, ArrayValue, ArrayAddr) ->
-	Array = get_vector(ArrayAddr),
-	array:set(ArrayIndex, ArrayValue, Array).
+set_vector(ArrayIndex, ArrayValue, ArrayAddress) ->
+	Array = get_vector(ArrayAddress),
+	NewArray = array:set(ArrayIndex, ArrayValue, Array),
+	st:insert({array_dict, ArrayAddress}, NewArray),
+	ArrayAddress.
+
+size_vector(ArrayAddress)->
+	Array = get_vector(ArrayAddress),
+	ArraySize = array:size(Array),
+	ArraySize.

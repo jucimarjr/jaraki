@@ -188,10 +188,13 @@ array_declaration_list -> identifier '=' new_stmt:
 			[{{var, unwrap('$1')}, {var_value, '$3'}}].
 
 new_stmt -> 'new' type '[' integer ']':
-		{new, array, {type, '$2'}, {index, unwrap('$4')}}.
+		{new, array, {type, '$2'}, {index, '$4'}}.
 
 new_stmt -> 'new' type '[' identifier ']':
-		{new, array, {type, '$2'}, {index, unwrap('$4')}}.
+		{new, array, {type, '$2'}, {index, {var, line('$4'), unwrap('$4')}}}.
+
+new_stmt -> 'new' type '[' length_stmt ']':
+		{new, array, {type, '$2'}, {index, '$4'}}.
 
 %% Array com tipo após identifier
 %% ------------------------------------------

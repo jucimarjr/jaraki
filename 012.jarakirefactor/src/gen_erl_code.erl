@@ -151,7 +151,7 @@ match_attr_expr({next_int, Line, VarRandom, {random, RandomValue}})->
 match_attr_expr({length, Line, VarLength})->
 	ArrayGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
 			string(Line, VarLength)]),
-	rcall(Line, array, size, [ArrayGetAst]);
+	rcall(Line, vector, size_vector, [ArrayGetAst]);
 
 match_attr_expr({integer, _Line, _Value} = Element) ->
 	Element;
@@ -173,7 +173,7 @@ match_attr_expr({{var, Line, VarName}, {index, ArrayIndex}}) ->
 
 	ArrayGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
 				string(Line, VarName)]),
-	rcall(Line, array, get, [IndexAst, ArrayGetAst]).
+	rcall(Line, vector, access_vector, [IndexAst, ArrayGetAst]).
 
 
 create_declaration(var_declaration, {var_type, {VarLine, _VarType}},
@@ -298,9 +298,10 @@ print_list([Element|L], Line) ->
 
 			ValueGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
 				string(Line, PrintElement)]),
-			ArrayAst = rcall(Line, array, get, [IndexGetAst, ValueGetAst]),
-
-			{cons, Line, ArrayAst, print_list(L, Line)};
+			%%ArrayAst = rcall(Line, array, get, ),
+			VectorAst = rcall(Line, vector,access_vector,
+							[IndexGetAst, ValueGetAst]),
+			{cons, Line, VectorAst, print_list(L, Line)};
 
 		 {Type, _, PrintElement} ->
 			case Type of
@@ -363,13 +364,11 @@ create_attribution(Line, ArrayName, ArrayIndex, VarValue) ->
 			ScopeAst = atom(Line, st:get_scope()),
 			IndexAst = match_attr_expr(ArrayIndex),
 			ArrayGetAst = rcall(Line, st, get_value, [ScopeAst, JavaNameAst]),
-
-			ArraySetAst = rcall(Line, array, set, [IndexAst,
+			VectorAst = rcall(Line, vector, set_vector, [IndexAst,
 					TransformedVarValue, ArrayGetAst]),
-
 			rcall(Line, st, put_value, [
 				tuple(Line, [ScopeAst, JavaNameAst]),
-				tuple(Line, [TypeAst, ArraySetAst])]);
+				tuple(Line, [TypeAst, VectorAst])]);
 		_ -> no_operation
 	end.
 
@@ -394,9 +393,10 @@ create_array_initializer(Line, VarName, ArrayValues) ->
 
 	ArrayValuesAst = rcall(Line, array, from_list,
 					[create_array_values(Line,  ArrayValues)]),
+	VectorAst = rcall(Line, vector, new, [ArrayValuesAst]),
 	ArrayAst = rcall(Line, st, put_value, [
 		tuple(Line, [ScopeAst, JavaNameAst]),
-			tuple(Line, [TypeAst, ArrayValuesAst])]),
+			tuple(Line, [TypeAst, VectorAst])]),
 
 	{block, Line, [ArrayAst]}.
 
@@ -404,24 +404,17 @@ create_array_initializer(Line, VarName, ArrayValues) ->
 %% Cria a expressão de criação de array
 create_array(Line, VarName, {_L, Type}, ArrayLength) ->
 	%jaraki_exception:check_var_type(Type, {var, VarLine, VarName}),
-
 	JavaNameAst = string(Line, VarName),
 	TypeAst = gen_ast:type_to_ast(Line, Type),
 	ScopeAst = atom(Line, st:get_scope()),
-	IndexAst =
-		case is_integer(ArrayLength) of
-			true  -> {integer, Line, ArrayLength};
-			false -> rcall(Line, st, get_value,[atom(Line,
-					 st:get_scope()), string(Line, ArrayLength)])
-		end,
-
-%% Usado para a instanciação do array, cria um tamanho fixo
+	IndexAst = match_attr_expr(ArrayLength),
+	%%Usado para a instanciação do array, cria um tamanho fixo
 	ArrayNew = rcall(Line, array, new, [IndexAst]),
+	VectorAst = rcall(Line, vector, new, [ArrayNew]),
 
 	rcall(Line, st, put_value, [
 		tuple(Line, [ScopeAst, JavaNameAst]),
-			tuple(Line, [TypeAst, ArrayNew])]).
-
+			tuple(Line, [TypeAst, VectorAst])]).
 
 %%-----------------------------------------------------------------------------
 %% Cria a operacao de incremento ++

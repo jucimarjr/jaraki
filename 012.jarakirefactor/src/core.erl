@@ -151,5 +151,6 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 %% Cria o modulo a partir do east.
 create_module(Name, ErlangAST) ->
 	[ { attribute, 1, module, Name },{ attribute, 2, compile, export_all },
-			{attribute, 3, import, {loop, [{for, 3}, {while, 2}]}}]
+			{attribute, 3, import, {loop, [{for, 3}, {while, 2}]}},
+			{attribute ,6, import, {vector,[{new,1},{get_vector,1}]}}]
 	++ hd(ErlangAST) ++ [ { eof, 1 }].
