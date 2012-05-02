@@ -47,9 +47,10 @@ check_var_type(_Type, {next_float, _Line, _VarScanner}) ->
 check_var_type(_Type, {next_line, _Line, _VarScanner}) ->
 	%% match_type(Type, String);
 	ok;
-check_var_type(_Type, {next_int, _Line, _VarRandom, {random, _RandomValue}}) ->
+check_var_type(_Type, {next_int, _Line, _VarName, _RandomValue}) ->
 	%% match_type(Type, int);
 	ok;
+
 check_var_type(Type, {op, Line, Op, RightExp}) ->
 	{op, Line, Op, check_var_type(Type, RightExp)};
 check_var_type(Type, {integer, Line, _Value}) ->
@@ -58,6 +59,10 @@ check_var_type(Type, {float, Line, _Value}) ->
 	match_type(Line, Type, float);
 check_var_type(Type, {atom, Line, true}) ->
 	match_type(Line, Type, boolean);
+check_var_type(Type, {random, Line, _Value}) ->
+	match_type(Line, Type, random);
+check_var_type(Type, {scanner, Line, _Value}) ->
+	match_type(Line, Type, scanner);
 check_var_type(Type, {atom, Line, false}) ->
 	match_type(Line, Type, boolean);
 
@@ -80,6 +85,8 @@ match_type(_, long, integer) -> ok;
 match_type(_, double, integer) -> ok;
 match_type(_, float, int) -> ok;
 match_type(_, float, integer) -> ok;
+match_type(_, random, _) -> ok;
+match_type(_, scanner, _) -> ok;
 match_type(_, Type, Type) -> ok;
 match_type(Line, _, _) ->
 	handle_error(Line, 3).

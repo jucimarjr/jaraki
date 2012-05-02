@@ -25,8 +25,8 @@ comparation_expr bool_expr
 element_value_pair
 sqrt_stmt length_stmt
 print_stmt print_content if_stmt if_else_stmt if_else_no_trailing
-scanner_declaration_stmt next_int_stmt next_float_stmt next_line_stmt
-random_declaration_stmt
+object_declaration class_initializer 
+next_int_stmt next_float_stmt next_line_stmt
 return_statement
 for_stmt for_no_trailing
 while_stmt while_no_trailing
@@ -143,8 +143,6 @@ no_trailing_stmt -> block								: '$1'.
 no_trailing_stmt -> local_variable_declaration_statement: '$1'.
 no_trailing_stmt -> element_value_pair					: '$1'.
 no_trailing_stmt -> print_stmt							: '$1'.
-no_trailing_stmt -> scanner_declaration_stmt			: '$1'.
-no_trailing_stmt -> random_declaration_stmt			: '$1'.
 no_trailing_stmt -> post_increment_expr					: '$1'.
 no_trailing_stmt -> return_statement					: '$1'.
 no_short_if_stmt -> no_trailing_stmt					: '$1'.
@@ -174,6 +172,16 @@ local_variable_declaration_statement ->  type  array_declaration_list2';':
 		{var_type, make_array_type('$1')},
 		{var_list, '$2'}}.
 
+%%Instancia classes
+
+local_variable_declaration_statement -> type object_declaration ';':
+	{var_declaration, {var_type, '$1'}, {var_list, '$2'}}.
+
+
+object_declaration -> identifier '=' new_stmt:
+		[{{var, unwrap('$1')}, {var_value, undefined}}].
+
+
 %% ------------------------------------------
 array_declaration_list -> identifier:
 				[{{var, unwrap('$1')},{var_value, undefined}}].
@@ -195,6 +203,16 @@ new_stmt -> 'new' type '[' identifier ']':
 
 new_stmt -> 'new' type '[' length_stmt ']':
 		{new, array, {type, '$2'}, {index, '$4'}}.
+
+%--------------------------------------------
+new_stmt -> 'new' type '(' ')': 
+		{new, object_class, {type, '$2'}}.
+
+new_stmt -> 'new' type '(' class_initializer ')': 
+		{new, object_class, {type, '$2'}}.
+
+class_initializer -> system_in: no_operation.
+
 
 %% Array com tipo após identifier
 %% ------------------------------------------
@@ -231,26 +249,18 @@ length_stmt -> identifier '.' length : {length, line('$1'), unwrap('$1')}.
 
 sqrt_stmt -> sqrt '(' element_value ')': {sqrt, line('$1'), '$3'}.
 
-random_declaration_stmt -> random identifier '='
-				'new' random '(' ')' ';' :	no_operation.
-
-scanner_declaration_stmt ->	scanner identifier '='
-				'new' scanner '(' system_in ')' ';' :	no_operation.
-
 next_int_stmt -> identifier '.' next_int '(' ')' :
 					{next_int, line('$1'), unwrap('$1')}.
 
 next_int_stmt -> identifier '.' next_int '(' integer ')' :
-					{next_int, line('$1'), unwrap('$1'), {random, '$5'}}.
+					{next_int, line('$1'), unwrap('$1'), '$5'}.
 
 next_float_stmt -> identifier '.' next_float '(' ')' :
 					{next_float, line('$1'),  unwrap('$1')}.
 
-next_float_stmt -> identifier '.' next_float '(' float ')' :
-					{next_float, line('$1'),  unwrap('$1'), {random, '$5'}}.
-
 next_line_stmt -> identifier '.' next_line '(' ')' :
 					{next_line, line('$1'),  unwrap('$1')}.
+
 
 %% trata expressoes do tipo [ System.out.print( texto + identificador ) ]
 %% print e println têm o MESMO TOKEN, mas diferentes valores!!!
@@ -355,6 +365,8 @@ type -> long_t	: {line('$1'), unwrap('$1')}.
 type -> float_t	: {line('$1'), unwrap('$1')}.
 type -> double_t	: {line('$1'), unwrap('$1')}.
 type -> boolean_t	: {line('$1'), unwrap('$1')}.
+type -> random		: {line('$1'), unwrap('$1')}.
+type -> scanner		: {line('$1'), unwrap('$1')}.
 
 %% -Trata expressoes matematicas (numericas).
 %% TODO: acrescentar tipo boolean e tratar precedencia de op booleanos

@@ -140,14 +140,14 @@ match_attr_expr({function_call, {Line, FunctionName},
 
 match_attr_expr({sqrt, Line, RightExp}) ->
 	rcall(Line, math, sqrt, [match_attr_expr(RightExp)]);
-match_attr_expr({next_int, Line, VarScanner})->
-	create_function_scanner(next_int, Line, VarScanner);
-match_attr_expr({next_float, Line, VarScanner})->
-	create_function_scanner(next_float, Line, VarScanner);
-match_attr_expr({next_line, Line, VarScanner})->
-	create_function_scanner(next_line, Line, VarScanner);
-match_attr_expr({next_int, Line, VarRandom, {random, RandomValue}})->
-	create_function_random(next_int, Line, VarRandom, RandomValue);
+match_attr_expr({next_int, Line, VarName})->
+	create_function_object_class(next_int, Line, VarName);
+match_attr_expr({next_float, Line, VarName})->
+	create_function_object_class(next_float, Line, VarName);
+match_attr_expr({next_line, Line, VarName})->
+	create_function_object_class(next_line, Line, VarName);
+match_attr_expr({next_int, Line, VarName, Value})->
+	create_function_object_class(next_int, Line, VarName, Value);
 match_attr_expr({length, Line, VarLength})->
 	ArrayGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
 			string(Line, VarLength)]),
@@ -209,27 +209,53 @@ create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 	end.
 
 %-------------------------------------------------------------------------------
-% Cria elemento da east para Scanner
-% VarScanner é o nome da variável instanciada no scanner
-create_function_scanner(next_int, Line, _VarScanner) ->
-	 Prompt = string(Line, '>'),
-	 ConsoleContent = string(Line, '~d'),
-	rcall(Line, io, fread, [Prompt, ConsoleContent]);
-create_function_scanner(next_float, Line, _VarScanner) ->
-	 Prompt = string(Line, '>'),
-	 ConsoleContent = string(Line, '~f'),
-	rcall(Line, io, fread, [Prompt, ConsoleContent]);
-create_function_scanner(next_line, Line, _VarScanner) ->
-	 Prompt = string(Line, '>'),
-	 ConsoleContent = string(Line, '~s'),
-	rcall(Line, io, fread, [Prompt, ConsoleContent]).
+% Cria elemento da east para Scanner e Random
+create_function_object_class(next_int, Line, VarName) -> 
+	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),		
 
-%-------------------------------------------------------------------------------
-% Cria elemento da east para Random
-create_function_random(next_int, Line, _VarRandom, RandomValue) ->
+	case Type of
+	   'Scanner' -> 	     
+		  Prompt = string(Line, '>'),
+	 	  ConsoleContent = string(Line, '~d'),
+		  rcall(Line, io, fread, [Prompt, ConsoleContent]);		
+	  'Random' ->
+		  call(Line, function_random, [])
+	end;
 
-	rcall(Line, random, uniform, [RandomValue]).
+create_function_object_class(next_float, Line, VarName) -> 
+	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),
 
+	case Type of
+	   'Scanner' -> 	     
+		Prompt = string(Line, '>'),
+		ConsoleContent = string(Line, '~f'),
+		rcall(Line, io, fread, [Prompt, ConsoleContent]);		
+	  'Random' ->
+		  call(Line, function_random, [])
+	end;
+
+create_function_object_class(next_line, Line, VarName) -> 
+	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),
+
+	case Type of
+	   'Scanner' -> 	     
+		Prompt = string(Line, '>'),
+		ConsoleContent = string(Line, '~f'),
+		rcall(Line, io, fread, [Prompt, ConsoleContent]);
+	    'Random' ->
+		no_operation
+	end. 
+
+create_function_object_class(next_int, Line, VarName, RandomValue) -> 
+	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),
+
+	case Type of
+	   'Scanner' -> 	     
+		no_operation;
+	    'Random' ->
+		ObjectType = atom(Line, next_int),
+		call(Line, function_random, [ObjectType, RandomValue])
+	end. 
 
  %%-----------------------------------------------------------------------------
  %% Cria o elemento da east para as funcoes de impressao do java
