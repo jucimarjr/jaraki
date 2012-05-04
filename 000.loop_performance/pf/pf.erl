@@ -50,31 +50,31 @@ main(V_args) ->
 	st:destroy().
 
 main2(V_args) ->
-    st2:putv({main, "args"}, {'String', V_args}),
-    st2:putv({main, "cont"}, {int, 0}),
-    st2:putv({main, "n"}, {int, 1000}),
-    st2:putv({main, "s"}, {int, 0}),
+    put({main, "args"}, V_args),
+    put({main, "cont"}, 0),
+    put({main, "n"}, 1000),
+    put({main, "s"}, 0),
 	
-	st2:putv({main, "i"}, {int, 0}),
+	put({main, "i"}, 0),
     for(
-		fun() -> st2:get(main, "i") < st2:get(main, "n") end,
-		fun() -> st2:putv({main, "i"}, {int, st2:get(main, "i") + 1}) end,
+		fun() -> get({main, "i"}) < get({main, "n"}) end,
+		fun() -> put({main, "i"}, get({main, "i"}) + 1 ) end,
 			%% fun() -> 
 			%% 		st:put({main, "s"}, {int, st:get(main,"s") + 1 })
 			%% 	end
 
 		fun() -> 
-			st2:putv({main, "j"}, {int, 0}),
+			put({main, "j"}, 0),
 			for(
-				fun() -> st2:get(main, "j") < st2:get(main, "n") end,
-				fun() -> st2:putv({main, "j"}, {int, st2:get(main, "j") + 1}) end,
+				fun() -> get({main, "j"}) < get({main, "n"}) end,
+				fun() -> put({main, "j"}, get({main, "j"}) + 1 ) end,
 				fun() -> 
-					st2:putv({main, "s"}, {int, st2:get(main,"s") + 1 })
+						put({main, "s"}, get({main,"s"}) + 1 )
 				end
 			),
-			st2:delete(main, "j")
+			erase({main, "j"})
 		end
 	),
-    st2:delete(main, "i"),
-    io:format("~p~n", [st2:get(main, "s")]),
-    st2:destroy().
+	erase({main, "i"}),
+	io:format("~p~n", [get({main, "s"})]),
+	erase().
