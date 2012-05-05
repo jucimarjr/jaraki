@@ -48,7 +48,7 @@ get_erl_body(JavaClass) ->
 %% ISSUE: funciona apenas para métodos públicos
 %% TODO: tratar visibilidade dos métodos quando trabalhar com POO.
 get_erl_function({Line, _Type, {method, main}, Parameters,
-					{block, JavaMethodBody}})	 ->
+					{block, _BlockLine, JavaMethodBody}})	 ->
 
 	[{_Line, {var_type, {_Line, ArgClass}}, _ArgName}] = Parameters,
 
@@ -64,7 +64,7 @@ get_erl_function({Line, _Type, {method, main}, Parameters,
 	function(Line, main, Parameters, ErlangFunctionBody);
 
 get_erl_function({Line, _Type, {method, FunctionIdentifier}, Parameters,
-					{block, JavaMethodBody}}) ->
+					{block, _BlockLine, JavaMethodBody}}) ->
 
 	st:put_scope(FunctionIdentifier),
 	ErlangFunctionBody =

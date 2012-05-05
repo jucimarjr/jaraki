@@ -37,7 +37,7 @@ get_value(Scope, VarName) ->
 	Value.
 
 delete(Scope, VarName) ->
-	erase({Scope, VarName}).
+	erase({Scope, VarName, get_stack(Scope)}).
 
 %% Funções de Pilha
 

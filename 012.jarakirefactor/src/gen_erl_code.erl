@@ -13,7 +13,7 @@
 -import(gen_ast,
 	[
 		function/4, var/2, atom/2, call/3, rcall/4, 'case'/3, clause/4,
-		'fun'/2, string/2, tuple/2, atom/2
+		'fun'/2, string/2, tuple/2, atom/2, string/2
 	]).
 -include("../include/jaraki_define.hrl").
 
@@ -123,11 +123,30 @@ match_statement({Line, return, Value}) ->
 
 %%-----------------------------------------------------------------------------
 %% casa expressoes/lista de expressoes dentro do IF,FOR,WHILE
-match_inner_stmt({block, StatementList}) ->
-	[match_statement(V) || V <- StatementList];
+match_inner_stmt({block, Line, StatementList}) ->
+	match_inner_stmt(Line, StatementList, [], []);
 
 match_inner_stmt(Statement) ->
 	[match_statement(Statement)].
+
+match_inner_stmt(Line, [], DeclaredVars, AstStatementList) ->
+	Scope = st:get_scope(),
+	RemoveDeclaredVarsAst = create_undeclare_vars(Line, DeclaredVars, Scope),
+	lists:reverse(AstStatementList, RemoveDeclaredVarsAst);
+
+match_inner_stmt(Line,[{var_declaration, _,_}=Stmt| Rest], Vars, AstStmtList) ->
+	{_, {var_type, {VarLine, VarType}}, {var_list, VarList}} = Stmt,
+
+	Scope = st:get_scope(),
+	st:insert_var_list(VarLine, Scope, VarList, VarType),
+	VarDeclarationAst = match_statement(Stmt),
+
+	NewVars = VarList ++ Vars,
+	match_inner_stmt(Line, Rest, NewVars, [VarDeclarationAst | AstStmtList]);
+
+match_inner_stmt(Line, [Statement | Rest], DeclaredVars, AstStmtList) ->
+	StatementAst = match_statement(Statement),
+	match_inner_stmt(Line, Rest, DeclaredVars, [StatementAst | AstStmtList]).
 
 %%-----------------------------------------------------------------------------
 %% Casa expressoes matematicas a procura de variaveis para substituir seus nomes
@@ -478,23 +497,28 @@ create_if(Line, Condition, IfExpr, ElseExpr) ->
 create_for(Line, VarType, VarName, Start, CondExpr, IncExpr, Body) ->
 	JavaNameAst = string(Line, VarName),
 	TypeAst = gen_ast:type_to_ast(Line, VarType),
-	ScopeAst = {atom, Line, st:get_scope()},
+	Scope = st:get_scope(),
+	ScopeAst = {atom, Line, Scope},
 	InitAst = rcall(Line, st, put_value,[
-			tuple(Line, [ScopeAst, JavaNameAst]),
-			tuple(Line, [TypeAst, match_attr_expr(Start)])]),
+				tuple(Line, [ScopeAst, JavaNameAst]),
+				tuple(Line, [TypeAst, match_attr_expr(Start)])]),
 
-	st:put_value({st:get_scope(), VarName}, {VarType, undefined}),
+	st:put_value({Scope, VarName}, {VarType, undefined}),
 
-	CondAst = 'fun'(Line, [clause(Line, [], [], [match_attr_expr(CondExpr)])]),
-	IncAst = 'fun'(Line, [clause(Line, [], [], [match_statement(IncExpr)])]),
+	CondAst	= 'fun'(Line, [clause(Line, [], [], [match_attr_expr(CondExpr)])]),
+	IncAst	= 'fun'(Line, [clause(Line, [], [], [match_statement(IncExpr)])]),
+
 	CoreBody = match_inner_stmt(Body),
-	BodyAst = 'fun'(Line, [clause(Line, [], [], CoreBody)]),
-	ForAst = call(Line, for, [CondAst, IncAst, BodyAst]),
-	EndAst = rcall(Line, st, delete, [ScopeAst, JavaNameAst]),
 
-	st:delete(st:get_scope(), VarName),
+	BodyAst	= 'fun'(Line, [clause(Line, [], [], CoreBody)]),
 
-	ForBlock = [InitAst, ForAst, EndAst],
+	ForAst	= call(Line, for, [CondAst, IncAst, BodyAst]),
+
+	st:delete(Scope, VarName),
+	UndeclareIncrementAst = rcall(Line, st, delete, [ScopeAst, JavaNameAst]),
+
+	ForBlock = [InitAst, ForAst, UndeclareIncrementAst],
+
 	{block, Line, lists:flatten(ForBlock)}.
 
 create_while(Line, CondExpr, Body) ->
@@ -503,3 +527,17 @@ create_while(Line, CondExpr, Body) ->
 	CoreBody = match_inner_stmt(Body),
 	BodyAst = 'fun'(Line, [clause(Line, [], [], CoreBody)]),
 	call(Line, while, [CondAst, BodyAst]).
+
+create_undeclare_vars(Line, VarList, Scope) ->
+	create_undeclare_vars(Line, VarList, Scope, []).
+
+create_undeclare_vars(_Line, [], _Scope, UndeclareVarsAst) ->
+	lists:reverse([], UndeclareVarsAst);
+create_undeclare_vars(Line, [Var | Rest], Scope, UndeclareVarsAst) ->
+	{{var, VarName}, _VarValue} = Var,
+	st:delete(Scope, VarName),
+	ScopeAst = atom(Line, Scope),
+
+	UndeclareAst = rcall(Line, st, delete, [ScopeAst, string(Line, VarName)]),
+
+	create_undeclare_vars(Line, Rest, Scope, [UndeclareAst | UndeclareVarsAst]).

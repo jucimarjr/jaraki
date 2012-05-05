@@ -121,8 +121,8 @@ parameter -> type '[' ']' identifier:
 				{var_type, make_array_type('$1')},
 				{parameter, unwrap('$4')}}.
 
-block -> '{' block_statements '}'	: {block, '$2'}.
-block -> '{' '}': {block, []}.
+block -> '{' block_statements '}'	: {block, element(2, '$1'), '$2'}.
+block -> '{' '}': {block, element(2, '$1'), []}.
 
 block_statements -> statement					: ['$1'].
 block_statements -> statement block_statements	: ['$1'| '$2'].
