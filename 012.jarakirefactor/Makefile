@@ -73,9 +73,9 @@ clean:
 	rm -rf $(EBIN_DIR)/
 	rm -rf $(TEST_EBIN_DIR)/
 	rm -rf $(JAVA_CLASS_DIR)/
-	find . -name  *.*~ -print0 | xargs -0
-	find . -name  *~ -print0 | xargs -0
-	find . -name  *.beam -print0 | xargs -0
-	find . -name  *.class -print0 | xargs -0
+	find . -name  *.*~ -print0 | xargs -0 rm
+	find . -name  *~ -print0 | xargs -0 rm
+	find . -name  *.beam -print0 | xargs -0 rm
+	find . -name  *.class -print0 | xargs -0 rm
 	clear
 	@ echo
