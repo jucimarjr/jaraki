@@ -77,5 +77,4 @@ clean:
 	find . -name  *~ -print0 | xargs -0 rm
 	find . -name  *.beam -print0 | xargs -0 rm
 	find . -name  *.class -print0 | xargs -0 rm
-	clear
 	@ echo
