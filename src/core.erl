@@ -63,10 +63,11 @@ get_erl_function({Line, _Type, {method, main}, Parameters,
 		get_erl_function_body(Line, JavaMethodBody, Parameters),
 	function(Line, main, Parameters, ErlangFunctionBody);
 
-get_erl_function({Line, _Type, {method, FunctionIdentifier}, Parameters,
+get_erl_function({Line, {_TypeLine, TypeName}, {method, FunctionIdentifier}, Parameters,
 					{block, _BlockLine, JavaMethodBody}}) ->
 
 	st:put_scope(FunctionIdentifier),
+	put(type_method, TypeName),
 	ErlangFunctionBody =
 		get_erl_function_body(Line, JavaMethodBody, Parameters),
 	function(Line, FunctionIdentifier, Parameters, ErlangFunctionBody).
@@ -124,13 +125,21 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 		end,
 
 	OldStack = 
-	case st:get_scope() of
-		main -> 
+	case get(type_method) of
+		void -> 
 			[rcall(Line, st, get_old_stack, 
-				[atom(Line, st:get_scope())]),
-			 rcall(Line,st, destroy, [])];
-		_ -> []
+				[atom(Line, st:get_scope())])];
+		_ ->
+			[]
 	end,
+
+	Destroy = case st:get_scope() of
+		main -> 
+			[rcall(Line,st, destroy, [])];
+		_ -> 
+			[]
+	end,
+
 
 	ErlangStmtTemp1 = 
 		New ++ 
@@ -138,7 +147,7 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 		++ 
 		InitArgs ++
 		lists:map(MappedErlangFun, JavaMethodBody) ++ 
-		OldStack,
+		OldStack ++ Destroy,
 
 	ErlangStmt = [
 			Element ||
