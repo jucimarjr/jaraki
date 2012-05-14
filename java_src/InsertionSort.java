@@ -2,7 +2,7 @@
 
 public class InsertionSort {
 
-	public static int[] insertionSort(int[] vetor) {
+	public static int[] insertionSort (int vetor[]) {
 
 		int a;
 

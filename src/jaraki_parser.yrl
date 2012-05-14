@@ -99,6 +99,7 @@ method_declaration -> public static type '[' ']' identifier
 				make_array_type('$3'),
 				{method, unwrap('$6')}, '$8', '$10'}.
 
+
 %% método main na análise sintática obsoleto
 %% method_declaration ->
 %% 	public static type main
@@ -120,6 +121,10 @@ parameter -> type '[' ']' identifier:
 			{line('$4'),
 				{var_type, make_array_type('$1')},
 				{parameter, unwrap('$4')}}.
+parameter -> type identifier '[' ']':
+			{line('$2'),
+				{var_type, make_array_type('$1')},
+				{parameter, unwrap('$2')}}.
 
 block -> '{' block_statements '}'	: {block, element(2, '$1'), '$2'}.
 block -> '{' '}': {block, element(2, '$1'), []}.
