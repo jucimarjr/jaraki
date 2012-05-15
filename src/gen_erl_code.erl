@@ -40,6 +40,14 @@ match_statement({function_call, {Line, FunctionName},
 					{argument_list, ArgumentsList}}) ->
 	create_function_call(Line, FunctionName, ArgumentsList);
 
+%% chamada a métodos estáticos
+match_statement({function_call,
+					{class, Line, ClassName},
+					{method, Line, FunctionName},
+					{argument_list, ArgumentsList}}) ->
+	io:format("hum: ~p, ~p, ~p", [ClassName, FunctionName, ArgumentsList]),
+	create_function_call(Line, ClassName, FunctionName, ArgumentsList);
+
 %% Casa expressoes do tipo varivel = valor
 match_statement(
 	{
@@ -360,10 +368,23 @@ print_list([Element|L], Line) ->
 			end
 	end.
 %%---------------------------------------------------------------------------%%
+%% TODO: checar se método existe na classe atual (this, primeiro caso) ou
+%%       se existe na classe referida pelo Class.Method()
+%%       deve compilar a classe dependente antes
+%%       se houver dependência A <-> B, checar código todo antes de compilar!
 
 create_function_call(Line,	 FunctionName, ArgumentsList) ->
 	TransformedArgumentList = [match_attr_expr(V) || V <- ArgumentsList],
 	FunctionCall = call(Line, FunctionName, TransformedArgumentList),
+	Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),
+	rcall(Line, st, return_function,
+		[Fun, atom(Line, FunctionName),
+			create_list(TransformedArgumentList, Line)]).
+
+%% Chamada do tipo Classe.Metodo()
+create_function_call(Line, ClassName, FunctionName, ArgumentsList) ->
+	TransformedArgumentList = [match_attr_expr(V) || V <- ArgumentsList],
+	FunctionCall= rcall(Line, ClassName, FunctionName, TransformedArgumentList),
 	Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),
 	rcall(Line, st, return_function,
 		[Fun, atom(Line, FunctionName),

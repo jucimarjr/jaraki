@@ -9,6 +9,11 @@ ERL=erl -noshell -pa $(EBIN_DIR) -pa $(TEST_EBIN_DIR)
 JAVAC=javac -verbose
 JAVA=java
 
+#ESRC_FILES=ast.erl gen_erl_code.erl jaraki_parser.erl\
+			loop.erl testScanner.erl core.erl jaraki.erl\
+			randomLib.erl vector.erl gen_ast.erl jaraki_exception.erl\
+			jaraki_utils.erl st.erl
+
 .PHONY: clean debug
 
 # This is the default task

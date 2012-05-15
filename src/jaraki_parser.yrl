@@ -350,6 +350,19 @@ method_invocation -> identifier '(' argument_list ')':
 			{function_call, {line('$1'), unwrap('$1')},
 				{argument_list, '$3'}}.
 
+%% chamada a método estático
+method_invocation -> identifier '.' identifier '(' ')':
+	Class = {class, line('$1'), unwrap('$1')},
+	Method = {method, line('$3'), unwrap('$3')},
+	ArgumentList = {argument_list, []},
+	{function_call, Class, Method, ArgumentList}.
+
+method_invocation -> identifier '.' identifier '(' argument_list ')':
+	Class = {class, line('$1'), unwrap('$1')},
+	Method = {method, line('$3'), unwrap('$3')},
+	ArgumentList = {argument_list, '$5'},
+	{function_call, Class, Method, ArgumentList}.
+
 %% END_FUNCTION
 
 %% BEGIN_RETURN
