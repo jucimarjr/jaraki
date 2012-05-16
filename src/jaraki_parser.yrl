@@ -34,6 +34,7 @@ no_trailing_stmt no_short_if_stmt
 parameters_list	parameter
 argument argument_list
 for_update post_increment_expr
+try_catch_stmt catches catch_clause
 statement.
 
 Terminals
@@ -44,7 +45,7 @@ length
 string_t int_t long_t float_t double_t boolean_t
 next_int	next_line	next_float	'new'	system_in
 'if' 'else' true false
-for while
+for while	try catch exception
 integer float
 identifier text
 add_op mult_op modulus_op increment_op
@@ -141,6 +142,7 @@ statement -> while_stmt				: '$1'.
 statement -> if_stmt				: '$1'.
 statement -> if_else_stmt			: '$1'.
 statement -> no_trailing_stmt		: '$1'.
+statement -> try_catch_stmt			: '$1'.
 
 no_short_if_stmt -> for_no_trailing						: '$1'.
 no_short_if_stmt -> while_no_trailing					: '$1'.
@@ -283,6 +285,17 @@ print_content -> identifier add_op print_content : ['$1' | '$3'].
 print_content -> array_access : ['$1'].
 
 print_content -> array_access add_op print_content : ['$1' | '$3'].
+
+%% trata expressoes do tipo try...catch
+
+try_catch_stmt -> try block catches	: {line('$1'), try_catch, '$2', '$3'}.
+
+catches -> catch_clause	: ['$1'].
+catches -> catch_clause catches : ['$1'|'$2'].
+
+catch_clause -> catch '(' exception identifier ')' block : 
+			[{line('$1'), {catch_clause, '$1'}, {var_exception, '$4'}, '$6'}].
+
 
 %% Estrutura vetor
 %% TOD: Verificar ele como um array

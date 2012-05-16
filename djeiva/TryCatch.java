@@ -12,7 +12,7 @@ public class TryCatch {
 		
 		try{
 			i = input.nextInt();
-		}catch (Exception A) {
+		}catch (Exception e) {
 			System.out.println("Entrada inválida!");
 		}
 	}

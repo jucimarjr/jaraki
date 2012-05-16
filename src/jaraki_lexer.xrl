@@ -34,6 +34,9 @@ If					= if
 Else				= else
 For					= for
 While				= while
+Try					= try
+Catch				= catch
+Exception			= Exception
 
 % End Keyword
 
@@ -113,6 +116,9 @@ Rules.
 {Else}		: {token, {'else',	TokenLine, list_to_atom(TokenChars)}}.
 {For}		: {token, {'for',	TokenLine, list_to_atom(TokenChars)}}.
 {While}		: {token, {'while',	TokenLine, list_to_atom(TokenChars)}}.
+{Try}		: {token, {'try',	TokenLine, list_to_atom(TokenChars)}}.
+{Catch}		: {token, {'catch',	TokenLine, list_to_atom(TokenChars)}}.
+{Exception}	: {token, {exception,	TokenLine, list_to_atom(TokenChars)}}.
 {Length}	: {token, {length,	TokenLine, list_to_atom(TokenChars)}}.
 {Sqrt}		: {token, {sqrt,	TokenLine, list_to_atom(TokenChars)}}.
 {Print}		: {token, {print,	TokenLine, unwrap_print(TokenChars)}}.
