@@ -45,7 +45,6 @@ match_statement({function_call,
 					{class, Line, ClassName},
 					{method, Line, FunctionName},
 					{argument_list, ArgumentsList}}) ->
-	io:format("hum: ~p, ~p, ~p", [ClassName, FunctionName, ArgumentsList]),
 	create_function_call(Line, ClassName, FunctionName, ArgumentsList);
 
 %% Casa expressoes do tipo varivel = valor
@@ -164,6 +163,12 @@ match_attr_expr({op, Line, Op, RightExp}) ->
 match_attr_expr({function_call, {Line, FunctionName},
 			{argument_list, ArgumentsList}}) ->
 	create_function_call(Line, FunctionName, ArgumentsList);
+%% chamada a métodos estáticos
+match_attr_expr({function_call,
+					{class, Line, ClassName},
+					{method, Line, FunctionName},
+					{argument_list, ArgumentsList}}) ->
+	create_function_call(Line, ClassName, FunctionName, ArgumentsList);
 
 match_attr_expr({sqrt, Line, RightExp}) ->
 	rcall(Line, math, sqrt, [match_attr_expr(RightExp)]);
@@ -373,7 +378,7 @@ print_list([Element|L], Line) ->
 %%       deve compilar a classe dependente antes
 %%       se houver dependência A <-> B, checar código todo antes de compilar!
 
-create_function_call(Line,	 FunctionName, ArgumentsList) ->
+create_function_call(Line, FunctionName, ArgumentsList) ->
 	TransformedArgumentList = [match_attr_expr(V) || V <- ArgumentsList],
 	FunctionCall = call(Line, FunctionName, TransformedArgumentList),
 	Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),

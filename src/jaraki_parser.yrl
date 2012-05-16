@@ -365,13 +365,15 @@ method_invocation -> identifier '(' argument_list ')':
 
 %% chamada a método estático
 method_invocation -> identifier '.' identifier '(' ')':
-	Class = {class, line('$1'), unwrap('$1')},
+	ClassName = string:to_lower(atom_to_list(unwrap('$1'))),
+	Class = {class, line('$1'), ClassName},
 	Method = {method, line('$3'), unwrap('$3')},
 	ArgumentList = {argument_list, []},
 	{function_call, Class, Method, ArgumentList}.
 
 method_invocation -> identifier '.' identifier '(' argument_list ')':
-	Class = {class, line('$1'), unwrap('$1')},
+	ClassName = string:to_lower(atom_to_list(unwrap('$1'))),
+	Class = {class, line('$1'), ClassName},
 	Method = {method, line('$3'), unwrap('$3')},
 	ArgumentList = {argument_list, '$5'},
 	{function_call, Class, Method, ArgumentList}.

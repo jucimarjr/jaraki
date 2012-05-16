@@ -35,6 +35,9 @@ print_errors([ {Line, Code} | Rest ]) ->
 check_var_type(_Type, {function_call, {_Line, _FunctionName}, _ArgsTuple}) ->
 	%% create_function_call(Line, FunctionName, ArgumentsList);
 	ok;
+check_var_type(_Type, {function_call, _ClassTuple, _MethodTuple, _ArgsTuple}) ->
+	%% create_function_call(Line, FunctionName, ArgumentsList);
+	ok;
 check_var_type(_Type, {sqrt, _Line, _RightExp}) ->
 	%% match_type(Type, double);
 	ok;
