@@ -435,7 +435,7 @@ literal -> sqrt_stmt			: '$1'.
 literal -> integer				: '$1'.
 literal -> float				: '$1'.
 literal -> identifier			:  {var, line('$1'), unwrap('$1')}.
-literal -> '(' add_expr ')'		: '$2'.
+literal -> '(' bool_expr ')'		: '$2'.
 literal -> true					: {atom, line('$1'), true}.
 literal -> false				: {atom, line('$1'), false}.
 literal -> next_int_stmt		: '$1'.
