@@ -9,7 +9,7 @@
 %% Objetivo : Array
 
 -module(matrix).
--export([new/1, access_matrix/3, set_matrix/4]).
+-export([new/1, access_matrix/3, set_matrix/4, size_matrix/1, creation_matrix/2, creation_vector/4]).
 -import(st, [update_counter/2, lookup/1, insert/2]).
 
 %% new - Cria o endereço para o vetor declarado
@@ -28,20 +28,47 @@ get_matrix(Address) ->
 %% ArrayIndex - índice da matrix, ArrayAddr - "posição de memória" da matrix
 %% É preciso pegar o valor do array do array por isso a consulta pelo elemento é realizado Duas vezes
 %% Primeiro linha depois coluna
-access_matrix(Line, Column ,ArrayAddr) ->	
+access_matrix(Row, Column ,ArrayAddr) ->	
 	Array = get_matrix(ArrayAddr),
-	ValueTemp = array:get(Line, Array),
+	ValueTemp = array:get(Row, Array),
 	Value = array:get(Column, ValueTemp),
 	Value.
 
-set_matrix(Line, Column, ArrayValue, ArrayAddress) ->
+set_matrix(Row, Column, ArrayValue, ArrayAddress) ->
 	Array = get_matrix(ArrayAddress),
 	%%Captura o vetor que é determinada linha
-	ValueTemp1 = array:get(Line, Array),
+	ValueTemp1 = array:get(Row, Array),
  	%%Atualiza o valor da coluna do vetor
 	ValueTemp2 = array:set(Column, ArrayValue, ValueTemp1),
 	%%Atualiza matriz
-	NewArray = array:set(Line, ValueTemp2, Array),
+	NewArray = array:set(Row, ValueTemp2, Array),
 	st:insert({array_dict, ArrayAddress}, NewArray),
 	ArrayAddress.
+
+%% Criacao da matriz instanciada
+creation_matrix(Row, Column) ->
+	Array1 = array:new(Row),
+	Array2 = array:new(Column),
+	RowLength = array:size(Array1),	
+	%% Seta para cada linha um array 
+	Matrix = creation_vector(0, Array1, Array2, RowLength - 1),
+	new(Matrix).
+
+%% Criação do vetor interno de tamanho N
+%% Para cada linha é criado um vetor que corresponde a coluna da matriz
+%% X = Contador
+%% Array = Vetor Linha
+%% ArrayColumn = Vetor Coluna	
+creation_vector(X, Array, ArrayColumn, RowLength) ->
+	ArrayTemp =  array:set(X, ArrayColumn, Array),
+	case X of 
+		RowLength ->
+				ArrayTemp;
+		_-> creation_vector(X + 1, ArrayTemp, ArrayColumn, RowLength)
+	end.
+	
+size_matrix(ArrayAddress)->
+	Array = get_matrix(ArrayAddress),
+	ArraySize = array:size(Array),
+	ArraySize.
 
