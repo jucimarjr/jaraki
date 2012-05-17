@@ -1,16 +1,15 @@
-package permutacao;
-
 public class Permutacao 
 {
-	public void TrocaPosicao(int v[], int i, int j) 
+	public static int[] TrocaPosicao(int v[], int i, int j) 
 	{
 		int t;
 		t = v[i];
 		v[i] = v[j];
 		v[j] = t;
+		return v;
 	}
 
-	public void GiraEsquerda(int v[], int go, int n) 
+	public static int[] GiraEsquerda(int v[], int go, int n) 
 	{
 		int temp = v[go];
 		for (int i = go; i < n; i++) 
@@ -18,18 +17,19 @@ public class Permutacao
 			v[i] = v[i + 1];
 		}
 		v[n] = temp;
+		return v;
 	}
 
-	public void Imprime(int s[], int k) 
+	public static void Imprime(int s[], int k) 
 	{
 		for (int i = 1; i <= k; i++) 
 		{
 			System.out.print(s[i]);
-			//System.out.print("\t");
 		}
+		System.out.print("\n");
 	}
 
-	public void Permuta(int v[], int inicio, int n) 
+	public static int[] Permuta(int v[], int inicio, int n) 
 	{
 		Imprime(v, n);
 		if (inicio < n) 
@@ -45,5 +45,13 @@ public class Permutacao
 				GiraEsquerda(v, i, n);
 			}
 		}
+		return v;
+	}
+
+	public static void main(String[] args)
+	{
+		int[] vetor = {1,2,3,4,5,6,7};
+		int vetor_auxiliar[];
+		vetor_auxiliar = Permuta(vetor, 0, 3);
 	}
 }

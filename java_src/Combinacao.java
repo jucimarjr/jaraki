@@ -1,43 +1,48 @@
-package combinacao;
-
 public class Combinacao 
 {
-	public void imprime_posicao(int posicao[], int k) 
+	public static void imprime_posicao(int posicao[], int k) 
 	{
 		for (int i = 0; i < k; i++)
-			System.out.println(posicao[i]);
+			System.out.print(posicao[i]);
 		//transformar String
 			System.out.println(" ");
 	}
 
-	public void combinacao(int posicao[], int n, int k, int atual) 
+	public static void combinacao(int posicao[], int n, int k, int atual) 
 	{
 		if (atual < k) 
 		{
-			for (pos[atual] = posicao[atual - 1] + 1; posicao[atual] <= (n - k) + atual; posicao[atual]++) 
+			for (posicao[atual] = posicao[atual - 1] + 1; posicao[atual] <= (n - k) + atual; posicao[atual]++) 
 			{
 				combinacao(posicao, n, k, atual + 1);
-				System.out.println("");
+				//System.out.println("");
 				imprime_posicao(posicao, k);
-				System.out.println("");
+				//System.out.println("");
 			}
 		}
 	}
 
-	public int Combinacao(int NumeroDeTermos, int NumeroDeCombinacoes) 
+	public static int Combinacao(int NumeroDeTermos, int NumeroDeCombinacoes) 
 	{
 		// ArrayList<Integer> posicoes = new ArrayList<Integer>();
 		if (NumeroDeCombinacoes == 0) 
 		{
 			System.out.println("A combinacao e: 1");
 			return (0);
-		} else if (NumeroDeTermos == 0 || NumeroDeCombinacoes > NumeroDeTermos) 
+		}
+		else if (NumeroDeTermos == 0 || NumeroDeCombinacoes > NumeroDeTermos) 
 		{
 			System.out.println("\nErro: verifique os numeros digitados\n");
 			return (0);
 		}
 
 		int posicoes[] = new int[1000];
+
+		//consertar...
+		int vetor[] = {1,2,3,4,5,6,7};
+		int n = vetor.length;
+		//consertar...
+
 		if (NumeroDeTermos == NumeroDeCombinacoes) 
 		{
 			for (int i = 0; i < n; i++)
@@ -54,5 +59,11 @@ public class Combinacao
 
 		}
 		return (0);
+	}
+
+	public static void main(String[] args)
+	{
+		int vetor[] = {1,2,3,4,5,6,7};
+		Combinacao(vetor.length, 5);
 	}
 }
