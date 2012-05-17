@@ -82,7 +82,7 @@ Semicolon			= ;
 % Operator: one of
 AttributionOp	= =
 ComparatorOp	= (<|<=|==|>=|>|!=)
-BooleanOp		= (\&\&|!|'\|''\|')
+BooleanOp		= (\&\&|!|\s*\|\|\s*)
 AddOp			= (\+|-)
 MultOp			= (\*|/)
 ModulusOp		= (\%)
@@ -149,7 +149,7 @@ Rules.
 {ModulusOp}		: {token, {modulus_op, TokenLine, list_to_atom(TokenChars)}}.
 {IncrementOp}	: {token, {increment_op, TokenLine, list_to_atom(TokenChars)}}.
 {ComparatorOp}	: {token, {comparation_op, TokenLine, op(TokenChars)}}.
-{BooleanOp}		: {token, {bool_op, TokenLine, op(TokenChars)}}.
+{BooleanOp}		: {token, {bool_op, TokenLine, bop(TokenChars)}}.
 {Digit}+		: {token, {integer, TokenLine, list_to_integer(TokenChars)}}.
 {Digit}+\.{Digit}+	: {token, {float, TokenLine, list_to_float(TokenChars)}}.
 
@@ -200,6 +200,9 @@ op(OpChar) ->
 		"!"  -> 'not';
 		_	->	list_to_atom(OpChar)
 	end.
+
+bop(OpChar) ->
+	op(hd(string:tokens(OpChar, " "))).
 
 unwrap_print("System.out." ++ Print) ->
 	list_to_atom(Print).
