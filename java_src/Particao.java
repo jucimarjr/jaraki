@@ -1,30 +1,21 @@
 public class Particao 
 {
-	int[] VetorParticao;
-	int[] VetorOriginal;
 
-	String ListaParticao = new String();
 
-	// método para particionar o numero passado.
-	public String particionar(int numero) 
+	// metodo para particionar o numero passado.
+	public static void particionar(int numero, int[] VetorOriginal, int[] VetorParticao, String ListaParticao) 
 	{
-		VetorParticao = new int[numero];
-		VetorOriginal = new int[numero];
+		
 
 		for (int contador = 0; contador < numero; contador++) 
 		{
 			VetorOriginal[contador] = contador + 1;
 		}
-
-		particiona(numero, 1);
-
-		ListaParticao = ListaParticao.replace("() ", "");
-
-		return ListaParticao;
+		particiona(numero, 1, ListaParticao, VetorOriginal, VetorParticao);
 	}
 
-	// método para verificar se a particao é valida.
-	public boolean VerificaParticao(int numero) 
+	// metodo para verificar se a particao e valida.
+	public static boolean VerificaParticao(int numero, int[] VetorParticao) 
 	{
 		for (int i = 1; i < numero; i++) 
 		{
@@ -34,9 +25,9 @@ public class Particao
 			{
 				if (VetorParticao[i] > VetorParticao[j]) 
 				{
-					VerificaParticaoAuxiliar = VerificaParticaoAuxiliar
-							|| ((VetorParticao[i] - VetorParticao[j]) <= 1);
-				} else 
+					VerificaParticaoAuxiliar = VerificaParticaoAuxiliar || ((VetorParticao[i] - VetorParticao[j]) <= 1);
+				}
+				else 
 				{
 					VerificaParticaoAuxiliar = true;
 					break;
@@ -51,28 +42,28 @@ public class Particao
 	}
 
 	// p
-	// faz a particão e chama o método verificaParticão(int numero) para
-	// verificar se a particão é válida.
+	// faz a particao e chama o metodo verificaParticao(int numero) para
+	// verificar se a particao e valida.
 
-	public void particiona(int numero, int posicao) 
+	public static void particiona(int numero, int posicao, String ListaParticao, int[] VetorOriginal, int[] VetorParticao) 
 	{
 		if (posicao > numero) 
 		{
-			if (VerificaParticao(numero)) 
+			if (VerificaParticao(numero, VetorParticao)) 
 			{
-				mostrar(numero);
+				mostrar(numero, ListaParticao, VetorOriginal, VetorParticao);
 			}
 		} 
 		else 
 		{
 			for (VetorParticao[posicao - 1] = 1; VetorParticao[posicao - 1] <= posicao; VetorParticao[posicao - 1]++) 
 			{
-				particiona(numero, posicao + 1);
+				particiona(numero, posicao + 1, ListaParticao, VetorOriginal, VetorParticao);
 			}
 		}
 	}
 
-	public void mostrar(int numero) 
+	public static void mostrar(int numero, String ListaParticao, int[] VetorOriginal, int[] VetorParticao) 
 	{
 		ListaParticao += "{";
 
@@ -89,5 +80,20 @@ public class Particao
 			ListaParticao += ") ";
 		}
 		ListaParticao += "} ";
+		
+		System.out.println(ListaParticao);
+	}
+
+	public static void main(String[] args)
+	{
+		int numero = 5;
+
+		int[] VetorParticao = new int[numero];
+
+		int[] VetorOriginal = new int[numero];
+
+		String ListaParticao = new String();
+
+		particionar(numero, VetorOriginal, VetorParticao, ListaParticao);
 	}
 }
