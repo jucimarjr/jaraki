@@ -34,10 +34,9 @@ public class Permutacao
 		Imprime(v, n);
 		if (inicio < n) 
 		{
-			int i, j;
-			for (i = n - 1; i >= inicio; i--) 
+			for (int i = n - 1; i >= inicio; i--) 
 			{
-				for (j = i + 1; j <= n; j++) 
+				for (int j = i + 1; j <= n; j++) 
 				{
 					TrocaPosicao(v, i, j);
 					Permuta(v, i + 1, n);
