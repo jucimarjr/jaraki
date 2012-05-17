@@ -38,14 +38,9 @@ public class Combinacao
 
 		int posicoes[] = new int[1000];
 
-		//consertar...
-		int vetor[] = {1,2,3,4,5,6,7};
-		int n = vetor.length;
-		//consertar...
-
 		if (NumeroDeTermos == NumeroDeCombinacoes) 
 		{
-			for (int i = 0; i < n; i++)
+			for (int i = 0; i < NumeroDeCombinacoes; i++)
 				posicoes[i] = i + 1;
 			imprime_posicao(posicoes, NumeroDeCombinacoes);
 		} 
