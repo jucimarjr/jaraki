@@ -15,8 +15,7 @@ qualified_identifier
 class_declaration class_body class_list
 method_declaration attribute_declaration
 block block_statements
-method_invocation
-attribute_access
+method_invocation field_access
 local_variable_declaration_statement element_value type variable_list
 array_declaration_list array_declaration_list2 array_initializer array_access
 new_stmt
@@ -50,7 +49,6 @@ integer float
 identifier text
 add_op mult_op modulus_op increment_op
 comparation_op	bool_op.
-%% and_op or_op not_op.
 
 Rootsymbol start_parser.
 
@@ -142,29 +140,46 @@ block_statements -> statement block_statements	: ['$1'| '$2'].
 %%             ou sem trailing (no_trailing_expr)
 
 statement -> method_invocation ';'	: '$1'.
-statement -> attribute_access ';'	: '$1'.
 statement -> for_stmt				: '$1'.
 statement -> while_stmt				: '$1'.
 statement -> if_stmt				: '$1'.
 statement -> if_else_stmt			: '$1'.
-statement -> no_trailing_stmt		: '$1'.
 statement -> try_catch_stmt			: '$1'.
 statement -> break_stmt				: '$1'.
 
+statement -> no_trailing_stmt		: '$1'.
+
 no_short_if_stmt -> for_no_trailing						: '$1'.
 no_short_if_stmt -> while_no_trailing					: '$1'.
+no_short_if_stmt -> no_trailing_stmt					: '$1'.
+no_short_if_stmt -> if_else_no_trailing					: '$1'.
+
 no_trailing_stmt -> block								: '$1'.
 no_trailing_stmt -> local_variable_declaration_statement: '$1'.
 no_trailing_stmt -> element_value_pair					: '$1'.
 no_trailing_stmt -> print_stmt							: '$1'.
 no_trailing_stmt -> post_increment_expr					: '$1'.
 no_trailing_stmt -> return_statement					: '$1'.
-no_short_if_stmt -> no_trailing_stmt					: '$1'.
-no_short_if_stmt -> if_else_no_trailing					: '$1'.
 
 %% Declaração de variáveis
 local_variable_declaration_statement -> type variable_list ';':
 	{var_declaration, {var_type, '$1'}, {var_list, '$2'}}.
+
+%% declaração de variáveis de referência (para objetos)
+local_variable_declaration_statement -> identifier variable_list ';':
+	Type = {line('$1'), unwrap('$1')},
+	{var_declaration, {var_type, Type}, {var_list, '$2'}}.
+
+%% declaração de variáveis de referência (para objetos random e scanner)
+local_variable_declaration_statement -> random variable_list ';':
+	Type = {line('$1'), unwrap('$1')},
+	{var_declaration, {var_type, Type}, {var_list, '$2'}}.
+
+local_variable_declaration_statement -> scanner variable_list ';':
+	Type = {line('$1'), unwrap('$1')},
+	{var_declaration, {var_type, Type}, {var_list, '$2'}}.
+%%-------------
+
 variable_list -> identifier '=' element_value			:
 		[{{var, unwrap('$1')}, {var_value, '$3'}}].
 variable_list -> identifier '=' element_value ',' variable_list	:
@@ -209,13 +224,22 @@ new_stmt -> 'new' type '[' identifier ']':
 new_stmt -> 'new' type '[' length_stmt ']':
 		{new, array, {type, '$2'}, {index, '$4'}}.
 
-%--------------------------------------------
-% declaração de instâncias de classes (objetos)
-new_stmt -> 'new' type '(' ')':
-		{new, object, {type, '$2'}}.
+% declaração de instâncias de classes predefinidas (Scanner e Random)
+new_stmt -> 'new' scanner '(' ')':
+		Type = {line('$2'), unwrap('$2')},
+		{new, object, {type, Type}}.
 
-new_stmt -> 'new' type '(' system_in ')':
-		{new, object, {type, '$2'}}.
+new_stmt -> 'new' random '(' ')':
+		Type = {line('$2'), unwrap('$2')},
+		{new, object, {type, Type}}.
+
+new_stmt -> 'new' scanner '(' system_in ')':
+		Type = {line('$2'), unwrap('$2')},
+		{new, object, {type, Type}}.
+
+% declaração de instâncias de qualquer classe, CONSTRUTOR PADRÃO
+new_stmt -> 'new' identifier '(' ')':
+		{new, object, {class, line('$2'), unwrap('$2')}}.
 
 %% Array com tipo após identifier
 %% ------------------------------------------
@@ -246,6 +270,11 @@ element_value_pair ->	identifier '=' element_value ';':
 element_value_pair ->   identifier '[' element_value ']' '=' element_value ';':
 	{line('$1'), array_attribution,
 			{{var, unwrap('$1')},{index, '$3'}}, {var_value, '$6'}}.
+
+%% atribuição de membros de objetos (atributos)
+element_value_pair ->	identifier '.' identifier '=' element_value ';':
+	VarName = {field, unwrap('$1'), unwrap('$3')},
+	{line('$1'), attribution, {var, VarName}, {var_value, '$5'}}.
 
 %%--------------
 length_stmt -> identifier '.' length : {length, line('$1'), unwrap('$1')}.
@@ -327,8 +356,6 @@ for_no_trailing -> for '(' int_t identifier '=' bool_expr ';'
 				{for_init, {var_type, unwrap('$3')}, {var_name, unwrap('$4')}},
 				{for_start, '$6'}, {condition_expr, '$8'},
 				{inc_expr, '$10'}, {for_body, '$12'}}.
-
-
 %% END_FOR
 
 %%BEGIN WHILE
@@ -362,7 +389,8 @@ method_invocation -> identifier '(' argument_list ')':
 			{function_call, {line('$1'), unwrap('$1')},
 				{argument_list, '$3'}}.
 
-%% chamada a método estático
+%% chamada a método estático, na realidade significado do nome é resolvido
+%% na análise SEMÂNTICA
 method_invocation -> identifier '.' identifier '(' ')':
 	ClassName = string:to_lower(atom_to_list(unwrap('$1'))),
 	Class = {class, line('$1'), ClassName},
@@ -381,8 +409,8 @@ method_invocation -> identifier '.' identifier '(' argument_list ')':
 
 %% BEGIN_ATTRIBUTE
 
-attribute_access -> identifier '.' identifier:
-	{attribute_access, {owner, '$1'}, {name, '$3'}}.
+field_access -> identifier '.' identifier:
+	{field_access, unwrap('$1'), unwrap('$3')}.
 
 %% END_ATTRIBUTE
 
@@ -404,8 +432,6 @@ type -> long_t	: {line('$1'), unwrap('$1')}.
 type -> float_t	: {line('$1'), unwrap('$1')}.
 type -> double_t	: {line('$1'), unwrap('$1')}.
 type -> boolean_t	: {line('$1'), unwrap('$1')}.
-type -> random		: {line('$1'), unwrap('$1')}.
-type -> scanner		: {line('$1'), unwrap('$1')}.
 
 %% -Trata expressoes matematicas (numericas).
 %% TODO: acrescentar tipo boolean e tratar precedencia de op booleanos
@@ -440,11 +466,13 @@ unary_expr -> bool_op literal	:
 			{op, line('$1'), unwrap('$1'), '$2'}.
 
 literal -> method_invocation	: '$1'.
+literal -> field_access			: '$1'.
 literal -> sqrt_stmt			: '$1'.
+literal -> text					: '$1'.
 literal -> integer				: '$1'.
 literal -> float				: '$1'.
 literal -> identifier			:  {var, line('$1'), unwrap('$1')}.
-literal -> '(' bool_expr ')'		: '$2'.
+literal -> '(' bool_expr ')'	: '$2'.
 literal -> true					: {atom, line('$1'), true}.
 literal -> false				: {atom, line('$1'), false}.
 literal -> next_int_stmt		: '$1'.
