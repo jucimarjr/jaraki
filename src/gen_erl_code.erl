@@ -236,8 +236,21 @@ create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 			ArrayAst = create_array(VarLine, VarName, ArrayType, ArrayLength),
 				create_declaration_list(VarLine, Rest, [ArrayAst| VarAstList]);
 
-		_ -> VarAst = create_attribution(VarLine, VarName, VarValue),
-					create_declaration_list(VarLine, Rest, [VarAst| VarAstList])
+		{new, object, {type, ClassType}} ->
+			case ClassType of
+				% ignora caso seja Scanner ou Random
+				{_Line, 'Scanner'} ->
+					create_declaration_list(VarLine, Rest, VarAstList);
+				{_Line, 'Random'} ->
+					create_declaration_list(VarLine, Rest, VarAstList);
+				_ObjectType ->
+					% NewObjAst = create_object(VarLine,....
+					ok
+			end;
+
+		_ ->
+			VarAst = create_attribution(VarLine, VarName, VarValue),
+			create_declaration_list(VarLine, Rest, [VarAst| VarAstList])
 	end.
 
 %-------------------------------------------------------------------------------

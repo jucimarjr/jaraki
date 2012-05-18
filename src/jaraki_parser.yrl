@@ -13,9 +13,10 @@ start_parser
 import_list import_declaration
 qualified_identifier
 class_declaration class_body class_list
-method_declaration
+method_declaration attribute_declaration
 block block_statements
 method_invocation
+attribute_access
 local_variable_declaration_statement element_value type variable_list
 array_declaration_list array_declaration_list2 array_initializer array_access
 new_stmt
@@ -25,7 +26,6 @@ comparation_expr bool_expr
 element_value_pair
 sqrt_stmt length_stmt
 print_stmt print_content if_stmt if_else_stmt if_else_no_trailing
-object_declaration class_initializer 
 next_int_stmt next_float_stmt next_line_stmt
 return_statement
 for_stmt for_no_trailing
@@ -80,7 +80,12 @@ class_declaration -> public class identifier '{' class_body '}':
 
 %% MethodOrFieldDecl
 class_body -> method_declaration			: ['$1'].
+class_body -> attribute_declaration			: ['$1'].
 class_body -> method_declaration class_body	: ['$1' | '$2'].
+class_body -> attribute_declaration class_body	: ['$1' | '$2'].
+
+attribute_declaration -> local_variable_declaration_statement:
+	'$1'.
 
 method_declaration -> public static type identifier '(' ')' block:
 			{line('$4'), '$3', {method, unwrap('$4')}, [], '$7'}.
@@ -137,6 +142,7 @@ block_statements -> statement block_statements	: ['$1'| '$2'].
 %%             ou sem trailing (no_trailing_expr)
 
 statement -> method_invocation ';'	: '$1'.
+statement -> attribute_access ';'	: '$1'.
 statement -> for_stmt				: '$1'.
 statement -> while_stmt				: '$1'.
 statement -> if_stmt				: '$1'.
@@ -162,7 +168,8 @@ variable_list -> identifier '=' element_value			:
 		[{{var, unwrap('$1')}, {var_value, '$3'}}].
 variable_list -> identifier '=' element_value ',' variable_list	:
 		[{{var, unwrap('$1')}, {var_value, '$3'}} | '$5'].
-variable_list -> identifier	: [{{var, unwrap('$1')},{var_value, undefined}}].
+variable_list -> identifier	:
+		[{{var, unwrap('$1')},{var_value, undefined}}].
 variable_list -> identifier	',' variable_list:
 		[{{var, unwrap('$1')}, {var_value, undefined}} | '$3'].
 
@@ -178,16 +185,6 @@ local_variable_declaration_statement ->  type  array_declaration_list2';':
 	{var_declaration,
 		{var_type, make_array_type('$1')},
 		{var_list, '$2'}}.
-
-%%Instancia classes
-
-local_variable_declaration_statement -> type object_declaration ';':
-	{var_declaration, {var_type, '$1'}, {var_list, '$2'}}.
-
-
-object_declaration -> identifier '=' new_stmt:
-		[{{var, unwrap('$1')}, {var_value, undefined}}].
-
 
 %% ------------------------------------------
 array_declaration_list -> identifier:
@@ -212,14 +209,12 @@ new_stmt -> 'new' type '[' length_stmt ']':
 		{new, array, {type, '$2'}, {index, '$4'}}.
 
 %--------------------------------------------
-new_stmt -> 'new' type '(' ')': 
-		{new, object_class, {type, '$2'}}.
+% declaração de instâncias de classes (objetos)
+new_stmt -> 'new' type '(' ')':
+		{new, object, {type, '$2'}}.
 
-new_stmt -> 'new' type '(' class_initializer ')': 
-		{new, object_class, {type, '$2'}}.
-
-class_initializer -> system_in: no_operation.
-
+new_stmt -> 'new' type '(' system_in ')':
+		{new, object, {type, '$2'}}.
 
 %% Array com tipo após identifier
 %% ------------------------------------------
@@ -380,6 +375,13 @@ method_invocation -> identifier '.' identifier '(' argument_list ')':
 
 %% END_FUNCTION
 
+%% BEGIN_ATTRIBUTE
+
+attribute_access -> identifier '.' identifier:
+	{attribute_access, {owner, '$1'}, {name, '$3'}}.
+
+%% END_ATTRIBUTE
+
 %% BEGIN_RETURN
 
 return_statement -> return element_value ';' : {line('$1'), return, '$2'}.
@@ -443,6 +445,7 @@ literal -> next_float_stmt		: '$1'.
 literal -> next_line_stmt		: '$1'.
 literal -> array_access			: '$1'.
 literal -> length_stmt			: '$1'.
+literal -> new_stmt				: '$1'.
 
 Erlang code.
 

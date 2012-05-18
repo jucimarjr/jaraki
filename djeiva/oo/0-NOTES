@@ -17,7 +17,8 @@ POSSÍVEIS FACILITADORES DE IMPLEMENTAÇÃO
 	- para métodos, chama o da super classe idenpendente de qualquer implementação ou visibilidade na superclasse
 	- para atributos, acessa o campo independente de qualquer visibilidade e referencia campo instanciado na superclasse!
 
-
+- em um acesso a atributo, como em "identificador.atributo", o identificador pode tanto ser o nome de uma classe quanto de uma variável! Para determinar isso, checa-se se o atributo sendo acessado é de classe ou de objeto
+- O mesmo ocorre com os método
 
 
 -------------------------------------------------------------------
@@ -55,3 +56,9 @@ Além disso, é possível acessar os campos da superclasse T1, por exemplo, faze
 
 -------------------------------------------------------------------
 -------------------------------------------------------------------
+2- objetos dentro de objetos
+algo como isso:
+a.b.c.altura
+
+ou:
+a.b.c.fazerIsso()
