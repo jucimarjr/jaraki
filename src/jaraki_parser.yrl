@@ -34,7 +34,7 @@ no_trailing_stmt no_short_if_stmt
 parameters_list	parameter
 argument argument_list
 for_update post_increment_expr
-try_catch_stmt catches catch_clause
+try_catch_stmt catches catch_clause break_stmt
 statement.
 
 Terminals
@@ -45,7 +45,7 @@ length
 string_t int_t long_t float_t double_t boolean_t
 next_int	next_line	next_float	'new'	system_in
 'if' 'else' true false
-for while	try catch exception
+for while	try catch break exception
 integer float
 identifier text
 add_op mult_op modulus_op increment_op
@@ -149,6 +149,7 @@ statement -> if_stmt				: '$1'.
 statement -> if_else_stmt			: '$1'.
 statement -> no_trailing_stmt		: '$1'.
 statement -> try_catch_stmt			: '$1'.
+statement -> break_stmt				: '$1'.
 
 no_short_if_stmt -> for_no_trailing						: '$1'.
 no_short_if_stmt -> while_no_trailing					: '$1'.
@@ -291,6 +292,9 @@ catches -> catch_clause catches : ['$1'|'$2'].
 catch_clause -> catch '(' exception identifier ')' block : 
 			[{line('$1'), {catch_clause, '$1'}, {var_exception, '$4'}, '$6'}].
 
+%% trata expressoes do break
+
+break_stmt	-> break ';'	: {line('$1'), break}.
 
 %% Estrutura vetor
 %% TOD: Verificar ele como um array
@@ -411,6 +415,7 @@ element_value -> bool_expr : '$1'.
 
 bool_expr -> comparation_expr bool_op bool_expr	:
 			{op, line('$2'), unwrap('$2'), '$1', '$3'}.
+
 bool_expr -> comparation_expr						: '$1'.
 
 comparation_expr -> add_expr comparation_op comparation_expr		:
@@ -431,6 +436,8 @@ modulus_expr -> unary_expr						: '$1'.
 
 unary_expr -> add_op literal    : {op, line('$1'), unwrap('$1'), '$2'}.
 unary_expr -> literal           : '$1'.
+unary_expr -> bool_op literal	:
+			{op, line('$1'), unwrap('$1'), '$2'}.
 
 literal -> method_invocation	: '$1'.
 literal -> sqrt_stmt			: '$1'.

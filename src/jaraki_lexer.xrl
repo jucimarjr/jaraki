@@ -19,7 +19,7 @@ Package				= package
 
 Import				= import
 ImportAll			= \.\*
-Class					= class
+Class				= class
 Public				= public
 Static				= static
 Void				= void
@@ -36,6 +36,7 @@ For					= for
 While				= while
 Try					= try
 Catch				= catch
+Break				= break
 Exception			= Exception
 
 % End Keyword
@@ -118,6 +119,7 @@ Rules.
 {While}		: {token, {'while',	TokenLine, list_to_atom(TokenChars)}}.
 {Try}		: {token, {'try',	TokenLine, list_to_atom(TokenChars)}}.
 {Catch}		: {token, {'catch',	TokenLine, list_to_atom(TokenChars)}}.
+{Break}		: {token, {'break',	TokenLine, list_to_atom(TokenChars)}}.
 {Exception}	: {token, {exception,	TokenLine, list_to_atom(TokenChars)}}.
 {Length}	: {token, {length,	TokenLine, list_to_atom(TokenChars)}}.
 {Sqrt}		: {token, {sqrt,	TokenLine, list_to_atom(TokenChars)}}.
