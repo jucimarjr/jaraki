@@ -5,8 +5,6 @@ public class Vetor03 {
 
 		int[] vet = { 10, 9, 8, 7, 6 };
 
-		for (int i = 0; i <= 3 ; i++)
-			System.out.println(i);
-			System.out.println(vet[3]);
+		vet[3] = vet[2];
 	}
 }

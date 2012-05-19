@@ -7,7 +7,8 @@ public class Vetor10 {
 		int[] vet2;		
 		int[] vet6 = {0, 0, 0, 0, 0};
 		int vet[];
-		int vet5[] = new int[10];
+		int vet5[];
+		vet5 = new int[10];
 		int j = 2;
 		int k = 1;
 		

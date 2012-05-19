@@ -5,10 +5,7 @@ public class TestandoFor35 {
 
         for (int i=0; i<50; i++) {
 
-            System.out.print("Estou contando dentro o for :D ");
-
-            System.out.println(i);
-
+           
             for (int j=0; j<50; j++) {
 
                 System.out.print("Estou contando dentro do 2o for :D ");

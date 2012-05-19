@@ -191,11 +191,17 @@ variable_list -> identifier	',' variable_list:
 
 %% Declaração de vetor
 %% TODO: verificar array_initializer
-
+%%       verificar regras repetidas - otimizar
 local_variable_declaration_statement ->  type '[' ']' array_declaration_list';':
 	{var_declaration,
 		{var_type, make_array_type('$1')},
 		{var_list, '$4'}}.
+
+local_variable_declaration_statement ->  type '[' ']' '[' ']'
+									array_declaration_list';':
+	{var_declaration,
+		{var_type, make_matrix_type('$1')},
+		{var_list, '$6'}}.
 
 local_variable_declaration_statement ->  type  array_declaration_list2';':
 	{var_declaration,
@@ -215,6 +221,8 @@ array_declaration_list -> identifier '=' '{' array_initializer '}':
 array_declaration_list -> identifier '=' new_stmt:
 			[{{var, unwrap('$1')}, {var_value, '$3'}}].
 
+% declaração vetor
+% TODO: element_value - erro de shift reduce
 new_stmt -> 'new' type '[' integer ']':
 		{new, array, {type, '$2'}, {index, '$4'}}.
 
@@ -223,6 +231,22 @@ new_stmt -> 'new' type '[' identifier ']':
 
 new_stmt -> 'new' type '[' length_stmt ']':
 		{new, array, {type, '$2'}, {index, '$4'}}.
+
+% declaração matriz
+new_stmt -> 'new' type '[' integer ']' '[' integer ']':
+		{new, array, {type, '$2'}, {index, {row, '$4'}, {column, '$7'}}}.
+
+new_stmt -> 'new' type '[' identifier ']' '[' identifier ']': {new, array,
+			{type, '$2'}, {index, {row, {var, line('$4'), unwrap('$4')} },
+						{column, {var, line('$7'), unwrap('$7')}} } }.
+
+new_stmt -> 'new' type '[' identifier ']' '[' integer ']': {new, array,
+			{type, '$2'}, {index, {row, {var, line('$4'), unwrap('$4')}},
+						{column, '$7'} } }.
+
+new_stmt -> 'new' type '[' integer ']' '[' identifier ']': {new, array,
+			{type, '$2'}, {index, {row, '$4'}, {column,
+						{var, line('$7'), unwrap('$7')}} } }.
 
 % declaração de instâncias de classes predefinidas (Scanner e Random)
 new_stmt -> 'new' scanner '(' ')':
@@ -255,11 +279,32 @@ array_declaration_list2 -> identifier '[' ']' '=' '{' array_initializer '}':
 array_declaration_list2 -> identifier '[' ']' '=' new_stmt:
 			[{{var, unwrap('$1')}, {var_value, '$5'}}].
 
+
+array_declaration_list2 -> identifier '[' ']' '[' ']':
+				[{{var, unwrap('$1')},{var_value, undefined}}].
+
+array_declaration_list2 -> identifier '['']' '[' ']' ',' array_declaration_list:
+		[{{var, unwrap('$1')}, {var_value, undefined}} | '$7'].
+
+array_declaration_list2 -> identifier '['']' '['']' '='
+								'{' array_initializer '}':
+			[{{var, unwrap('$1')}, {var_value, {array_initializer, '$8'}}}].
+
+array_declaration_list2 -> identifier '[' ']' '[' ']' '=' new_stmt:
+			[{{var, unwrap('$1')}, {var_value, '$7'}}].
+
 %% ------------------------------------------
 array_initializer -> literal : [{array_element, unwrap('$1')}].
 
 array_initializer -> literal ',' array_initializer:
 		[{array_element, unwrap('$1')} | '$3'].
+
+
+array_initializer -> '{' array_initializer '}' :
+		[{matrix_element, $2}].
+
+array_initializer -> '{' array_initializer '}' ',' array_initializer:
+		[{matrix_element, '$2'} | '$4'].
 
 %% Atribuições
 %%TODO: Verificar element value
@@ -267,9 +312,15 @@ element_value_pair ->	identifier '=' element_value ';':
 	{line('$1'), attribution, {var, unwrap('$1')}, {var_value, '$3'}}.
 
 %% Atribuição de array
-element_value_pair ->   identifier '[' element_value ']' '=' element_value ';':
+element_value_pair ->  identifier '[' element_value ']' '=' element_value ';':
 	{line('$1'), array_attribution,
 			{{var, unwrap('$1')},{index, '$3'}}, {var_value, '$6'}}.
+
+element_value_pair ->  identifier '[' element_value ']' '[' element_value ']''='
+									 element_value ';':
+	{line('$1'), array_attribution,
+			{{var, unwrap('$1')},{index, {row, '$3'}, {column, '$6'}} },
+					 {var_value, '$6'}}.
 
 %% atribuição de membros de objetos (atributos)
 element_value_pair ->	identifier '.' identifier '=' element_value ';':
@@ -331,6 +382,11 @@ array_access ->
 	 identifier '[' element_value ']' :
 			{{var, line('$1'), unwrap('$1')},
 					{index, '$3'}}.
+
+array_access ->
+	 identifier '[' element_value ']' '[' element_value ']' :
+			{{var, line('$1'), unwrap('$1')},
+					{index, {row, '$3'}, {column, '$6'} } }.
 
 %%
 for_update -> identifier increment_op :
@@ -491,3 +547,4 @@ line(X) ->
 		  "Aki:  " ++ lists:flatten(io_lib:format("~p", [X])),
 	throw(Msg).
 make_array_type({Line, PrimitiveType}) -> {Line, {array, PrimitiveType}}.
+make_matrix_type({Line, PrimitiveType}) -> {Line, {matrix, PrimitiveType}}.
