@@ -466,22 +466,50 @@ create_array_values(Line,
 				create_array_values(Line, Rest)},
 	Lists.
 
+create_array_from_list(Line, ArrayValues) ->
+	ElementsArrayAst = create_array_values(Line, ArrayValues),
+	rcall(Line, array, from_list, [ElementsArrayAst]).
+
+%% Transforma os elementos da matrix -ex.:  mat = {{1, 2}, {1, 1}}
+
+create_matrix_values(Line, [{matrix_element, Value} | [] ]) ->
+	{cons, Line,  create_array_from_list(Line, Value),
+					{nil, Line}};
+create_matrix_values(Line, [{matrix_element, Value} | Rest ]) ->
+	MatrixValue =  {cons, Line, create_array_from_list(Line, Value),
+						create_matrix_values(Line, Rest)},
+	MatrixValue.
+
+
+create_matrix_from_list(Line, ArrayValues) ->
+	ElementsArrayAst = create_matrix_values(Line, ArrayValues),
+	rcall(Line, array, from_list, [ElementsArrayAst]).
+
+
 %% ------------------------------------------------------------------
 %% Inicializador de array
 create_array_initializer(Line, VarName, ArrayValues) ->
 	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),
 	%jaraki_exception:check_var_type(Type, ElementArray),
 	JavaNameAst = string(Line, VarName),
-	TypeAst = gen_ast:type_to_ast(Line, Type),
+	TypeAst = gen_ast:type_to_ast(Line, Type),	
 	ScopeAst = atom(Line, st:get_scope()),
 
-	ArrayValuesAst = rcall(Line, array, from_list,
-					[create_array_values(Line,  ArrayValues)]),
-	VectorAst = rcall(Line, vector, new, [ArrayValuesAst]),
-	ArrayAst = rcall(Line, st, put_value, [
-		tuple(Line, [ScopeAst, JavaNameAst]),
-			tuple(Line, [TypeAst, VectorAst])]),
+	case ArrayValues of
+		[{array_element, _} | _] ->
+				ModuleName = vector,
+				FunctionName = new,
+				ArrayFromListAst = create_array_from_list(Line,  ArrayValues);
+		[{matrix_element, _} | _] ->
+				ModuleName = matrix,
+				FunctionName = new_matrix	,
+				ArrayFromListAst =  create_matrix_from_list(Line, ArrayValues)
+	end,
 
+	ArrayModuleAst = rcall(Line, ModuleName, FunctionName, [ArrayFromListAst]),
+	ArrayAst = rcall(Line, st, put_value, [
+	tuple(Line, [ScopeAst, JavaNameAst]),
+	tuple(Line, [TypeAst, ArrayModuleAst])]),
 	{block, Line, [ArrayAst]}.
 
 %%-----------------------------------------------------------------------------

@@ -78,7 +78,7 @@ class_declaration -> public class identifier '{' class_body '}':
 
 %% MethodOrFieldDecl
 class_body -> method_declaration			: ['$1'].
-class_body -> attribute_declaration			: ['$1'].
+	class_body -> attribute_declaration			: ['$1'].
 class_body -> method_declaration class_body	: ['$1' | '$2'].
 class_body -> attribute_declaration class_body	: ['$1' | '$2'].
 
@@ -301,10 +301,10 @@ array_initializer -> literal ',' array_initializer:
 
 
 array_initializer -> '{' array_initializer '}' :
-		[{matrix_element, $2}].
+		[{matrix_element, '$2'}].
 
 array_initializer -> '{' array_initializer '}' ',' array_initializer:
-		[{matrix_element, '$2'} | '$4'].
+		[{matrix_element, '$2'} | '$5'].
 
 %% Atribuições
 %%TODO: Verificar element value
@@ -547,4 +547,4 @@ line(X) ->
 		  "Aki:  " ++ lists:flatten(io_lib:format("~p", [X])),
 	throw(Msg).
 make_array_type({Line, PrimitiveType}) -> {Line, {array, PrimitiveType}}.
-make_matrix_type({Line, PrimitiveType}) -> {Line, {matrix, PrimitiveType}}.
+make_matrix_type({Line, PrimitiveType}) -> {Line, {array, PrimitiveType}}.

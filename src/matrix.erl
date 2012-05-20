@@ -9,11 +9,11 @@
 %% Objetivo : Array
 
 -module(matrix).
--export([new/1, access_matrix/3, set_matrix/4, size_matrix/1, creation_matrix/2, creation_vector/4]).
+-export([new_matrix/1, access_matrix/3, set_matrix/4, size_matrix/1, creation_matrix/2, creation_vector/4]).
 -import(st, [update_counter/2, lookup/1, insert/2]).
 
 %% new - Cria o endereço para o vetor declarado
-new(ArrayValue) ->
+new_matrix(ArrayValue) ->
 	ArrayAddress = st:update_counter(array_address, 1),
 	st:insert({array_dict, ArrayAddress}, ArrayValue),
 	ArrayAddress.
@@ -52,7 +52,7 @@ creation_matrix(Row, Column) ->
 	RowLength = array:size(Array1),	
 	%% Seta para cada linha um array 
 	Matrix = creation_vector(0, Array1, Array2, RowLength - 1),
-	new(Matrix).
+	new_matrix(Matrix).
 
 %% Criação do vetor interno de tamanho N
 %% Para cada linha é criado um vetor que corresponde a coluna da matriz
