@@ -381,10 +381,19 @@ print_list([Element|L], Line) ->
 
 			ValueGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
 				string(Line, PrintElement)]),
-			%%ArrayAst = rcall(Line, array, get, ),
 			VectorAst = rcall(Line, vector,access_vector,
 							[IndexGetAst, ValueGetAst]),
 			{cons, Line, VectorAst, print_list(L, Line)};
+
+		{{var,_, PrintElement},
+					{index, {row, RowIndex}, {column, ColumnIndex}}} ->
+			RowAst = match_attr_expr(RowIndex),
+			ColumnAst = match_attr_expr(ColumnIndex),
+			ValueGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
+				string(Line, PrintElement)]),
+			MatrixAst = rcall(Line, matrix, access_matrix,
+							[RowAst, ColumnAst, ValueGetAst]),
+			{cons, Line, MatrixAst, print_list(L, Line)};
 
 		 {Type, _, PrintElement} ->
 			case Type of

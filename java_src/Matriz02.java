@@ -7,6 +7,8 @@ public class Matriz02 {
 		int[][] matriz = { { 1, 2, 3 }, { 4, 5, 6 } };
 
 		System.out.println(matriz[1][2]);
+
+		System.out.println(vet[1]);
 	}
 
 }
