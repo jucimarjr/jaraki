@@ -1,6 +1,6 @@
 package matriz;
 
-public class Matriz00 {
+public class Matriz01 {
 	public static void main(String[] args) {
 		int a, b, c, d;
 		a = 1;
@@ -10,6 +10,9 @@ public class Matriz00 {
 		int[][] matriz1 = { { 1, 2, 3 }, { 4, 5, 6 } };
 		int[][] matriz2 = { { 1, 2 }, { 3 }, { 4, 5, 6 } };
 
+		matriz1[0][0] = 9;
+		matriz2[1][0] = 9;
+		vet1[0] = 7;
 	}
 
 }

@@ -57,7 +57,7 @@ match_statement(
 	) ->
 	create_attribution(Line, VarName, VarValue);
 
-%% Cara expressoes do tipo array = valor
+%% Casa expressoes do tipo array = valor
 match_statement(
 	{	Line,
 		array_attribution,
@@ -66,6 +66,18 @@ match_statement(
 		{var_value, ArrayValue}
 	}) ->
 	create_attribution(Line, ArrayName, ArrayIndex, ArrayValue);
+
+%%casa expressoes do tipo matriz = valor
+match_statement(
+	{	Line,
+		array_attribution,
+		{{var, MatrixName},
+		{index,
+			{row, RowIndex},
+			{column, ColumnIndex}}},
+		{var_value, Value}
+	}) ->
+	create_attribution(Line, MatrixName, RowIndex, ColumnIndex, Value);
 
 %% Casa expressoes if-then
 match_statement(
@@ -453,6 +465,27 @@ create_attribution(Line, ArrayName, ArrayIndex, VarValue) ->
 			rcall(Line, st, put_value, [
 				tuple(Line, [ScopeAst, JavaNameAst]),
 				tuple(Line, [TypeAst, VectorAst])]);
+		_ -> no_operation
+	end.
+
+%% Cria elemento east para atribuicao de matrix
+%% TODO: Verificar Tipo - Mudar para matrix
+create_attribution(Line, MatrixName, RowIndex, ColumnIndex, VarValue) ->
+		case st:get2(Line, st:get_scope(), MatrixName) of
+		{{array, PrimitiveType} = Type, _Value} ->
+			jaraki_exception:check_var_type(PrimitiveType, VarValue),
+			TransformedVarValue = match_attr_expr(VarValue),
+			JavaNameAst = string(Line, MatrixName),
+			TypeAst = gen_ast:type_to_ast(Line, Type),
+			ScopeAst = atom(Line, st:get_scope()),
+			RowAst = match_attr_expr(RowIndex),
+			ColumnAst = match_attr_expr(ColumnIndex),
+			ArrayGetAst = rcall(Line, st, get_value, [ScopeAst, JavaNameAst]),
+			MatrixAst = rcall(Line, matrix, set_matrix, [RowAst, ColumnAst,
+					TransformedVarValue, ArrayGetAst]),
+			rcall(Line, st, put_value, [
+				tuple(Line, [ScopeAst, JavaNameAst]),
+				tuple(Line, [TypeAst, MatrixAst])]);
 		_ -> no_operation
 	end.
 
