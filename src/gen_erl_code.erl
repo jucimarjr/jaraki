@@ -251,7 +251,14 @@ create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 							 VarName, ArrayElementsList),
 				create_declaration_list(VarLine, Rest, [ArrayAst| VarAstList]);
 
-		 {new, array, {type, ArrayType}, {index, ArrayLength}} ->
+		{new, array, {type, ArrayType}, {index,
+						{row, RowLength}, {column, ColumnLength} }} ->
+			ArrayAst = create_array(VarLine, VarName, ArrayType,
+												RowLength, ColumnLength),
+				create_declaration_list(VarLine, Rest, [ArrayAst| VarAstList]);
+
+
+		{new, array, {type, ArrayType}, {index, ArrayLength}} ->
 			ArrayAst = create_array(VarLine, VarName, ArrayType, ArrayLength),
 				create_declaration_list(VarLine, Rest, [ArrayAst| VarAstList]);
 
@@ -576,6 +583,22 @@ create_array(Line, VarName, {_L, Type}, ArrayLength) ->
 	rcall(Line, st, put_value, [
 		tuple(Line, [ScopeAst, JavaNameAst]),
 			tuple(Line, [TypeAst, VectorAst])]).
+
+%%-----------------------------------------------------------------------------
+%% Cria a expressão de criação de matriz
+create_array(Line, VarName, {_L, Type}, RowLength, ColumnLength) ->
+	%jaraki_exception:check_var_type(Type, {var, VarLine, VarName}),
+	JavaNameAst = string(Line, VarName),
+	TypeAst = gen_ast:type_to_ast(Line, Type),
+	ScopeAst = atom(Line, st:get_scope()),
+	RowAst = match_attr_expr(RowLength),
+	ColumnAst = match_attr_expr(ColumnLength),
+	%%Usado para a instanciação do array, cria um tamanho fixo
+	MatrixAst = rcall(Line, matrix, creation_matrix, [RowAst, ColumnAst]),
+
+	rcall(Line, st, put_value, [
+		tuple(Line, [ScopeAst, JavaNameAst]),
+			tuple(Line, [TypeAst, MatrixAst])]).
 
 %%-----------------------------------------------------------------------------
 %% Cria a operacao de incremento ++
