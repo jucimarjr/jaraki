@@ -321,7 +321,7 @@ element_value_pair ->  identifier '[' element_value ']' '[' element_value ']''='
 									 element_value ';':
 	{line('$1'), array_attribution,
 			{{var, unwrap('$1')},{index, {row, '$3'}, {column, '$6'}} },
-					 {var_value, '$6'}}.
+					 {var_value, '$9'}}.
 
 %% atribuição de membros de objetos (atributos)
 element_value_pair ->	identifier '.' identifier '=' element_value ';':
@@ -548,4 +548,4 @@ line(X) ->
 		  "Aki:  " ++ lists:flatten(io_lib:format("~p", [X])),
 	throw(Msg).
 make_array_type({Line, PrimitiveType}) -> {Line, {array, PrimitiveType}}.
-make_matrix_type({Line, PrimitiveType}) -> {Line, {array, PrimitiveType}}.
+%make_matrix_type({Line, PrimitiveType}) -> {Line, {array, PrimitiveType}}.
