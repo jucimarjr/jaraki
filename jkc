@@ -28,8 +28,41 @@ function usage
 
 function generate_erl
 {
+	if [ ${#filename[@]} -eq 1 ]; then
+		generate_single_erl
+	fi
+	# else
+	if [ ${#filename[@]} -gt 1 ]; then
+		generate_multiple_erls
+	fi
+}
+
+function generate_single_erl
+{
 	echo "Generating Erlang source code from Jaraki..."
-	erl -pa $JARAKI_PATH/ebin -noshell -eval "jaraki_utils:compile(\"$JARAKI_PATH/$filename\")." -s erlang halt
+	compileParams=$compileParams"\""$JARAKI_PATH"/"${filename[0]}"\""	
+	erl -pa $JARAKI_PATH/ebin -noshell -eval "jaraki_utils:compile($compileParams)." -s erlang halt
+	echo ""
+	echo "done!"
+	echo ""
+
+}
+
+function generate_multiple_erls
+{
+	echo "Generating Erlang source code from Jaraki... [MULTIPLE - NOT COMPLETE]"
+	compileParams=""
+	for (( i = 0; i < fileIndex; i++ ))
+	do
+		#echo "filename $i:"${filename[$i]}
+		compileParams=$compileParams"\""$JARAKI_PATH"/"${filename[$i]}"\""
+		if [ `expr $i + 1` != $fileIndex ]; then
+			compileParams=$compileParams","
+		fi
+	done
+	#echo "$compileParams"
+	erl -pa $JARAKI_PATH/ebin -noshell -eval "jaraki_utils:compile({list, [$compileParams]})." -s erlang halt
+	echo ""
 	echo "done!"
 	echo ""
 }
@@ -80,7 +113,8 @@ tokens=
 jtree=
 etree=
 #abf=
-filename=""
+fileIndex=0
+filenames[$fileIndex]=""
 
 # var para armazenar se deve ou não compilar
 generate_erl=1
@@ -104,7 +138,8 @@ while [ "$1" != "" ]; do
                                 ;;
 		-d | --debug )			debug=1
 								;;
-        *.java )                filename=$1
+        *.java )                filename[$fileIndex]=$1
+								fileIndex=`expr $fileIndex + 1`
 								;;
 		* )						echo "*** Error: file especified \"$1\" has not .java extension"
 								echo "" #newline

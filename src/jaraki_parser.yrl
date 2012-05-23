@@ -13,7 +13,7 @@ start_parser
 import_list import_declaration
 qualified_identifier
 class_declaration class_body class_list
-method_declaration attribute_declaration
+method_declaration field_declaration
 block block_statements
 method_invocation field_access
 local_variable_declaration_statement element_value type variable_list
@@ -78,11 +78,11 @@ class_declaration -> public class identifier '{' class_body '}':
 
 %% MethodOrFieldDecl
 class_body -> method_declaration			: ['$1'].
-	class_body -> attribute_declaration			: ['$1'].
+class_body -> field_declaration				: ['$1'].
 class_body -> method_declaration class_body	: ['$1' | '$2'].
-class_body -> attribute_declaration class_body	: ['$1' | '$2'].
+class_body -> field_declaration class_body	: ['$1' | '$2'].
 
-attribute_declaration -> local_variable_declaration_statement:
+field_declaration -> local_variable_declaration_statement:
 	'$1'.
 
 method_declaration -> public static type identifier '(' ')' block:
@@ -464,12 +464,12 @@ method_invocation -> identifier '.' identifier '(' argument_list ')':
 
 %% END_FUNCTION
 
-%% BEGIN_ATTRIBUTE
+%% BEGIN_FIELD
 
 field_access -> identifier '.' identifier:
 	{field_access, unwrap('$1'), unwrap('$3')}.
 
-%% END_ATTRIBUTE
+%% END_FIELD
 
 %% BEGIN_RETURN
 

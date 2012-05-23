@@ -9,7 +9,7 @@
 %% Objetivo : Transforma instrucoes Java em instrucoes Erlang
 
 -module(core).
--export([transform_jast_to_east/2]).
+-export([transform_jast_to_east/3]).
 -import(gen_ast,
 	[
 		function/4, var/2, atom/2, call/3, rcall/4, 'case'/3, clause/4,
@@ -22,10 +22,10 @@
 %%   jast -> arvore sintatica do java.
 %%   east -> arvore sintatica do erlang.
 %% TODO: tratar múltiplos arquivos, ou seja, múltiplas classes
-transform_jast_to_east(JavaAST, ErlangModuleName) ->
-
+transform_jast_to_east(JavaAST, ErlangModuleName, ClassesInfo) ->
 	st:new(),
-	ErlangModuleBody = [get_erl_body(JavaClass)	|| JavaClass <- JavaAST],	
+	ErlangModuleBody =
+		[get_erl_body(JavaClass, ClassesInfo)|| JavaClass <- JavaAST],
 	ErlangModule = create_module(ErlangModuleName, ErlangModuleBody),
 	case st:get_errors() of
 		[] ->
@@ -39,7 +39,7 @@ transform_jast_to_east(JavaAST, ErlangModuleName) ->
 %%-----------------------------------------------------------------------------
 %% Extrai o corpo do modulo erlang a partir de uma classe java
 %% TODO: Tratar atributos ("variáveis globais") da classe...
-get_erl_body(JavaClass) ->
+get_erl_body(JavaClass, _ClassesInfo) ->
 	{_Line, _JavaClassName, {class_body, JavaClassBody}} = JavaClass,
 	[get_erl_function(JavaMethod) || JavaMethod <- JavaClassBody].
 
