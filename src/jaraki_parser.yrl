@@ -192,6 +192,7 @@ variable_list -> identifier	',' variable_list:
 %% Declaração de vetor
 %% TODO: verificar array_initializer
 %%       verificar regras repetidas - otimizar
+%%		 verificar tipo matrix
 local_variable_declaration_statement ->  type '[' ']' array_declaration_list';':
 	{var_declaration,
 		{var_type, make_array_type('$1')},
@@ -200,7 +201,7 @@ local_variable_declaration_statement ->  type '[' ']' array_declaration_list';':
 local_variable_declaration_statement ->  type '[' ']' '[' ']'
 									array_declaration_list';':
 	{var_declaration,
-		{var_type, make_matrix_type('$1')},
+		{var_type, make_array_type('$1')},
 		{var_list, '$6'}}.
 
 local_variable_declaration_statement ->  type  array_declaration_list2';':

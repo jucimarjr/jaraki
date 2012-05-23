@@ -217,8 +217,15 @@ match_attr_expr({{var, Line, VarName}, {index, ArrayIndex}}) ->
 
 	ArrayGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
 				string(Line, VarName)]),
-	rcall(Line, vector, access_vector, [IndexAst, ArrayGetAst]).
-
+	rcall(Line, vector, access_vector, [IndexAst, ArrayGetAst]);
+match_attr_expr({{var, Line, VarName},
+					{index, {row, RowIndex}, {column, ColumnIndex}}}) ->
+	st:get2(Line, st:get_scope(), VarName),
+	RowAst = match_attr_expr(RowIndex),
+	ColumnAst = match_attr_expr(ColumnIndex),
+	MatrixGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
+				string(Line, VarName)]),
+	rcall(Line, matrix, access_matrix, [RowAst, ColumnAst, MatrixGetAst]).
 
 create_declaration(var_declaration, {var_type, {VarLine, _VarType}},
 						{var_list, VarList}) ->
@@ -267,19 +274,19 @@ create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 
 %-------------------------------------------------------------------------------
 % Cria elemento da east para Scanner e Random
-create_function_object_class(next_int, Line, VarName) -> 
-	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),		
+create_function_object_class(next_int, Line, VarName) ->
+	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),
 
 	case Type of
-	   'Scanner' -> 	     
+	   'Scanner' ->
 		  Prompt = string(Line, '>'),
-	 	  ConsoleContent = string(Line, '~d'),
-		  rcall(Line, io, fread, [Prompt, ConsoleContent]);		
+		  ConsoleContent = string(Line, '~d'),
+		  rcall(Line, io, fread, [Prompt, ConsoleContent]);
 	  'Random' ->
 		  call(Line, function_random, [])
 	end;
 
-create_function_object_class(next_float, Line, VarName) -> 
+create_function_object_class(next_float, Line, VarName) ->
 	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),
 
 	case Type of
