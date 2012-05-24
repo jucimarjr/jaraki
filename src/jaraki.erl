@@ -38,42 +38,26 @@ compile({beam,JavaFileName}) ->
 
 %%-----------------------------------------------------------------------------
 %% Interface com o usuario final. Compila vários arquivos java dependentes
-compile({list, JavaFileNameList}) ->
-	{_, _, _StartTime} = now(),
+compile(JavaFileNameList) ->
+	{_, _, StartTime} = now(),
 
 	ErlangFileList = get_erl_file_list(JavaFileNameList),
-	ErlangFileList;
-	%% {_, _, EndTime} = now(),
-	%% ElapsedTime = EndTime - StartTime,
-	%% io:format(
-	%% 	"~p -> ~p [ Compile time: ~p us (~p s) ]~n",
-	%% 	[[filename:basename(JavaFileName) || JavaFileName <- JavaFileNameList],
-	%% 		ErlangFileList,
-	%% 		ElapsedTime, ElapsedTime/1000000]
-	%% );
-
-%%-----------------------------------------------------------------------------
-%% Interface com o usuario final. Compila 1 arquivo java
-compile(JavaFileName) ->
-	{_, _, StartTime} = now(),
-	
-	ErlangFile = get_erl_file(JavaFileName),
-
 	{_, _, EndTime} = now(),
 	ElapsedTime = EndTime - StartTime,
 	io:format(
 		"~p -> ~p [ Compile time: ~p us (~p s) ]~n",
-		[filename:basename(JavaFileName),ErlangFile,ElapsedTime,ElapsedTime/1000000]
+		[[filename:basename(JavaFileName) || JavaFileName <- JavaFileNameList],
+			ErlangFileList,
+			ElapsedTime, ElapsedTime/1000000]
 	).
 
 %%-----------------------------------------------------------------------------
-%% gera vários arquivos .erl de vários .java dependentes
+%% gera vários arquivos .erl de vários .java
 get_erl_file_list(JavaFileNameList) ->
 	JavaASTList = lists:map(fun ast:get_java_ast/1, JavaFileNameList),
 	ClassesInfo = lists:map(fun ast:get_class_info/1, JavaASTList),
 
-	io:format("classes_info:~n~p", [ClassesInfo]).
-	%get_erl_file_list(JavaASTList, ClassesInfo, []).
+	get_erl_file_list(JavaASTList, ClassesInfo, []).
 
 get_erl_file_list([], _, ErlangFileList) ->
 	ErlangFileList;

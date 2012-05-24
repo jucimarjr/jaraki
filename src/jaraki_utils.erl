@@ -15,26 +15,8 @@
 
 %%-----------------------------------------------------------------------------
 %% Compila vários códigos em Jaraki dependentes e gera .erl's correspondentes
-compile({list, JavaFilesNames}) ->
-	case catch(jaraki:compile({list, JavaFilesNames})) of
-		{'EXIT', Reason} ->
-			io:format("*******ERROR!~n"),
-			io:format("***Reason:~n~p", [Reason]);
-		{error, Errors} ->
-			io:format("*******ERROR!~n"),
-			io:format("***Reasons:\n"),
-			jaraki_exception:print_errors(Errors);
-		ok ->
-			ok;
-		X ->
-			io:format("*******UNEXPECTED ERROR!~n"),
-			io:format("***Reason:~n~p", [X])
-	end;
-
-%%-----------------------------------------------------------------------------
-%% Compila o código em Jaraki e gera .erl correspondente
-compile(JavaFileName) ->
-	case catch(jaraki:compile(JavaFileName)) of
+compile(JavaFileNameList) ->
+	case catch(jaraki:compile(JavaFileNameList)) of
 		{'EXIT', Reason} ->
 			io:format("*******ERROR!~n"),
 			io:format("***Reason:~n~p", [Reason]);
