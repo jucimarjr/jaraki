@@ -92,6 +92,7 @@ method_declaration -> public static type identifier
 					'(' parameters_list ')' block:
 			{line('$4'), '$3', {method, unwrap('$4')}, '$6', '$8'}.
 
+%%Vector
 method_declaration -> public static type '[' ']' identifier '(' ')' block:
 			{line('$6'),
 				make_array_type('$3'),
@@ -103,6 +104,17 @@ method_declaration -> public static type '[' ']' identifier
 				make_array_type('$3'),
 				{method, unwrap('$6')}, '$8', '$10'}.
 
+method_declaration -> public static type '[' ']' '[' ']'
+										identifier '(' ')' block:
+			{line('$8'),
+				make_array_type('$3'),
+				{method, unwrap('$8')}, [], '$11'}.
+
+method_declaration -> public static type '[' ']' '[' ']' identifier
+					'(' parameters_list ')' block:
+			{line('$8'),
+				make_array_type('$3'),
+				{method, unwrap('$8')}, '$10', '$12'}.
 
 %% método main na análise sintática obsoleto
 %% method_declaration ->
@@ -121,14 +133,28 @@ parameters_list -> parameter ',' parameters_list	: ['$1' | '$3'].
 parameter -> type identifier: {line('$2'), {var_type, '$1'},
 						{parameter, unwrap('$2')}}.
 
+%% Vetor
 parameter -> type '[' ']' identifier:
 			{line('$4'),
 				{var_type, make_array_type('$1')},
 				{parameter, unwrap('$4')}}.
+
 parameter -> type identifier '[' ']':
 			{line('$2'),
 				{var_type, make_array_type('$1')},
 				{parameter, unwrap('$2')}}.
+
+%% Matriz
+parameter -> type '[' ']' '[' ']' identifier:
+			{line('$6'),
+				{var_type, make_array_type('$1')},
+				{parameter, unwrap('$6')}}.
+
+parameter -> type identifier '[' ']' '[' ']':
+			{line('$2'),
+				{var_type, make_array_type('$1')},
+				{parameter, unwrap('$2')}}.
+
 
 block -> '{' block_statements '}'	: {block, element(2, '$1'), '$2'}.
 block -> '{' '}': {block, element(2, '$1'), []}.

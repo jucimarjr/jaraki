@@ -63,7 +63,8 @@ get_erl_function({Line, _Type, {method, main}, Parameters,
 		get_erl_function_body(Line, JavaMethodBody, Parameters),
 	function(Line, main, Parameters, ErlangFunctionBody);
 
-get_erl_function({Line, {_TypeLine, TypeName}, {method, FunctionIdentifier}, Parameters,
+get_erl_function({Line, {_TypeLine, TypeName}, 
+			{method, FunctionIdentifier}, Parameters,
 					{block, _BlockLine, JavaMethodBody}}) ->
 
 	st:put_scope(FunctionIdentifier),
