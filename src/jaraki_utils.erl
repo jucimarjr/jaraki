@@ -37,7 +37,7 @@ get_erl_ast(JavaFileName) ->
 	JavaAST = ast:get_java_ast(JavaFileName),
 	[{_Line, {class, ClassName}, _ClassBody}] = JavaAST,
 	ModuleName = list_to_atom(string:to_lower(atom_to_list(ClassName))),
-	core:transform_jast_to_east(JavaAST, ModuleName).
+	core:transform_jast_to_east(JavaAST, ModuleName, []).
 
 %%-----------------------------------------------------------------------------
 %% Imprime a árvore do java gerada análise sintática do compilador

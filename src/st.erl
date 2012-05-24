@@ -122,3 +122,26 @@ insert(Key, Value) ->
 update_counter(DictVar, Increment) ->
 	IndexValue = lookup(DictVar),
 	insert(DictVar, IndexValue + Increment).
+
+%%----------------------------------------------------------------------------
+%% INFO DAS CLASSES
+%% Dicionario de classes
+%% Estrutura do dicionario:
+%% Chave:
+%%		{oo_classes, Classe}
+%% Valor:
+%%		[Campo1, Campo2, ...], [Metodo1, Metodo2, ...]}
+%%
+%% Variáveis:
+%%		Classe		  => atom()
+%%		Campo		  => {Nome, Tipo,		Modificadores}
+%%		Metodo		  => {Nome, TipoRetorno, Parametros, Modificadores}
+%%		Nome		  => atom()
+%%		Tipo		  => atom()
+%%		Modificadores => [ atom() ]
+%%		Parametros    => { Nome, Tipo }
+%%
+
+%put_classes_info(
+
+%%----------------------------------------------------------------------------

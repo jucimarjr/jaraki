@@ -47,7 +47,13 @@ function generate_erl
 
 function print_tokens
 {
-	erl -pa $JARAKI_PATH/ebin -noshell -eval "jaraki_utils:print_tokens(\"$JARAKI_PATH/$filename\")." -s erlang halt
+	compileParams=""
+	if [ $fileIndex > 1 ]; then
+		echo "More then one .java received, printing tokens only for "$filename[0]"!"
+		echo ""
+	fi
+	compileParams=$compileParams"\""$JARAKI_PATH"/"${filename[0]}"\""
+	erl -pa $JARAKI_PATH/ebin -noshell -eval "jaraki_utils:print_tokens("$compileParams")." -s erlang halt
 	echo ""
 }
 
@@ -59,7 +65,13 @@ function print_jtree
 
 function print_etree
 {
-	erl -pa $JARAKI_PATH/ebin -noshell -eval "jaraki_utils:print_erl_ast(\"$JARAKI_PATH/$filename\")." -s erlang halt
+	compileParams=""
+	if [ $fileIndex > 1 ]; then
+		echo "More then one .java received, printing tokens only for "$filename[0]"!"
+		echo ""
+	fi
+	compileParams=$compileParams"\""$JARAKI_PATH"/"${filename[0]}"\""
+	erl -pa $JARAKI_PATH/ebin -noshell -eval "jaraki_utils:print_erl_ast("$compileParams")." -s erlang halt
 	echo ""
 }
 
