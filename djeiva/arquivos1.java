@@ -1,6 +1,8 @@
 package arquivos;
 
-import java.io.FileNotFoundException;
+package arquivos;
+
+
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -10,15 +12,8 @@ public class Arquivos1 {
     
 		int caracter;
 		int counter = 0;
-		FileReader arq = null;
-    
-		try{
-			arq = new FileReader("/home/josie/teste.txt");
-		}catch (FileNotFoundException fnfe) {  
-	         System.out.println("O arquivo não foi encontrado");  
-	         System.exit(1);  
-	      }  
-		
+		FileReader	arq = new FileReader("/home/josie/teste.txt");
+				
     	
 		caracter = arq.read();
     
@@ -34,3 +29,5 @@ public class Arquivos1 {
     
 	}
 }
+
+
