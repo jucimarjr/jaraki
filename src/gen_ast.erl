@@ -49,10 +49,17 @@ string(Line, String) when is_list(String) ->
 
 type_to_ast(Line, {array, PrimitiveType}) ->
 	tuple(Line,	[atom(Line, array),	atom(Line, PrimitiveType)]);
+
+type_to_ast(Line, {matrix, PrimitiveType}) ->
+	tuple(Line,	[atom(Line, matrix),	atom(Line, PrimitiveType)]);
+
 type_to_ast(Line, PrimitiveType) ->
 	atom(Line, PrimitiveType).
 
 check_int({array, _PrimitiveType}) ->
+	other_type;
+
+check_int({matrix, _PrimitiveType}) ->
 	other_type;
 check_int(PrimitiveType) ->
 	case PrimitiveType of

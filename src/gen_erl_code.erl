@@ -360,6 +360,15 @@ print_text([Head | L], Line, Text, _print) ->
 					_ ->
 						print_text(L, Line, Text ++ "~s", _print)
 				end;
+			{{matrix, TypeId}, _VarValue} ->
+				case TypeId of
+					int ->
+						print_text(L, Line, Text ++ "~p", _print);
+					float ->
+						print_text(L, Line, Text ++ "~f", _print);
+					_ ->
+						print_text(L, Line, Text ++ "~s", _print)
+				end;
 			_ -> no_operation
 		end;
 	{Type, _, PrintElement} ->
@@ -495,7 +504,7 @@ create_attribution(Line, ArrayName, ArrayIndex, VarValue) ->
 %% TODO: Verificar Tipo - Mudar para matrix
 create_attribution(Line, MatrixName, RowIndex, ColumnIndex, VarValue) ->
 		case st:get2(Line, st:get_scope(), MatrixName) of
-		{{array, PrimitiveType} = Type, _Value} ->
+		{{matrix, PrimitiveType} = Type, _Value} ->
 			jaraki_exception:check_var_type(PrimitiveType, VarValue),
 			TransformedVarValue = match_attr_expr(VarValue),
 			JavaNameAst = string(Line, MatrixName),
@@ -546,9 +555,9 @@ create_matrix_from_list(Line, ArrayValues) ->
 %% Inicializador de array
 create_array_initializer(Line, VarName, ArrayValues) ->
 	{Type, _Value} = st:get2(Line, st:get_scope(), VarName),
-	%jaraki_exception:check_var_type(Type, ElementArray),
+	%jaraki_exception:check_var_type(Type, VarName),
 	JavaNameAst = string(Line, VarName),
-	TypeAst = gen_ast:type_to_ast(Line, Type),	
+	TypeAst = gen_ast:type_to_ast(Line, Type),
 	ScopeAst = atom(Line, st:get_scope()),
 
 	case ArrayValues of

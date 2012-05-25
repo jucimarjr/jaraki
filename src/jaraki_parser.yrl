@@ -17,7 +17,8 @@ method_declaration field_declaration
 block block_statements
 method_invocation field_access
 local_variable_declaration_statement element_value type variable_list
-array_declaration_list array_declaration_list2 array_initializer array_access
+array_declaration_list array_declaration_list2 array_declaration_list3 
+array_initializer array_access
 new_stmt
 add_expr mult_expr modulus_expr
 unary_expr literal
@@ -107,13 +108,13 @@ method_declaration -> public static type '[' ']' identifier
 method_declaration -> public static type '[' ']' '[' ']'
 										identifier '(' ')' block:
 			{line('$8'),
-				make_array_type('$3'),
+				make_matrix_type('$3'),
 				{method, unwrap('$8')}, [], '$11'}.
 
 method_declaration -> public static type '[' ']' '[' ']' identifier
 					'(' parameters_list ')' block:
 			{line('$8'),
-				make_array_type('$3'),
+				make_matrix_type('$3'),
 				{method, unwrap('$8')}, '$10', '$12'}.
 
 %% método main na análise sintática obsoleto
@@ -147,12 +148,12 @@ parameter -> type identifier '[' ']':
 %% Matriz
 parameter -> type '[' ']' '[' ']' identifier:
 			{line('$6'),
-				{var_type, make_array_type('$1')},
+				{var_type, make_matrix_type('$1')},
 				{parameter, unwrap('$6')}}.
 
 parameter -> type identifier '[' ']' '[' ']':
 			{line('$2'),
-				{var_type, make_array_type('$1')},
+				{var_type, make_matrix_type('$1')},
 				{parameter, unwrap('$2')}}.
 
 
@@ -227,12 +228,17 @@ local_variable_declaration_statement ->  type '[' ']' array_declaration_list';':
 local_variable_declaration_statement ->  type '[' ']' '[' ']'
 									array_declaration_list';':
 	{var_declaration,
-		{var_type, make_array_type('$1')},
+		{var_type, make_matrix_type('$1')},
 		{var_list, '$6'}}.
 
 local_variable_declaration_statement ->  type  array_declaration_list2';':
 	{var_declaration,
 		{var_type, make_array_type('$1')},
+		{var_list, '$2'}}.
+
+local_variable_declaration_statement ->  type  array_declaration_list3';':
+	{var_declaration,
+		{var_type, make_matrix_type('$1')},
 		{var_list, '$2'}}.
 
 %% ------------------------------------------
@@ -307,17 +313,17 @@ array_declaration_list2 -> identifier '[' ']' '=' new_stmt:
 			[{{var, unwrap('$1')}, {var_value, '$5'}}].
 
 
-array_declaration_list2 -> identifier '[' ']' '[' ']':
+array_declaration_list3 -> identifier '[' ']' '[' ']':
 				[{{var, unwrap('$1')},{var_value, undefined}}].
 
-array_declaration_list2 -> identifier '['']' '[' ']' ',' array_declaration_list:
+array_declaration_list3 -> identifier '['']' '[' ']' ',' array_declaration_list:
 		[{{var, unwrap('$1')}, {var_value, undefined}} | '$7'].
 
-array_declaration_list2 -> identifier '['']' '['']' '='
+array_declaration_list3 -> identifier '['']' '['']' '='
 								'{' array_initializer '}':
 			[{{var, unwrap('$1')}, {var_value, {array_initializer, '$8'}}}].
 
-array_declaration_list2 -> identifier '[' ']' '[' ']' '=' new_stmt:
+array_declaration_list3 -> identifier '[' ']' '[' ']' '=' new_stmt:
 			[{{var, unwrap('$1')}, {var_value, '$7'}}].
 
 %% ------------------------------------------
@@ -574,4 +580,5 @@ line(X) ->
 		  "Aki:  " ++ lists:flatten(io_lib:format("~p", [X])),
 	throw(Msg).
 make_array_type({Line, PrimitiveType}) -> {Line, {array, PrimitiveType}}.
-%make_matrix_type({Line, PrimitiveType}) -> {Line, {array, PrimitiveType}}.
+
+make_matrix_type({Line, PrimitiveType}) -> {Line, {matrix, PrimitiveType}}.

@@ -84,7 +84,7 @@ check_var_type(AttrArrayType, {{var, Line, ArrayName}, {index, _ArrayIndex}}) ->
 
 check_var_type(AttrArrayType, {{var, Line, ArrayName}, 
 				{index, {row, _}, {column, _}}}) ->
-	{{array, ExprVarType}, _Value} = st:get2(Line, st:get_scope(), ArrayName),
+	{{matrix, ExprVarType}, _Value} = st:get2(Line, st:get_scope(), ArrayName),
 	match_type(Line, AttrArrayType, ExprVarType).
 
 match_type(_, int, integer) -> ok;
