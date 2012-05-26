@@ -22,9 +22,10 @@
 %%   jast -> arvore sintatica do java.
 %%   east -> arvore sintatica do erlang.
 %% TODO: tratar múltiplos arquivos, ou seja, múltiplas classes
-transform_jast_to_east(JavaAST, ErlangModuleName, _ClassesInfo) ->
+transform_jast_to_east(JavaAST, ErlangModuleName, ClassesInfo) ->
 	st:new(),
-	%put_classes_info(ClassesInfo),
+	st:insert_classes_info(ClassesInfo),
+
 	ErlangModuleBody =
 		[get_erl_body(JavaClass)|| JavaClass <- JavaAST],
 	ErlangModule = create_module(ErlangModuleName, ErlangModuleBody),

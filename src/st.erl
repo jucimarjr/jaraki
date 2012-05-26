@@ -124,25 +124,53 @@ update_counter(DictVar, Increment) ->
 	insert(DictVar, IndexValue + Increment).
 
 %%----------------------------------------------------------------------------
-%% INFO DAS CLASSES
+%%                            INFO DAS CLASSES
 %% Dicionario de classes
 %% Estrutura do dicionario:
 %% Chave:
-%%		{oo_classes, Classe}
+%%		{oo_classes, NomeDaClasse}
+%% Onde:
+%%		NomeDaClasse => atom()
+%%
 %% Valor:
-%%		[Campo1, Campo2, ...], [Metodo1, Metodo2, ...]}
+%%		{Campos, Metodos}
+%% Onde:
+%%		Campos:  [Campo1, Campo2, ...]
+%%		Metodos: [Metodo1, Metodo2, ...]
 %%
-%% Variáveis:
-%%		Classe		  => atom()
-%%		Campo		  => {Nome, Tipo,		Modificadores}
-%%		Metodo		  => {Nome, TipoRetorno, Parametros, Modificadores}
-%%		Nome		  => atom()
-%%		Tipo		  => atom()
-%%		Modificadores => [ atom() ]
-%%		Parametros    => { Nome, Tipo }
+%% CampoN:
+%%		{Nome, CampoValue}
+%%			  |
+%%			  |> {Tipo, Modificadores}
 %%
+%% MetodoN:
+%%		{Nome, Parametros, MethodValue}
+%%						  |
+%%						  |> {TipoRetorno, Modificadores}
+%%
+%% Outros:
+%%		Tipo			=> atom()
+%%		Nome			=> atom()
+%%		Modificadores	=> [ atom() ]
+%%		Parametros		=> [ Tipo ]
 
-%put_classes_info(
+%% inicializa "sub-dicionario" com informações das classes
+insert_classes_info(_ClassesInfoList) ->
+	to_be_implemented.
+%%	lists:map(fun put_class_info/1, ClassesInfoList).
+
+%% insere informação de uma classe
+%% put_class_info({ClassName, Fields, Methods}) ->
+%% 	put({oo_classes, ClassName}, {Campos, Metodos}).
+
+%% busca informação de um método específico
+%% a assinatura de um método (que o trona único na classe) corresponde a:
+%% Nome (identificador)
+%% Tipos dos parâmetros (em ordem)
+%% exist_method(ClassName, MethodName, Parameters) ->
+%% 	{_Fields, Methods} = get({oo_classes, ClassName}),
+%% 	lists:any(fun exist_method2/1, Methods).
+
+%% exist_method2({Name, _, 
 
 %%----------------------------------------------------------------------------
-	

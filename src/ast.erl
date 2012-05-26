@@ -28,39 +28,53 @@ get_java_tokens(JavaFileName) ->
 	{ok, JavaTokens, _EndLine} = jaraki_lexer:string(Program),
 	JavaTokens.
 
-%% Dicionario de classes
-%% Estrutura do dicionario:
-%% Chave:
-%%		{oo_classes, Classe}
-%% Valor:
-%%		[Campo1, Campo2, ...], [Metodo1, Metodo2, ...]}
-%%
-%% Variáveis:
-%%		Classe		  => atom()
-%%		Campo		  => {Nome, Tipo,		Modificadores}
-%%		Metodo		  => {Nome, TipoRetorno, Parametros, Modificadores}
-%%		Nome		  => atom()
-%%		Tipo		  => atom()
-%%		Modificadores => [ atom() ]
-%%		Parametros    => { Nome, Tipo }
-%%
+%%-----------------------------------------------------------------------------
 %% Extrai informações da classe e seus  membros (campos e métodos)
+%%
+%% Estrutura do retorno:
+%%		[Classe1, Classe2, ... ]
+%%
+%% ClasseN: {Nome, Campos, Metodos}
+%%
+%% Campos:  [Campo1, Campo2, ...]
+%% Metodos: [Metodo1, Metodo2, ...]
+%%
+%% CampoN:
+%%		{Nome, CampoValue}
+%%			  |
+%%			  |> {Tipo, Modificadores}
+%%
+%% MetodoN:
+%%		{Nome, Parametros, MetodoValue}
+%%						  |
+%%						  |> {TipoRetorno, Modificadores}
+%%
+%% Outros:
+%%		Tipo			=> atom()
+%%		Nome			=> atom()
+%%		Modificadores	=> [ atom() ]
+%%		Parametros		=> [ Tipo ]
+
+%%-----------------------------------------------------------------------------
+%% info das classes
 get_class_info(JavaAST) ->
 	[{_, {class, ClassName}, {class_body, ClassBody}}] = JavaAST,
 	{FieldsInfo, MethodsInfo} = get_members_info(ClassBody),
 	{ClassName, lists:flatten(FieldsInfo), MethodsInfo}.
 
+%%-----------------------------------------------------------------------------
+%% info de membros (método ou campo)
 get_members_info(ClassBody) ->
 	get_members_info(ClassBody, [], []).
 
 get_members_info([], FieldsInfo, MethodsInfo) ->
-	{FieldsInfo, MethodsInfo};
+	{lists:reverse(FieldsInfo, []), lists:reverse(MethodsInfo, [])};
 
+%% TODO: Tratar Modificadores
 get_members_info([Member | Rest], FieldsInfo, MethodsInfo) ->
 	case Member of
 		{_,{_, ReturnType}, {method, MethodName}, ParameterList, _} ->
-			ParametersInfo = get_parameters_info(ParameterList),
-			NewMethod = {MethodName, ReturnType, ParametersInfo, []},
+			NewMethod = get_method_info(MethodName, ReturnType, ParameterList),
 			get_members_info(Rest, FieldsInfo, [NewMethod | MethodsInfo]);
 
 		{var_declaration, {var_type, TypeJast}, {var_list, VarJastList}} ->
@@ -69,8 +83,27 @@ get_members_info([Member | Rest], FieldsInfo, MethodsInfo) ->
 			get_members_info(Rest, [NewField | FieldsInfo], MethodsInfo)
 	end.
 
-get_parameters_info(ParameterList) ->
-	[ {Name, Type} || {_, {_, {_, Type}}, {_, Name}} <- ParameterList ].
+%%-----------------------------------------------------------------------------
+%% info de métodos
+get_method_info(MethodName, ReturnType, ParameterList) ->
+	ParametersInfo = get_parameters_info(ParameterList),
+	MethodKey      = {MethodName, ParametersInfo},
+	MethodValue    = {ReturnType, []}, %% TODO: [] = Modifiers
+	{MethodKey, MethodValue}.
 
+get_parameters_info(ParameterList) ->
+	[ Type || {_, {_, {_, Type}}, {_, _}} <- ParameterList ].
+
+%%-----------------------------------------------------------------------------
+%% info de campos
 get_fields_info(VarJastList, VarType) ->
-	[ {VarName, VarType, []} || {{var, VarName}, _VarValue} <- VarJastList ].
+	get_fields_info(VarJastList, VarType, []).
+
+get_fields_info([], _, FieldsInfo) ->
+	lists:reverse(FieldsInfo, []);
+get_fields_info([VarJast | Rest], VarType, FieldsInfo) ->
+	{{var, VarName}, _VarValue} = VarJast,
+	VarKey = VarName,
+	VarValue = {VarName, VarType, []}, %% TODO: [] = Modifiers
+	NewFieldInfo = {VarKey, VarValue},
+	get_fields_info(Rest, VarType, [ NewFieldInfo | FieldsInfo ]).

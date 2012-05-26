@@ -60,7 +60,7 @@ get_erl_file_list(JavaFileNameList) ->
 	get_erl_file_list(JavaASTList, ClassesInfo, []).
 
 get_erl_file_list([], _, ErlangFileList) ->
-	ErlangFileList;
+	lists:reverse(ErlangFileList, []);
 get_erl_file_list([JavaAST | Rest], ClassesInfo, ErlangFileList) ->
 	ErlangModuleName= get_erl_modulename(JavaAST),
 
@@ -75,6 +75,7 @@ get_erl_file_list([JavaAST | Rest], ClassesInfo, ErlangFileList) ->
 
 %%-----------------------------------------------------------------------------
 %% gera um arquivo .erl de um .java
+%% FUNÇÃO OBSOLETA, falta atualizar dependências
 get_erl_file(JavaFileName) ->
 	JavaAST = ast:get_java_ast(JavaFileName),
 
