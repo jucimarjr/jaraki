@@ -1,10 +1,10 @@
 %% LUDUS - Laboratorio de Projetos Especiais em Engenharia da Computacao
 %% Aluno  : Daniel Henrique Braz Aquino ( dhbaquino@gmail.com )
-%% 			Eden ( edenstark@gmail.com )
-%% 			Helder Cunha Batista ( hcb007@gmail.com )
-%% 			Josiane Rodrigues da Silva ( josi.enge@gmail.com )
-%% 			Lídia Lizziane Serejo de Carvalho ( lidializz@gmail.com )
-%% 			Rodrigo Barros Bernardino ( rbbernardino@gmail.com )
+%%			Eden ( edenstark@gmail.com )
+%%			Helder Cunha Batista ( hcb007@gmail.com )
+%%			Josiane Rodrigues da Silva ( josi.enge@gmail.com )
+%%			Lídia Lizziane Serejo de Carvalho ( lidializz@gmail.com )
+%%			Rodrigo Barros Bernardino ( rbbernardino@gmail.com )
 %% Orientador : Prof Jucimar Jr ( jucimar.jr@gmail.com )
 %% Objetivo : Array
 
@@ -22,7 +22,7 @@ new(ArrayValue) ->
 new_vector(Row) ->
 	Array = array:new(Row, {default, 0}),
 	new(Array).
- 
+
 %% get_vector - Retorna o valor do vetor da posição Address
 %% Address - "posição de memória" do vetor
 get_vector(Address) ->
@@ -31,7 +31,7 @@ get_vector(Address) ->
 	ArrayValue.
 
 %% ArrayIndex - índice do vetor, ArrayAddr - "posição de memória" do vetor
-access_vector(ArrayIndex, ArrayAddr) ->	
+access_vector(ArrayIndex, ArrayAddr) ->
 	Array = get_vector(ArrayAddr),
 	Value = array:get(ArrayIndex, Array),
 	Value.

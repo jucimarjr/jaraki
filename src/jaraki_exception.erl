@@ -1,10 +1,10 @@
 %% LUDUS - Laboratorio de Projetos Especiais em Engenharia da Computacao
 %% Aluno  : Daniel Henrique Braz Aquino ( dhbaquino@gmail.com )
-%% 			Eden Freitas Ramos ( edenstark@gmail.com )
-%% 			Helder Cunha Batista ( hcb007@gmail.com )
-%% 			Josiane Rodrigues da Silva ( josi.enge@gmail.com )
-%% 			Lídia Lizziane Serejo de Carvalho ( lidializz@gmail.com )
-%% 			Rodrigo Barros Bernardino ( rbbernardino@gmail.com )
+%%			Eden Freitas Ramos ( edenstark@gmail.com )
+%%			Helder Cunha Batista ( hcb007@gmail.com )
+%%			Josiane Rodrigues da Silva ( josi.enge@gmail.com )
+%%			Lídia Lizziane Serejo de Carvalho ( lidializz@gmail.com )
+%%			Rodrigo Barros Bernardino ( rbbernardino@gmail.com )
 %% Orientador : Prof Jucimar Jr ( jucimar.jr@gmail.com )
 %% Objetivo : Tratar as ocorrências de exceções
 
@@ -82,7 +82,7 @@ check_var_type(AttrArrayType, {{var, Line, ArrayName}, {index, _ArrayIndex}}) ->
 	{{array, ExprVarType}, _Value} = st:get2(Line, st:get_scope(), ArrayName),
 	match_type(Line, AttrArrayType, ExprVarType);
 
-check_var_type(AttrArrayType, {{var, Line, ArrayName}, 
+check_var_type(AttrArrayType, {{var, Line, ArrayName},
 				{index, {row, _}, {column, _}}}) ->
 	{{matrix, ExprVarType}, _Value} = st:get2(Line, st:get_scope(), ArrayName),
 	match_type(Line, AttrArrayType, ExprVarType).

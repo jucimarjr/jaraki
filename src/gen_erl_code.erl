@@ -297,36 +297,36 @@ create_function_object_class(next_float, Line, VarName) ->
 	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),
 
 	case Type of
-	   'Scanner' -> 	     
+	   'Scanner' ->
 		Prompt = string(Line, '>'),
 		ConsoleContent = string(Line, '~f'),
-		rcall(Line, io, fread, [Prompt, ConsoleContent]);		
+		rcall(Line, io, fread, [Prompt, ConsoleContent]);
 	  'Random' ->
 		  call(Line, function_random, [])
 	end;
 
-create_function_object_class(next_line, Line, VarName) -> 
+create_function_object_class(next_line, Line, VarName) ->
 	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),
 
 	case Type of
-	   'Scanner' -> 	     
+	   'Scanner' ->
 		Prompt = string(Line, '>'),
 		ConsoleContent = string(Line, '~f'),
 		rcall(Line, io, fread, [Prompt, ConsoleContent]);
-	    'Random' ->
+		'Random' ->
 		no_operation
-	end. 
+	end.
 
-create_function_object_class(next_int, Line, VarName, RandomValue) -> 
+create_function_object_class(next_int, Line, VarName, RandomValue) ->
 	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),
 
 	case Type of
-	   'Scanner' -> 	     
+	   'Scanner' ->
 		no_operation;
-	    'Random' ->
+		'Random' ->
 		ObjectType = atom(Line, next_int),
 		call(Line, function_random, [ObjectType, RandomValue])
-	end. 
+	end.
 
  %%-----------------------------------------------------------------------------
  %% Cria o elemento da east para as funcoes de impressao do java

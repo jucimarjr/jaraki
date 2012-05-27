@@ -1,10 +1,10 @@
 %% LUDUS - Laboratorio de Projetos Especiais em Engenharia da Computacao
 %% Aluno  : Daniel Henrique Braz Aquino ( dhbaquino@gmail.com )
-%% 			Eden ( edenstark@gmail.com )
-%% 			Helder Cunha Batista ( hcb007@gmail.com )
-%% 			Josiane Rodrigues da Silva ( josi.enge@gmail.com )
-%% 			Lídia Lizziane Serejo de Carvalho ( lidializz@gmail.com )
-%% 			Rodrigo Barros Bernardino ( rbbernardino@gmail.com )
+%%			Eden ( edenstark@gmail.com )
+%%			Helder Cunha Batista ( hcb007@gmail.com )
+%%			Josiane Rodrigues da Silva ( josi.enge@gmail.com )
+%%			Lídia Lizziane Serejo de Carvalho ( lidializz@gmail.com )
+%%			Rodrigo Barros Bernardino ( rbbernardino@gmail.com )
 %% Orientador : Prof Jucimar Jr ( jucimar.jr@gmail.com )
 %% Objetivo : Utilitários para o compilador
 
@@ -102,11 +102,10 @@ print_erl_ast_from_erlang(ErlangFileName) ->
 %% calcula o tempo de execução de uma funcao em microssegundos
 get_runtime(Module, Func, N )->
 	{ElapsedTime, R} = timer:tc(Module, Func, [N]),
-	io:format("~p(~p): ~p [~p us] [~p s] ~n",[Func, N, R, ElapsedTime, ElapsedTime/1000000]).
+	io:format("~p(~p): ~p [~p us] [~p s] ~n",
+				[Func, N, R, ElapsedTime, ElapsedTime/1000000]).
 
 get_runtime(Module, Func )->
 	{ElapsedTime, R} = timer:tc(Module, Func, []),
-	io:format("~p(~p): [~p us] [~p s] ~n",[Func, R, ElapsedTime, ElapsedTime/1000000]).
-
-
-
+	io:format("~p(~p): [~p us] [~p s] ~n",
+				[Func, R, ElapsedTime, ElapsedTime/1000000]).

@@ -1,12 +1,12 @@
 %% LUDUS - Laboratorio de Projetos Especiais em Engenharia da Computacao
 %% Aluno  : Daniel Henrique Braz Aquino ( dhbaquino@gmail.com )
-%% 			Eden ( edenstark@gmail.com )
-%% 			Helder Cunha Batista ( hcb007@gmail.com )
-%% 			Josiane Rodrigues da Silva ( josi.enge@gmail.com )
-%% 			Lídia Lizziane Serejo de Carvalho ( lidializz@gmail.com )
-%% 			Rodrigo Barros Bernardino ( rbbernardino@gmail.com )
+%%			Eden ( edenstark@gmail.com )
+%%			Helder Cunha Batista ( hcb007@gmail.com )
+%%			Josiane Rodrigues da Silva ( josi.enge@gmail.com )
+%%			Lídia Lizziane Serejo de Carvalho ( lidializz@gmail.com )
+%%			Rodrigo Barros Bernardino ( rbbernardino@gmail.com )
 %% Orientador : Prof Jucimar Jr ( jucimar.jr@gmail.com )
-%% Objetivo : Compilar arquivos java para a VM do Erlang 
+%% Objetivo : Compilar arquivos java para a VM do Erlang
 
 -module(jaraki).
 -export([compile/1, get_version/0]).
@@ -17,9 +17,9 @@
 %% Interface com o usuario final. Compila 1 arquivo java, gera o .erl e o .beam
 compile({beam,JavaFileName}) ->
 	{_, _, StartTime} = now(),
-	
+
 	ErlangFile = get_erl_file(JavaFileName),
-	
+
 	erl_tidy:file(ErlangFile,[{backups,false}]),
 
 	compile:file(ErlangFile),
@@ -99,7 +99,7 @@ get_version() ->
 %%-----------------------------------------------------------------------------
 %% Extrai o nome do arquivo .erl a partir do java ast
 get_erl_filename(ErlangModuleName) ->
-    atom_to_list(ErlangModuleName) ++ ".erl".
+	atom_to_list(ErlangModuleName) ++ ".erl".
 
 %%-----------------------------------------------------------------------------
 %% Extrai o nome do modulo erlang partir do java ast

@@ -4,4 +4,4 @@
 
 
 scanner() ->
-    io:fread("Prompt> ","~s").
+	io:fread("Prompt> ","~s").

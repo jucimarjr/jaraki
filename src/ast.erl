@@ -1,10 +1,10 @@
 %% LUDUS - Laboratorio de Projetos Especiais em Engenharia da Computacao
 %% Aluno  : Daniel Henrique Braz Aquino ( dhbaquino@gmail.com )
-%% 			Eden ( edenstark@gmail.com )
-%% 			Helder Cunha Batista ( hcb007@gmail.com )
-%% 			Josiane Rodrigues da Silva ( josi.enge@gmail.com )
-%% 			Lídia Lizziane Serejo de Carvalho ( lidializz@gmail.com )
-%% 			Rodrigo Barros Bernardino ( rbbernardino@gmail.com )
+%%			Eden ( edenstark@gmail.com )
+%%			Helder Cunha Batista ( hcb007@gmail.com )
+%%			Josiane Rodrigues da Silva ( josi.enge@gmail.com )
+%%			Lídia Lizziane Serejo de Carvalho ( lidializz@gmail.com )
+%%			Rodrigo Barros Bernardino ( rbbernardino@gmail.com )
 %% Orientador : Prof Jucimar Jr ( jucimar.jr@gmail.com )
 %% Objetivo : Gerar a arvore sintatica a java a partir de um codigo-fonte
 %% Objetivo : Gerar os tokens java a partir de um codigo-fonte
@@ -41,13 +41,15 @@ get_java_tokens(JavaFileName) ->
 %%
 %% CampoN:
 %%		{Nome, CampoValue}
-%%			  |
-%%			  |> {Tipo, Modificadores}
+%%			   |
+%%			   |> {Tipo, Modificadores}
 %%
 %% MetodoN:
-%%		{Nome, Parametros, MetodoValue}
-%%						  |
-%%						  |> {TipoRetorno, Modificadores}
+%%		{ MethodKey, MethodValue}
+%%		  |			 |
+%%		  |			 |> {TipoRetorno, Modificadores}
+%%		  |
+%%		  |> {Nome, Parametros}
 %%
 %% Outros:
 %%		Tipo			=> atom()
@@ -104,6 +106,6 @@ get_fields_info([], _, FieldsInfo) ->
 get_fields_info([VarJast | Rest], VarType, FieldsInfo) ->
 	{{var, VarName}, _VarValue} = VarJast,
 	VarKey = VarName,
-	VarValue = {VarName, VarType, []}, %% TODO: [] = Modifiers
+	VarValue = {VarType, []}, %% TODO: [] = Modifiers
 	NewFieldInfo = {VarKey, VarValue},
 	get_fields_info(Rest, VarType, [ NewFieldInfo | FieldsInfo ]).
