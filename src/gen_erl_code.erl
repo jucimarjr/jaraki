@@ -586,8 +586,8 @@ create_array(Line, VarName, {_L, Type}, ArrayLength) ->
 	ScopeAst = atom(Line, st:get_scope()),
 	IndexAst = match_attr_expr(ArrayLength),
 	%%Usado para a instanciação do array, cria um tamanho fixo
-	ArrayNew = rcall(Line, array, new, [IndexAst]),
-	VectorAst = rcall(Line, vector, new, [ArrayNew]),
+
+	VectorAst = rcall(Line, vector, new_vector, [IndexAst]),
 
 	rcall(Line, st, put_value, [
 		tuple(Line, [ScopeAst, JavaNameAst]),

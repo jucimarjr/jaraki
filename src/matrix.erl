@@ -47,8 +47,8 @@ set_matrix(Row, Column, ArrayValue, ArrayAddress) ->
 
 %% Criacao da matriz instanciada
 creation_matrix(Row, Column) ->
-	Array1 = array:new(Row),
-	Array2 = array:new(Column),
+	Array1 = array:new(Row, {default, 0}),
+	Array2 = array:new(Column, {default, 0}),
 	RowLength = array:size(Array1),	
 	%% Seta para cada linha um array 
 	Matrix = creation_vector(0, Array1, Array2, RowLength - 1),

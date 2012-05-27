@@ -9,7 +9,7 @@
 %% Objetivo : Array
 
 -module(vector).
--export([new/1, access_vector/2, set_vector/3, size_vector/1]).
+-export([new/1, access_vector/2, set_vector/3, size_vector/1, new_vector/1]).
 -import(st, [update_counter/2, lookup/1, insert/2]).
 
 %% new - Cria o endereço para o vetor declarado
@@ -18,6 +18,11 @@ new(ArrayValue) ->
 	st:insert({array_dict, ArrayAddress}, ArrayValue),
 	ArrayAddress.
 
+%% Vetor instanciado
+new_vector(Row) ->
+	Array = array:new(Row, {default, 0}),
+	new(Array).
+ 
 %% get_vector - Retorna o valor do vetor da posição Address
 %% Address - "posição de memória" do vetor
 get_vector(Address) ->
