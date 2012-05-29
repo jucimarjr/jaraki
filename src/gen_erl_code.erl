@@ -55,7 +55,11 @@ match_statement(
 		{var, VarName},
 		{var_value, VarValue}}
 	) ->
-	create_attribution(Line, VarName, VarValue);
+	case VarValue of
+			{new, array, {type, ArrayType}, {index, ArrayLength}} ->
+					create_array(Line, VarName, ArrayType, ArrayLength);
+			_ -> create_attribution(Line, VarName, VarValue)
+	end;
 
 %% Casa expressoes do tipo array = valor
 match_statement(
@@ -460,7 +464,6 @@ create_list([Element| Rest], Line) ->
 %%-----------------------------------------------------------------------------
 %% Cria o elemento da east para atribuiçao de variaveis do java
 create_attribution(Line, VarName, VarValue) ->
-
 	case st:get2(Line, st:get_scope(), VarName) of
 		{Type, _Value} ->
 			TypeAst = gen_ast:type_to_ast(Line, Type),
@@ -580,7 +583,8 @@ create_array_initializer(Line, VarName, ArrayValues) ->
 %%-----------------------------------------------------------------------------
 %% Cria a expressão de criação de array
 create_array(Line, VarName, {_L, Type}, ArrayLength) ->
-	%jaraki_exception:check_var_type(Type, {var, VarLine, VarName}),
+	jaraki_exception:check_var_type(Type, {{var, Line, VarName},
+						{index, ArrayLength}}),
 	JavaNameAst = string(Line, VarName),
 	TypeAst = gen_ast:type_to_ast(Line, Type),
 	ScopeAst = atom(Line, st:get_scope()),
