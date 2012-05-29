@@ -55,12 +55,14 @@ Rootsymbol start_parser.
 
 %% TODO: interpretar pacotes e imports na análise semântica
 start_parser -> class_list											: '$1'.
-start_parser -> package qualified_identifier class_list				: '$3'.
+start_parser -> package qualified_identifier class_list				: 
+					[{line('$1'), {package,'$2'}, {class_list, '$3'}}].
 start_parser -> package qualified_identifier import_list class_list	: '$4'.
 start_parser -> import_list class_list								: '$2'.
 
-qualified_identifier -> identifier ';'						: ['$1'].
-qualified_identifier -> identifier '.' qualified_identifier	: ['$1' | '$3'].
+qualified_identifier -> identifier ';'						: unwrap('$1').
+qualified_identifier -> identifier '.' qualified_identifier	: 
+														[unwrap('$1') | '$3'].
 
 import_list -> import import_declaration				: ['$2'] .
 import_list -> import import_declaration import_list	: ['$2' | '$3'].

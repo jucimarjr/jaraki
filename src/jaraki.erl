@@ -105,8 +105,14 @@ get_erl_filename(ErlangModuleName) ->
 %% Extrai o nome do modulo erlang partir do java ast
 %% o nome do modulo eh o nome da classe
 get_erl_modulename(JavaAST) ->
-	[{_Line, {class, JavaClassName}, _JavaClassBody}] = JavaAST,
-	list_to_atom(string:to_lower(atom_to_list(JavaClassName))).
+	case JavaAST of
+		[{_Line1, _PackageName, {class_list, [{_Line2, {class, JavaClassName}, 
+			_JavaClassBody}]}}] ->	list_to_atom(string:to_lower(
+												atom_to_list(JavaClassName)));
+		[{_Line, {class, JavaClassName}, 
+			_JavaClassBody}] 	->	list_to_atom(string:to_lower(
+												atom_to_list(JavaClassName)))
+	end.
 
 
 %%-----------------------------------------------------------------------------
