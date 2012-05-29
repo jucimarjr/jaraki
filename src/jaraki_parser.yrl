@@ -17,7 +17,7 @@ method_declaration field_declaration
 block block_statements
 method_invocation field_access
 local_variable_declaration_statement element_value type variable_list
-array_declaration_list array_declaration_list2 array_declaration_list3 
+array_declaration_list array_declaration_list2 array_declaration_list3
 array_initializer array_access
 new_stmt
 add_expr mult_expr modulus_expr
@@ -100,7 +100,7 @@ method_declaration -> public static type identifier
 			{line('$4'), '$3', {method, unwrap('$4')}, '$6', '$8'}.
 
 %% IOexception
-method_declaration -> public static type identifier 
+method_declaration -> public static type identifier
 					'(' parameters_list ')' 'throws' io_exception block:
 			{line('$4'), '$3', {method, unwrap('$4')}, '$6', '$10'}.
 
@@ -455,6 +455,12 @@ for_update -> identifier increment_op :
 				Var = {var, line('$1'), unwrap('$1')},
 				{inc_op, line('$1'), unwrap('$2'), Var}.
 
+%% Vetor
+for_update -> array_access increment_op :
+				Var = '$1',
+				{inc_op, line('$2'), unwrap('$2'), Var}.
+
+
 post_increment_expr -> identifier increment_op ';':
 				Var = {var, line('$1'), unwrap('$1')},
 				{inc_op, line('$1'), unwrap('$2'), Var}.
@@ -474,6 +480,23 @@ for_no_trailing -> for '(' int_t identifier '=' bool_expr ';'
 				{for_init, {var_type, unwrap('$3')}, {var_name, unwrap('$4')}},
 				{for_start, '$6'}, {condition_expr, '$8'},
 				{inc_expr, '$10'}, {for_body, '$12'}}.
+%% END_FOR
+
+%% BEGIN_FOR Vetor
+for_stmt -> for '(' array_access '=' bool_expr ';' bool_expr ';'
+				for_update  ')'  statement :
+			{line('$1'), for,
+				{for_init , {var_name, '$3'}},
+				{for_start, '$5'}, {condition_expr, '$7'},
+				{inc_expr, '$9'}, {for_body, '$11'}}.
+
+for_no_trailing -> for '(' array_access '=' bool_expr ';'
+					bool_expr ';'
+					for_update ')'  no_short_if_stmt :
+			{line('$1'), for,
+				{for_init,  {var_name, unwrap('$3')}},
+				{for_start, '$5'}, {condition_expr, '$7'},
+				{inc_expr, '$9'}, {for_body, '$11'}}.
 %% END_FOR
 
 %%BEGIN WHILE
