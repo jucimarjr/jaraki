@@ -26,7 +26,7 @@ comparation_expr bool_expr
 element_value_pair
 sqrt_stmt length_stmt
 print_stmt print_content if_stmt if_else_stmt if_else_no_trailing
-next_int_stmt next_float_stmt next_line_stmt
+next_int_stmt next_float_stmt next_line_stmt read_stmt close_stmt
 return_statement
 for_stmt for_no_trailing
 while_stmt while_no_trailing
@@ -46,8 +46,10 @@ string_t int_t long_t float_t double_t boolean_t
 next_int	next_line	next_float	'new'	system_in
 'if' 'else' true false
 for while	try catch break exception
+io_exception 'throws'
+file_reader  read  close
 integer float
-identifier text
+identifier text singles_quotes
 add_op mult_op modulus_op increment_op
 comparation_op	bool_op.
 
@@ -72,6 +74,8 @@ import_declaration -> identifier '.*' ';'				: [{'$1', '$2'}].
 import_declaration -> identifier '.' import_declaration	: ['$1' | '$3'].
 import_declaration -> scanner ';' : ['$1'].
 import_declaration -> random ';' : ['$1'].
+import_declaration -> file_reader ';' : ['$1'].
+import_declaration -> io_exception ';' : ['$1'].
 
 class_list -> class_declaration				: ['$1'].
 class_list -> class_declaration class_list	: ['$1' | '$2'].
@@ -94,6 +98,12 @@ method_declaration -> public static type identifier '(' ')' block:
 method_declaration -> public static type identifier
 					'(' parameters_list ')' block:
 			{line('$4'), '$3', {method, unwrap('$4')}, '$6', '$8'}.
+
+%% IOexception
+method_declaration -> public static type identifier 
+					'(' parameters_list ')' 'throws' io_exception block:
+			{line('$4'), '$3', {method, unwrap('$4')}, '$6', '$10'}.
+
 
 %%Vector
 method_declaration -> public static type '[' ']' identifier '(' ')' block:
@@ -199,12 +209,16 @@ local_variable_declaration_statement -> identifier variable_list ';':
 	Type = {line('$1'), unwrap('$1')},
 	{var_declaration, {var_type, Type}, {var_list, '$2'}}.
 
-%% declaração de variáveis de referência (para objetos random e scanner)
+%% declaração de variáveis de referência (para objetos random, scanner e FileReader)
 local_variable_declaration_statement -> random variable_list ';':
 	Type = {line('$1'), unwrap('$1')},
 	{var_declaration, {var_type, Type}, {var_list, '$2'}}.
 
 local_variable_declaration_statement -> scanner variable_list ';':
+	Type = {line('$1'), unwrap('$1')},
+	{var_declaration, {var_type, Type}, {var_list, '$2'}}.
+
+local_variable_declaration_statement -> file_reader variable_list ';':
 	Type = {line('$1'), unwrap('$1')},
 	{var_declaration, {var_type, Type}, {var_list, '$2'}}.
 %%-------------
@@ -283,7 +297,7 @@ new_stmt -> 'new' type '[' integer ']' '[' identifier ']': {new, array,
 			{type, '$2'}, {index, {row, '$4'}, {column,
 						{var, line('$7'), unwrap('$7')}} } }.
 
-% declaração de instâncias de classes predefinidas (Scanner e Random)
+% declaração de instâncias de classes predefinidas (Scanner, Random e FileReader)
 new_stmt -> 'new' scanner '(' ')':
 		Type = {line('$2'), unwrap('$2')},
 		{new, object, {type, Type}}.
@@ -295,6 +309,19 @@ new_stmt -> 'new' random '(' ')':
 new_stmt -> 'new' scanner '(' system_in ')':
 		Type = {line('$2'), unwrap('$2')},
 		{new, object, {type, Type}}.
+
+new_stmt -> 'new' file_reader '(' text ')':
+		Type = {line('$2'), unwrap('$2')},
+		{new, object, {type, Type}}.
+
+%% Funcoes da classe FileReader
+
+read_stmt -> identifier '.' read '(' ')' :
+					{read, line('$1'),  unwrap('$1')}.
+
+close_stmt -> identifier '.' close '(' ')' :
+					{close, line('$1'),  unwrap('$1')}.
+
 
 % declaração de instâncias de qualquer classe, CONSTRUTOR PADRÃO
 new_stmt -> 'new' identifier '(' ')':
@@ -559,6 +586,7 @@ unary_expr -> bool_op literal	:
 literal -> method_invocation	: '$1'.
 literal -> field_access			: '$1'.
 literal -> sqrt_stmt			: '$1'.
+literal -> singles_quotes			: '$1'.
 literal -> text					: '$1'.
 literal -> integer				: '$1'.
 literal -> float				: '$1'.
@@ -569,6 +597,8 @@ literal -> false				: {atom, line('$1'), false}.
 literal -> next_int_stmt		: '$1'.
 literal -> next_float_stmt		: '$1'.
 literal -> next_line_stmt		: '$1'.
+literal -> read_stmt			: '$1'.
+literal -> close_stmt			: '$1'.
 literal -> array_access			: '$1'.
 literal -> length_stmt			: '$1'.
 literal -> new_stmt				: '$1'.

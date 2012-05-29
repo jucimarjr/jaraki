@@ -37,7 +37,10 @@ While				= while
 Try					= try
 Catch				= catch
 Break				= break
+Throws				= throws
 Exception			= Exception
+IOException			= IOException
+
 
 % End Keyword
 
@@ -57,6 +60,9 @@ Println				= System.out.println
 Random				= Random
 Scanner				= Scanner
 SystemIn			= System\.in
+FileReader			= FileReader
+Read				= read
+Close				= close
 NextInt				= nextInt
 NextFloat			= nextFloat
 NextLine			= nextLine
@@ -64,6 +70,7 @@ New					= new
 Digit				= [0-9]
 Identifier			= [a-zA-Z_][a-zA-Z0-9_]*
 
+SinglesQuotesLiteral		= '.*'
 StringLiteral		= "(\\\^.|\\.|[^\"])*"
 
 % Separator: one of
@@ -120,7 +127,9 @@ Rules.
 {Try}		: {token, {'try',	TokenLine, list_to_atom(TokenChars)}}.
 {Catch}		: {token, {'catch',	TokenLine, list_to_atom(TokenChars)}}.
 {Break}		: {token, {'break',	TokenLine, list_to_atom(TokenChars)}}.
+{Throws}	: {token, {'throws',	TokenLine, list_to_atom(TokenChars)}}.
 {Exception}	: {token, {exception,	TokenLine, list_to_atom(TokenChars)}}.
+{IOException}	: {token, {io_exception,	TokenLine, list_to_atom(TokenChars)}}.
 {Length}	: {token, {length,	TokenLine, list_to_atom(TokenChars)}}.
 {Sqrt}		: {token, {sqrt,	TokenLine, list_to_atom(TokenChars)}}.
 {Print}		: {token, {print,	TokenLine, unwrap_print(TokenChars)}}.
@@ -131,6 +140,9 @@ Rules.
 {NextInt}	: {token, {next_int,		TokenLine, list_to_atom(TokenChars)}}.
 {NextFloat}	: {token, {next_float,	TokenLine, list_to_atom(TokenChars)}}.
 {NextLine}	: {token, {next_line,	TokenLine, list_to_atom(TokenChars)}}.
+{FileReader}	: {token, {file_reader,	TokenLine, list_to_atom(TokenChars)}}.
+{Read}		: {token, {read,	TokenLine, list_to_atom(TokenChars)}}.
+{close}		: {token, {close,	TokenLine, list_to_atom(TokenChars)}}.
 {New}		: {token, {'new',		TokenLine, list_to_atom(TokenChars)}}.
 {True}		: {token, {true,	TokenLine, list_to_atom(TokenChars)}}.
 {False}		: {token, {false,	TokenLine, list_to_atom(TokenChars)}}.
@@ -156,6 +168,7 @@ Rules.
 {Digit}+\.{Digit}+	: {token, {float, TokenLine, list_to_float(TokenChars)}}.
 
 {Identifier}	: {token, {identifier, TokenLine, list_to_atom(TokenChars)}}.
+{SinglesQuotesLiteral}	: build_text(singles_quotes, TokenChars, TokenLine, TokenLen).
 {WhiteSpace}+	: skip_token.
 {StringLiteral}	: build_text(text, TokenChars, TokenLine, TokenLen).
 
