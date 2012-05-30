@@ -60,20 +60,16 @@ get_java_tokens(JavaFileName) ->
 %%-----------------------------------------------------------------------------
 %% info das classes
 get_class_info(JavaAST) ->
-	case JavaAST of 
-		[{_Line, _PackageName,
-			{class_list, [{_, {class, ClassName}, 
-			{class_body, ClassBody}}]}}] ->	{FieldsInfo, MethodsInfo} = 
-												get_members_info(ClassBody),
-											{ClassName, 
-												lists:flatten(FieldsInfo), 
-												MethodsInfo};
-		[{_, {class, ClassName}, 
-			{class_body, ClassBody}}] -> 	{FieldsInfo, MethodsInfo} = 
-												get_members_info(ClassBody),
-											{ClassName, 
-												lists:flatten(FieldsInfo), 
-												MethodsInfo}
+	case JavaAST of
+		[{_Line, _PackageName, {class_list, [{class, ClassData}]}}] ->
+			{_Line2, {name, ClassName}, {body, ClassBody}} = ClassData,
+			{FieldsInfo, MethodsInfo} = get_members_info(ClassBody),
+			{ClassName, lists:flatten(FieldsInfo), MethodsInfo};
+
+		[{class, ClassData}] ->
+			{_Line3, {name, ClassName}, {body, ClassBody}} = ClassData,
+			{FieldsInfo, MethodsInfo} = get_members_info(ClassBody),
+			{ClassName, lists:flatten(FieldsInfo), MethodsInfo}
 	end.
 
 %%-----------------------------------------------------------------------------
