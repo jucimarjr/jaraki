@@ -81,7 +81,7 @@ class_list -> class_declaration				: ['$1'].
 class_list -> class_declaration class_list	: ['$1' | '$2'].
 
 class_declaration -> public class identifier '{' class_body '}':
-	{line('$3'), {class, unwrap('$3')}, {class_body, '$5'}}.
+	{class, {line('$3'), {name, unwrap('$3')}, {body, '$5'}}}.
 
 %% MethodOrFieldDecl
 class_body -> method_declaration			: ['$1'].

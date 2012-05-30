@@ -43,15 +43,13 @@ transform_jast_to_east(JavaAST, ErlangModuleName, ClassesInfo) ->
 %% TODO: Tratar atributos ("variáveis globais") da classe...
 get_erl_body(JavaClass) ->
 	case JavaClass of
-		{_Line1, _PackageName, 
-			{class_list, [{_Line2, _JavaClassName, 
-			{class_body, JavaClassBody}}]}}	->
-											[get_erl_function(JavaMethod) ||
-												JavaMethod <- JavaClassBody];
-		{_Line, _JavaClassName,
-			{class_body, JavaClassBody}}	->
-											[get_erl_function(JavaMethod) ||
-												JavaMethod <- JavaClassBody]
+		{_Line1, _PackageName, {class_list, [{class, ClassInfo}]}} ->
+			{_Line2, _JavaClassName, {body, JavaClassBody}} = ClassInfo,
+			[get_erl_function(JavaMethod) || JavaMethod <- JavaClassBody];
+
+		{class, ClassInfo} ->
+			{_Line, _JavaClassName, {body, JavaClassBody}} = ClassInfo,
+			[get_erl_function(JavaMethod) || JavaMethod <- JavaClassBody]
 	end.
 
 %%-----------------------------------------------------------------------------
