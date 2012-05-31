@@ -28,6 +28,8 @@ transform_jast_to_east(JavaAST, ErlangModuleName, ClassesInfo) ->
 
 	ErlangModuleBody =
 		[get_erl_body(JavaClass)|| JavaClass <- JavaAST],
+
+	%% TODO: declare_static_fields()
 	ErlangModule = create_module(ErlangModuleName, ErlangModuleBody),
 	case st:get_errors() of
 		[] ->
@@ -40,16 +42,33 @@ transform_jast_to_east(JavaAST, ErlangModuleName, ClassesInfo) ->
 
 %%-----------------------------------------------------------------------------
 %% Extrai o corpo do modulo erlang a partir de uma classe java
-%% TODO: Tratar atributos ("variáveis globais") da classe...
 get_erl_body(JavaClass) ->
 	case JavaClass of
 		{_Line1, _PackageName, {class_list, [{class, ClassData}]}} ->
 			{_Line2, _JavaClassName, {body, JavaClassBody}} = ClassData,
-			[get_erl_function(JavaMethod) || JavaMethod <- JavaClassBody];
+			match_erl_member(JavaClassBody);
 
 		{class, ClassData} ->
 			{_Line, _JavaClassName, {body, JavaClassBody}} = ClassData,
-			[get_erl_function(JavaMethod) || JavaMethod <- JavaClassBody]
+			match_erl_member(JavaClassBody)
+	end.
+
+%%-----------------------------------------------------------------------------
+%% Extrai um campo ou funcao da classe
+%% Observação: campos são tratados em outro momendo da análise
+match_erl_member(JavaClassBody) ->
+	match_erl_member(JavaClassBody, []).
+
+match_erl_member([], ErlangModuleBody) ->
+	lists:reverse(ErlangModuleBody, []);
+match_erl_member([Member | Rest], ErlangModuleBody) ->
+	case Member of
+		{var_declaration, _VarType, _VarList} ->
+			match_erl_member(Rest, ErlangModuleBody);
+
+		Method ->
+			TransformedMethod = get_erl_function(Method),
+			match_erl_member(Rest, [TransformedMethod | ErlangModuleBody])
 	end.
 
 %%-----------------------------------------------------------------------------
