@@ -10,7 +10,7 @@
 
 -import(randomLib, [function_random/2]).
 
--import(fileLib, [function_file/3]).
+-import(fileLib, [function_file/3, function_file/0]).
 
 main(V_args) ->
 
@@ -48,5 +48,6 @@ main(V_args) ->
 	      ["O numero de caracteres do arquivo é:",
 	       st:get_value(main, "counter")]),
 	%%io:format("Valor do char: ~p", [Caracter]),
+    function_file(),
     st:destroy().
 
