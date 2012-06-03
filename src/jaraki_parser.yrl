@@ -386,7 +386,7 @@ element_value_pair ->  identifier '[' element_value ']' '[' element_value ']''='
 
 %% atribuição de membros de objetos (atributos)
 element_value_pair ->	identifier '.' identifier '=' element_value ';':
-	VarName = {field, unwrap('$1'), unwrap('$3')},
+	VarName = {field, {unwrap('$1'), unwrap('$3')}},
 	{line('$1'), attribution, {var, VarName}, {var_value, '$5'}}.
 
 %%--------------

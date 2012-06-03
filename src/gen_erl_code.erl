@@ -468,6 +468,33 @@ create_list([Element| Rest], Line) ->
 	{cons, Line, Element, create_list(Rest, Line)}.
 
 %%-----------------------------------------------------------------------------
+%% Cria o elemento da east para atribuiçao de campos de um objeto
+%% TODO: detecção de erro como:
+%%			variável não declarada (que contém o objectID)
+%%			não existente (campos não declarados na classe)
+create_attribution(Line, {field, FieldInfoJast}, VarValue) ->
+	{ObjectVarName, FieldName} = FieldInfoJast,
+
+	ScopeAst = atom(Line, st:get_scope()),
+	ObjectVarNameAst = string(Line, ObjectVarName),
+	ObjectIDAst = rcall(Line, st, get_value, [ScopeAst, ObjectVarNameAst]),
+
+	{ClassName, _VarValue} = st:get2(Line, st:get_scope(), ObjectVarName),
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+
+	{FieldType, _Modifiers} = st:get_field_info(ClassName2, FieldName),
+	FieldTypeAst = gen_ast:type_to_ast(Line, FieldType),
+
+	jaraki_exception:check_var_type(FieldType, VarValue),
+
+	VarValueAst  = match_attr_expr(VarValue),
+	FieldNameAst = atom(Line, FieldName),
+	FieldTypeAst = atom(Line, FieldType),
+	FieldAst     = tuple(Line, [FieldNameAst, FieldTypeAst, VarValueAst]),
+
+	rcall(Line, oo_lib, update_attribute, [ObjectIDAst, FieldAst]);
+
+%%-----------------------------------------------------------------------------
 %% Cria o elemento da east para atribuiçao de variaveis do java
 create_attribution(Line, VarName, VarValue) ->
 	case st:get2(Line, st:get_scope(), VarName) of

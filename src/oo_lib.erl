@@ -72,7 +72,7 @@ get_class(ObjectID) ->
 update_attribute(ObjectID, {VarName, VarType, NewVarValue}) ->
 	Key = {object_var, ObjectID, VarName},
 	Value = {VarType, NewVarValue},
-	st:put(Key, Value).
+	put(Key, Value).
 
 %%-----------------------------------------------------------------------------
 %% acessar o atributo de um determinado objeto
