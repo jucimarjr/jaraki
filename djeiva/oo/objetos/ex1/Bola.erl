@@ -1,6 +1,15 @@
 -module('Bola').
 -export([trocaCor/2, mostraCor/1]).
 
+%% construtor padrão
+'__constructor__'() ->
+	oo:new('Bola', [],
+		[{"cor", 'String', undefined},
+		{"circunferencia", float, 0.0},
+		{"material", 'String', undefined}
+	])}).
+
+
 trocaCor(ObjectID, V_cor) ->
 	Scope = {trocaCor, 'Bola'},
 	st:put({Scope, "cor"}, {integer, V_cor}),

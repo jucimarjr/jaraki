@@ -13,7 +13,7 @@
 -import(gen_ast,
 	[
 		function/4, var/2, atom/2, call/3, rcall/4, 'case'/3, clause/4,
-		'fun'/2, string/2, tuple/2, atom/2
+		'fun'/2, string/2, tuple/2, atom/2, integer/2, float/2, list/2
 	]).
 -include("../include/jaraki_define.hrl").
 
@@ -30,7 +30,11 @@ transform_jast_to_east(JavaAST, ErlangModuleName, ClassesInfo) ->
 		[get_erl_body(JavaClass)|| JavaClass <- JavaAST],
 
 	%% TODO: declare_static_fields()
-	ErlangModule = create_module(ErlangModuleName, ErlangModuleBody),
+	DefaultConstructor = create_default_constructor(ErlangModuleName),
+	OOFuns = [DefaultConstructor],
+
+	ErlangModule = create_module(ErlangModuleName, ErlangModuleBody, OOFuns),
+
 	case st:get_errors() of
 		[] ->
 			st:destroy(),
@@ -187,11 +191,54 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 
 %%-----------------------------------------------------------------------------
 %% Cria o modulo a partir do east.
-create_module(Name, ErlangAST) ->
+create_module(Name, ErlangAST, OOFuns) ->
 	[ { attribute, 1, module, Name },{ attribute, 2, compile, export_all },
 			{attribute, 3, import, {loop, [{for, 3}, {while, 2}]}},
 			{attribute ,6, import, {vector,[{new,1},{get_vector,1}]}},
 			{attribute ,7, import, {matrix,[{new_matrix,1},
 						{creation_matrix,2}]}},
 			{attribute, 4, import, {randomLib, [{function_random, 2}]}}]
-	++ hd(ErlangAST) ++ [ { eof, 1 }].
+	++ OOFuns ++ hd(ErlangAST) ++ [ { eof, 1 }].
+
+%%-----------------------------------------------------------------------------
+%% cria o construtor padrão da classe
+create_default_constructor(ErlangModuleName) ->
+	Line = 0,
+	FunctionName = '__constructor__',
+	Parameters = [],
+
+	ClassNameAst = atom(Line, ErlangModuleName),
+	%% TODO: tratar super classes!
+	SuperClassesAst = {nil, Line},
+
+	FieldsInfoList = st:get_all_fields_info(ErlangModuleName),
+	FieldsListAst = create_field_list(FieldsInfoList),
+
+	Arguments = [ClassNameAst, SuperClassesAst, FieldsListAst],
+	ConstructorBody = [rcall(Line, oo_lib, new, Arguments)],
+
+	FunctionBody = [{clause, Line, [], [], ConstructorBody}],
+
+	function(Line, FunctionName, Parameters, FunctionBody).
+
+%%-----------------------------------------------------------------------------
+%% cria a lista de campos no formato AST para o construtor padrão da classe
+create_field_list(FieldInfoList) ->
+	FieldAstList = lists:map(fun create_field/1, FieldInfoList),
+	list(0, FieldAstList).
+
+%%-----------------------------------------------------------------------------
+%% cria a AST de um campo do construtor padrão da classe
+create_field({Name, {Type, _Modifiers}}) ->
+	NameAst = atom(0, Name),
+	TypeAst = atom(0, Type),
+	ValueAst =
+		case Type of
+			float    -> float(0, 0.0);
+			int      -> integer(0, 0);
+			long     -> integer(0, 0);
+			double   -> integer(0, 0);
+			boolean  -> atom(0, false);
+			_RefType -> atom(0, undefined)
+		end,
+	tuple(0, [NameAst, TypeAst, ValueAst]).

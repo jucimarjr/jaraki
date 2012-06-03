@@ -66,3 +66,9 @@ check_int(PrimitiveType) ->
 		int -> ok;
 		_ -> other_type
 	end.
+
+integer(Line, Value) -> {integer, Line, Value}.
+float(Line, Value) -> {float, Line, Value}.
+
+list(Line, [])               -> {nil, Line};
+list(Line, [Element | Rest]) -> {cons, Line, Element, list(Line, Rest)}.

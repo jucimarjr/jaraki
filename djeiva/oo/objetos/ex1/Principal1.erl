@@ -5,13 +5,7 @@ main(_V_args) ->
 	Scope = {main, 'Principal1'},
 
 	%% Pessoa p = new Pessoa()
-	st:put({Scope, "b"},
-		{'Bola',
-			oo:new('Bola', [],
-				[{"cor", 'String', undefined},
-				{"circunferencia", float, 0.0},
-				{"material", 'String', undefined}
-				])}),
+	st:put({Scope, "b"}, {'Bola', 'Bola':'__constructor__'()}),
 
 	%% b.trocaCor("azul"); b.mostraCor(); b.trocaCor("preto"); b.mostraCor();
 	begin

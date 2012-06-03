@@ -179,6 +179,12 @@ match_attr_expr({op, Line, Op, RightExp}) ->
 match_attr_expr({function_call, {Line, FunctionName},
 			{argument_list, ArgumentsList}}) ->
 	create_function_call(Line, FunctionName, ArgumentsList);
+
+%% criação de objetos
+match_attr_expr({new, object, {class, 3, ClassName}}) ->
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	rcall(0, ClassName2, '__constructor__', []);
+
 %% chamada a métodos estáticos
 match_attr_expr({function_call,
 					{class, Line, ClassName},

@@ -54,6 +54,10 @@ check_var_type(_Type, {next_int, _Line, _VarName, _RandomValue}) ->
 	%% match_type(Type, int);
 	ok;
 
+%% TODO: verificar retorno do new, polimorfismo, etc...
+check_var_type(_Type, {new, object, {class, 3, _Type2}}) ->
+	ok;
+
 check_var_type(Type, {op, Line, Op, RightExp}) ->
 	{op, Line, Op, check_var_type(Type, RightExp)};
 check_var_type(Type, {integer, Line, _Value}) ->

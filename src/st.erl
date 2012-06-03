@@ -19,7 +19,7 @@
 		%% informações das classes
 		insert_classes_info/1,	exist_class/1,
 		exist_method/3,			get_method_info/3,
-		exist_field/2,			get_field_info/2
+		exist_field/2,			get_field_info/2,	get_all_fields_info/1
 	]).
 
 new() ->
@@ -212,6 +212,11 @@ get_method_info(ClassName, MethodName, Parameters) ->
 %%----------------------------------------------------------------------------
 %%                              CAMPOS
 %%
+%% busca informações de todos os campos declarados
+get_all_fields_info(ClassName) ->
+	{FieldList, _} = get({oo_classes, ClassName}),
+	FieldList.
+
 %% verifica se variável existe na classe
 exist_field(ClassName, FieldName) ->
 	case get_field_info(ClassName, FieldName) of

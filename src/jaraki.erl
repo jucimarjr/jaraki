@@ -82,8 +82,12 @@ get_erl_file(JavaFileName) ->
 	ErlangModuleName= get_erl_modulename(JavaAST),
 
 	ErlangFileName= get_erl_filename(ErlangModuleName),
+
+	JavaAST = ast:get_java_ast(JavaFileName),
+	ClassInfo = ast:get_class_info(JavaAST),
+
 	{ok, ErlangAST} =
-		core:transform_jast_to_east(JavaAST, ErlangModuleName, []),
+		core:transform_jast_to_east(JavaAST, ErlangModuleName, [ClassInfo]),
 	create_erl_file(ErlangAST,ErlangFileName),
 
 	ErlangFileName.
