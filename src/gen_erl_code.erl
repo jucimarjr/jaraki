@@ -56,6 +56,10 @@ match_statement(
 		{var_value, VarValue}}
 	) ->
 	case VarValue of
+			{new, array, {type, ArrayType}, {index,
+						{row, RowLength}, {column, ColumnLength} }} ->
+			create_array(Line, VarName, ArrayType,
+								RowLength, ColumnLength);
 			{new, array, {type, ArrayType}, {index, ArrayLength}} ->
 					create_array(Line, VarName, ArrayType, ArrayLength);
 			_ -> create_attribution(Line, VarName, VarValue)

@@ -25,7 +25,8 @@
 new() ->
 	put(errors, []),
 	put(scope, '__undefined__'),
-	put(array_address, 0).
+	put(array_address, 0),
+	put(matrix_address, 0).
 
 destroy() ->
 	erase(), ok.

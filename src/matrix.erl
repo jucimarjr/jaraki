@@ -17,7 +17,7 @@
 
 %% new - Cria o endereço para o vetor declarado
 new_matrix(ArrayValue) ->
-	ArrayAddress = st:update_counter(array_address, 1),
+	ArrayAddress = st:update_counter(matrix_address, 1),
 	st:insert({array_dict, ArrayAddress}, ArrayValue),
 	ArrayAddress.
 
