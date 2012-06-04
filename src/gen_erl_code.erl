@@ -219,6 +219,8 @@ match_attr_expr({atom, _Line, true} = Element) ->
 	Element;
 match_attr_expr({atom, _Line, false} = Element) ->
 	Element;
+match_attr_expr({text, Line, String}) ->
+	{string, Line, String};
 match_attr_expr({op, Line, Op, LeftExp, RightExp}) ->
 	{op, Line, Op, match_attr_expr(LeftExp), match_attr_expr(RightExp)};
 match_attr_expr({var, Line, VarName}) ->
