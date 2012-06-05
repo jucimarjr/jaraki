@@ -11,7 +11,7 @@
 		update_counter/2,
 
 		%% tratar variáveis na semântica
-		get2/3,			get_declared/5,
+		get2/3,			get_declared/5,			is_declared_var/2,
 		put_scope/1,	get_scope/0,
 		put_error/2,	get_errors/0,
 		lookup/1,		insert/2,
@@ -120,6 +120,14 @@ get_declared(Line, Scope, VarName, Type, VarValue) ->
 			put_value({Scope, VarName}, {Type, VarValue});
 		_Value ->
 			{jaraki_exception:handle_error(Line, 2), undefined}
+	end.
+
+is_declared_var(Scope, VarName) ->
+	case get({Scope, VarName, get_stack(Scope)}) of
+		undefined ->
+			false;
+		_ ->
+			true
 	end.
 
 put_scope(Scope) ->

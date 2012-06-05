@@ -531,19 +531,19 @@ method_invocation -> identifier '(' argument_list ')':
 
 %% chamada a método estático, na realidade significado do nome é resolvido
 %% na análise SEMÂNTICA
+%% Owner é tanto o nome de uma Classe quanto de uma variável!!
+%% Math.sqrt()   ou   b.trocaCor()
 method_invocation -> identifier '.' identifier '(' ')':
-	ClassName = string:to_lower(atom_to_list(unwrap('$1'))),
-	Class = {class, line('$1'), ClassName},
+	Owner = {owner, line('$1'), unwrap('$1')},
 	Method = {method, line('$3'), unwrap('$3')},
 	ArgumentList = {argument_list, []},
-	{function_call, Class, Method, ArgumentList}.
+	{function_call, Owner, Method, ArgumentList}.
 
 method_invocation -> identifier '.' identifier '(' argument_list ')':
-	ClassName = string:to_lower(atom_to_list(unwrap('$1'))),
-	Class = {class, line('$1'), ClassName},
+	Owner = {owner, line('$1'), unwrap('$1')},
 	Method = {method, line('$3'), unwrap('$3')},
 	ArgumentList = {argument_list, '$5'},
-	{function_call, Class, Method, ArgumentList}.
+	{function_call, Owner, Method, ArgumentList}.
 
 %% END_FUNCTION
 

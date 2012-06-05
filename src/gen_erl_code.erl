@@ -13,7 +13,7 @@
 -import(gen_ast,
 	[
 		function/4, var/2, atom/2, call/3, rcall/4, 'case'/3, clause/4,
-		'fun'/2, string/2, tuple/2, atom/2, string/2
+		'fun'/2, string/2, tuple/2, atom/2, string/2, list/2
 	]).
 -include("../include/jaraki_define.hrl").
 
@@ -35,17 +35,17 @@ match_statement({Line, print, Content}) ->
 match_statement({Line, println, Content}) ->
 	 create_print_function(Line, println, Content);
 
-%% transforma chamadas de funcoes em Erlang
+%% transforma chamadas de funcoes em Erlang funcao()
 match_statement({function_call, {Line, FunctionName},
 					{argument_list, ArgumentsList}}) ->
 	create_function_call(Line, FunctionName, ArgumentsList);
 
-%% chamada a métodos estáticos
+%% chamada a métodos estáticos ou não owner.funcao()
 match_statement({function_call,
-					{class, Line, ClassName},
+					{owner, Line, OwnerName},
 					{method, Line, FunctionName},
 					{argument_list, ArgumentsList}}) ->
-	create_function_call(Line, ClassName, FunctionName, ArgumentsList);
+	create_function_call(Line, OwnerName, FunctionName, ArgumentsList);
 
 %% Casa expressoes do tipo varivel = valor
 match_statement(
@@ -492,14 +492,40 @@ create_function_call(Line, FunctionName, ArgumentsList) ->
 		[Fun, atom(Line, FunctionName),
 			create_list(TransformedArgumentList, Line)]).
 
-%% Chamada do tipo Classe.Metodo()
-create_function_call(Line, ClassName, FunctionName, ArgumentsList) ->
-	TransformedArgumentList = [match_attr_expr(V) || V <- ArgumentsList],
-	FunctionCall= rcall(Line, ClassName, FunctionName, TransformedArgumentList),
+%% Chamada do tipo Owner.Metodo()
+create_function_call(Line, Owner, FunctionName, ArgumentsList) ->
+	case st:is_declared_var(st:get_scope(), Owner) of
+		true ->
+			create_object_method_call(Line, Owner, FunctionName, ArgumentsList);
+		false ->
+			create_static_method_call(Line, Owner, FunctionName, ArgumentsList)
+	end.
+
+create_object_method_call(Line, ObjVarName, FunctionName, ArgumentList) ->
+	ScopeAst = atom(Line, st:get_scope()),
+	ObjVarNameAst = string(Line, ObjVarName),
+	ObjectIDAst = rcall(Line, st, get_value, [ScopeAst, ObjVarNameAst]),
+
+	ObjectClassAst = rcall(Line, oo_lib, get_class, [ObjectIDAst]),
+
+	ArgumentAstList = [ObjectIDAst]++[match_attr_expr(V) || V <- ArgumentList],
+	ArgumentListAst = list(Line, ArgumentAstList),
+
+	FunctionNameAst = atom(Line, FunctionName),
+
+	ApplyArguments = [ObjectClassAst, FunctionNameAst, ArgumentListAst],
+	rcall(Line, erlang, apply, ApplyArguments).
+
+create_static_method_call(Line, ClassName, FunctionName, ArgumentsList) ->
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	ArgumentListAst = [match_attr_expr(V) || V <- ArgumentsList],
+	FunctionCall= rcall(Line, ClassName2, FunctionName, ArgumentListAst),
 	Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),
 	rcall(Line, st, return_function,
 		[Fun, atom(Line, FunctionName),
-			create_list(TransformedArgumentList, Line)]).
+			create_list(ArgumentListAst, Line)]).
+
+
 
 create_list([], Line) ->
 	{nil, Line};
