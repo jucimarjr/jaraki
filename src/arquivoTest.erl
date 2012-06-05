@@ -21,29 +21,30 @@ main(V_args) ->
     begin
       st:put_value({main, "counter"}, {int, trunc(0)})
     end,
+    
+	st:put_value({main, "arquivo"}, {string, trunc(function_file(new, "teste.txt", read))}),
+  
+ 
+	st:put_value({main, "caracter"}, {int, trunc(function_file(read, st:get_value(main, "arquivo"), 1))}),
+  
 
-	 {ok, Arquivo} = function_file(new, "teste.txt", read),
 
-	{ok, Caracter} = function_file(read, Arquivo, 1),
-
-	st:put_value({main, "caracter"}, {int, Caracter}),
-
-    while(fun () ->
-		   not (st:get_value(main, "caracter") == 'eof')
-	   end,
-	   fun () ->
-		   case st:get_value(main, "caracter") =/=  ' ' of
-		     true ->
-			 st:put_value({main, "counter"},
-				      {int,
-				       trunc(st:get_value(main, "counter") +
-					       1)}),
-			 {ok, ProximoCaracter} = function_file(read, Arquivo, 1),
-			 st:put_value({main, "caracter"}, {int, ProximoCaracter});
+	%%while(fun () ->
+	%%	   not (st:get_value(main, "caracter") == 'eof')
+	  %% end,
+	   %%fun () ->
+		%%   case st:get_value(main, "caracter") =/=  ' ' of
+		  %%   true ->
+			%% st:put_value({main, "counter"},
+			%%	      {int,
+			%%	       trunc(st:get_value(main, "counter") +
+			%%		       1)}),
+			%%{ok, ProximoCaracter} = function_file(read, Arquivo, 1),
+			 %%st:put_value({main, "caracter"}, {int, ProximoCaracter});
 		
-		     false -> no_operation
-		   end
-	   end),
+	%%	     false -> no_operation
+	%%	   end
+	 %%  end),
     io:format("~s~p~n",
 	      ["O numero de caracteres do arquivo é:",
 	       st:get_value(main, "counter")]),

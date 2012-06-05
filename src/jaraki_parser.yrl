@@ -312,8 +312,7 @@ new_stmt -> 'new' scanner '(' system_in ')':
 
 new_stmt -> 'new' file_reader '(' text ')':
 		Type = {line('$2'), unwrap('$2')},
-		{new, object, {type, Type}}.
-
+		{new, object, {type, Type}, {file, unwrap('$4')}}.
 %% Funcoes da classe FileReader
 
 read_stmt -> identifier '.' read '(' ')' :

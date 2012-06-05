@@ -206,6 +206,11 @@ match_attr_expr({next_line, Line, VarName})->
 	create_function_object_class(next_line, Line, VarName);
 match_attr_expr({next_int, Line, VarName, Value})->
 	create_function_object_class(next_int, Line, VarName, Value);
+
+%%Cria ast para atribuições com FileReader
+match_attr_expr({read, Line, VarName})->
+	create_function_object_class(read, Line, VarName);
+
 match_attr_expr({length, Line, VarLength})->
 	ArrayGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
 			string(Line, VarLength)]),
@@ -290,10 +295,22 @@ create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 					ok
 			end;
 
+		{new, object, {type, _ClassType}, {file, File}} ->				
+				FileAst = create_file(new, VarLine, File),
+				create_declaration_list(VarLine, Rest, [FileAst | VarAstList]);
+
 		_ ->
 			VarAst = create_attribution(VarLine, VarName, VarValue),
 			create_declaration_list(VarLine, Rest, [VarAst| VarAstList])
 	end.
+
+
+%% Cria Ast para instanciacao do FileReader
+create_file(new, VarLine, File) -> 	
+	New = atom(VarLine, new),
+	Read = atom(VarLine, read),
+	FileRead = string(VarLine, File),
+	call(VarLine, function_file, [New, FileRead, Read]).
 
 %-------------------------------------------------------------------------------
 % Cria elemento da east para Scanner e Random
@@ -331,7 +348,23 @@ create_function_object_class(next_line, Line, VarName) ->
 		rcall(Line, io, fread, [Prompt, ConsoleContent]);
 		'Random' ->
 		no_operation
+	end;
+
+create_function_object_class(read, Line, VarName) ->
+	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),
+
+	case Type of
+	   'Scanner' ->
+		no_operation;
+	    'Random' ->
+		no_operation;
+	    'FileReader' ->
+		Read = atom(Line, read),
+		Value = {integer, Line, 1},
+		Var = var(Line, VarName),
+		call(Line, function_file, [Read, Var, Value])
 	end.
+
 
 create_function_object_class(next_int, Line, VarName, RandomValue) ->
 	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),

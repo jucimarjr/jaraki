@@ -50,9 +50,13 @@ check_var_type(_Type, {next_float, _Line, _VarScanner}) ->
 check_var_type(_Type, {next_line, _Line, _VarScanner}) ->
 	%% match_type(Type, String);
 	ok;
+check_var_type(_Type, {read, _Line, _VarFileReader}) ->
+	%% match_type(Type, int);
+	ok;
 check_var_type(_Type, {next_int, _Line, _VarName, _RandomValue}) ->
 	%% match_type(Type, int);
 	ok;
+
 
 %% TODO: verificar retorno do new, polimorfismo, etc...
 check_var_type(_Type, {new, object, {class, 3, _Type2}}) ->
@@ -66,6 +70,7 @@ check_var_type(Type, {float, Line, _Value})  -> match_type(Line, Type, float);
 check_var_type(Type, {atom, Line, true})     -> match_type(Line, Type, boolean);
 check_var_type(Type, {random, Line, _Value}) -> match_type(Line, Type, random);
 check_var_type(Type, {scanner, Line, _Value})-> match_type(Line, Type, scanner);
+check_var_type(Type, {file_reader, Line, _Value})-> match_type(Line, Type, file_reader);
 check_var_type(Type, {atom, Line, false})    -> match_type(Line, Type, boolean);
 check_var_type(Type, {text, Line, _String})  -> match_type(Line, Type, text);
 
@@ -95,6 +100,7 @@ match_type(_, float,    int)     -> ok;
 match_type(_, float,    integer) -> ok;
 match_type(_, random,    _)      -> ok;
 match_type(_, scanner,   _)      -> ok;
+match_type(_, file_reader,   _)      -> ok;
 match_type(_, Type,     Type)    -> ok;
 
 match_type(Line, _, _) ->
