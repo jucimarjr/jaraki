@@ -60,20 +60,18 @@ get_java_tokens(JavaFileName) ->
 %%-----------------------------------------------------------------------------
 %% info das classes
 get_class_info(JavaAST) ->
-	case JavaAST of 
-		[{_Line, _PackageName,
-			{class_list, [{_, {class, ClassName}, 
-			{class_body, ClassBody}}]}}] ->	{FieldsInfo, MethodsInfo} = 
-												get_members_info(ClassBody),
-											{ClassName, 
-												lists:flatten(FieldsInfo), 
-												MethodsInfo};
-		[{_, {class, ClassName}, 
-			{class_body, ClassBody}}] -> 	{FieldsInfo, MethodsInfo} = 
-												get_members_info(ClassBody),
-											{ClassName, 
-												lists:flatten(FieldsInfo), 
-												MethodsInfo}
+	case JavaAST of
+		[{_Line, _PackageName, {class_list, [{class, ClassData}]}}] ->
+			{_Line2, {name, ClassName}, {body, ClassBody}} = ClassData,
+			{FieldsInfo, MethodsInfo} = get_members_info(ClassBody),
+			LowerClassName = to_lower_atom(ClassName),
+			{LowerClassName, lists:flatten(FieldsInfo), MethodsInfo};
+
+		[{class, ClassData}] ->
+			{_Line3, {name, ClassName}, {body, ClassBody}} = ClassData,
+			{FieldsInfo, MethodsInfo} = get_members_info(ClassBody),
+			LowerClassName = to_lower_atom(ClassName),
+			{LowerClassName, lists:flatten(FieldsInfo), MethodsInfo}
 	end.
 
 %%-----------------------------------------------------------------------------
@@ -121,3 +119,8 @@ get_fields_info([VarJast | Rest], VarType, FieldsInfo) ->
 	VarValue = {VarType, []}, %% TODO: [] = Modifiers
 	NewFieldInfo = {VarKey, VarValue},
 	get_fields_info(Rest, VarType, [ NewFieldInfo | FieldsInfo ]).
+
+%%-----------------------------------------------------------------------------
+%% normaliza o nome da classe
+to_lower_atom(Atom) ->
+	list_to_atom(string:to_lower(atom_to_list(Atom))).

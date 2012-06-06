@@ -13,7 +13,7 @@
 -import(gen_ast,
 	[
 		function/4, var/2, atom/2, call/3, rcall/4, 'case'/3, clause/4,
-		'fun'/2, string/2, tuple/2, atom/2, string/2
+		'fun'/2, string/2, tuple/2, atom/2, string/2, list/2
 	]).
 -include("../include/jaraki_define.hrl").
 
@@ -35,17 +35,17 @@ match_statement({Line, print, Content}) ->
 match_statement({Line, println, Content}) ->
 	 create_print_function(Line, println, Content);
 
-%% transforma chamadas de funcoes em Erlang
+%% transforma chamadas de funcoes em Erlang funcao()
 match_statement({function_call, {Line, FunctionName},
 					{argument_list, ArgumentsList}}) ->
 	create_function_call(Line, FunctionName, ArgumentsList);
 
-%% chamada a métodos estáticos
+%% chamada a métodos estáticos ou não owner.funcao()
 match_statement({function_call,
-					{class, Line, ClassName},
+					{owner, Line, OwnerName},
 					{method, Line, FunctionName},
 					{argument_list, ArgumentsList}}) ->
-	create_function_call(Line, ClassName, FunctionName, ArgumentsList);
+	create_function_call(Line, OwnerName, FunctionName, ArgumentsList);
 
 %% Casa expressoes do tipo varivel = valor
 match_statement(
@@ -56,6 +56,10 @@ match_statement(
 		{var_value, VarValue}}
 	) ->
 	case VarValue of
+			{new, array, {type, ArrayType}, {index,
+						{row, RowLength}, {column, ColumnLength} }} ->
+			create_array(Line, VarName, ArrayType,
+								RowLength, ColumnLength);
 			{new, array, {type, ArrayType}, {index, ArrayLength}} ->
 					create_array(Line, VarName, ArrayType, ArrayLength);
 			_ -> create_attribution(Line, VarName, VarValue)
@@ -179,6 +183,12 @@ match_attr_expr({op, Line, Op, RightExp}) ->
 match_attr_expr({function_call, {Line, FunctionName},
 			{argument_list, ArgumentsList}}) ->
 	create_function_call(Line, FunctionName, ArgumentsList);
+
+%% criação de objetos
+match_attr_expr({new, object, {class, 3, ClassName}}) ->
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	rcall(0, ClassName2, '__constructor__', []);
+
 %% chamada a métodos estáticos
 match_attr_expr({function_call,
 					{class, Line, ClassName},
@@ -196,6 +206,11 @@ match_attr_expr({next_line, Line, VarName})->
 	create_function_object_class(next_line, Line, VarName);
 match_attr_expr({next_int, Line, VarName, Value})->
 	create_function_object_class(next_int, Line, VarName, Value);
+
+%%Cria ast para atribuições com FileReader
+match_attr_expr({read, Line, VarName})->
+	create_function_object_class(read, Line, VarName);
+
 match_attr_expr({length, Line, VarLength})->
 	ArrayGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
 			string(Line, VarLength)]),
@@ -209,6 +224,8 @@ match_attr_expr({atom, _Line, true} = Element) ->
 	Element;
 match_attr_expr({atom, _Line, false} = Element) ->
 	Element;
+match_attr_expr({text, Line, String}) ->
+	{string, Line, String};
 match_attr_expr({op, Line, Op, LeftExp, RightExp}) ->
 	{op, Line, Op, match_attr_expr(LeftExp), match_attr_expr(RightExp)};
 match_attr_expr({var, Line, VarName}) ->
@@ -278,13 +295,20 @@ create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 					ok
 			end;
 
+		{new, object, {type, _ClassType}, {file, File}} ->				
+				FileAst = create_attribution(new, VarName, VarLine, File),
+				create_declaration_list(VarLine, Rest, [FileAst | VarAstList]);
+
 		_ ->
 			VarAst = create_attribution(VarLine, VarName, VarValue),
 			create_declaration_list(VarLine, Rest, [VarAst| VarAstList])
 	end.
 
+
+
+
 %-------------------------------------------------------------------------------
-% Cria elemento da east para Scanner e Random
+% Cria elemento da east para Scanner, Random e FileReader
 create_function_object_class(next_int, Line, VarName) ->
 	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),
 
@@ -319,7 +343,25 @@ create_function_object_class(next_line, Line, VarName) ->
 		rcall(Line, io, fread, [Prompt, ConsoleContent]);
 		'Random' ->
 		no_operation
+	end;
+
+create_function_object_class(read, Line, VarName) ->
+	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),
+
+	case Type of
+	   'Scanner' ->
+		no_operation;
+	    'Random' ->
+		no_operation;
+	    'FileReader' ->
+		Read = atom(Line, read),
+		Value = {integer, Line, 1},
+		Var = rcall(Line, st, get_value, [atom(Line, st:get_scope()),
+				string(Line, VarName)]),
+
+		call(Line, function_file, [Read, Var, Value])
 	end.
+
 
 create_function_object_class(next_int, Line, VarName, RandomValue) ->
 	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),
@@ -447,19 +489,72 @@ create_function_call(Line, FunctionName, ArgumentsList) ->
 		[Fun, atom(Line, FunctionName),
 			create_list(TransformedArgumentList, Line)]).
 
-%% Chamada do tipo Classe.Metodo()
-create_function_call(Line, ClassName, FunctionName, ArgumentsList) ->
-	TransformedArgumentList = [match_attr_expr(V) || V <- ArgumentsList],
-	FunctionCall= rcall(Line, ClassName, FunctionName, TransformedArgumentList),
+%% Chamada do tipo Owner.Metodo()
+create_function_call(Line, Owner, FunctionName, ArgumentsList) ->
+	case st:is_declared_var(st:get_scope(), Owner) of
+		true ->
+			create_object_method_call(Line, Owner, FunctionName, ArgumentsList);
+		false ->
+			create_static_method_call(Line, Owner, FunctionName, ArgumentsList)
+	end.
+
+create_object_method_call(Line, ObjVarName, FunctionName, ArgumentList) ->
+	ScopeAst = atom(Line, st:get_scope()),
+	ObjVarNameAst = string(Line, ObjVarName),
+	ObjectIDAst = rcall(Line, st, get_value, [ScopeAst, ObjVarNameAst]),
+
+	ObjectClassAst = rcall(Line, oo_lib, get_class, [ObjectIDAst]),
+
+	ArgumentAstList = [ObjectIDAst]++[match_attr_expr(V) || V <- ArgumentList],
+	ArgumentListAst = list(Line, ArgumentAstList),
+
+	FunctionNameAst = atom(Line, FunctionName),
+
+	ApplyArguments = [ObjectClassAst, FunctionNameAst, ArgumentListAst],
+	rcall(Line, erlang, apply, ApplyArguments).
+
+create_static_method_call(Line, ClassName, FunctionName, ArgumentsList) ->
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	ArgumentListAst = [match_attr_expr(V) || V <- ArgumentsList],
+	FunctionCall= rcall(Line, ClassName2, FunctionName, ArgumentListAst),
 	Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),
 	rcall(Line, st, return_function,
 		[Fun, atom(Line, FunctionName),
-			create_list(TransformedArgumentList, Line)]).
+			create_list(ArgumentListAst, Line)]).
+
+
 
 create_list([], Line) ->
 	{nil, Line};
 create_list([Element| Rest], Line) ->
 	{cons, Line, Element, create_list(Rest, Line)}.
+
+%%-----------------------------------------------------------------------------
+%% Cria o elemento da east para atribuiçao de campos de um objeto
+%% TODO: detecção de erro como:
+%%			variável não declarada (que contém o objectID)
+%%			não existente (campos não declarados na classe)
+create_attribution(Line, {field, FieldInfoJast}, VarValue) ->
+	{ObjectVarName, FieldName} = FieldInfoJast,
+
+	ScopeAst = atom(Line, st:get_scope()),
+	ObjectVarNameAst = string(Line, ObjectVarName),
+	ObjectIDAst = rcall(Line, st, get_value, [ScopeAst, ObjectVarNameAst]),
+
+	{ClassName, _VarValue} = st:get2(Line, st:get_scope(), ObjectVarName),
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+
+	{FieldType, _Modifiers} = st:get_field_info(ClassName2, FieldName),
+	FieldTypeAst = gen_ast:type_to_ast(Line, FieldType),
+
+	jaraki_exception:check_var_type(FieldType, VarValue),
+
+	VarValueAst  = match_attr_expr(VarValue),
+	FieldNameAst = atom(Line, FieldName),
+	FieldTypeAst = atom(Line, FieldType),
+	FieldAst     = tuple(Line, [FieldNameAst, FieldTypeAst, VarValueAst]),
+
+	rcall(Line, oo_lib, update_attribute, [ObjectIDAst, FieldAst]);
 
 %%-----------------------------------------------------------------------------
 %% Cria o elemento da east para atribuiçao de variaveis do java
@@ -483,6 +578,21 @@ create_attribution(Line, VarName, VarValue) ->
 				tuple(Line, [TypeAst, NewTransformedVarValue])]);
 		_ -> no_operation
 	end.
+
+%% Cria elemento east para instanciacao do FileReader
+create_attribution(new, VarName, VarLine, File) -> 	
+	New = atom(VarLine, new),
+	Read = atom(VarLine, read),
+	FileRead = string(VarLine, File),
+	FunctionFile = call(VarLine, function_file, [New, FileRead, Read]),
+
+	{Type, _VarValue} = st:get2(VarLine, st:get_scope(), VarName),
+	ScopeAst = atom(VarLine, st:get_scope()),
+	JavaNameAst = string(VarLine, VarName),
+	TypeAst = gen_ast:type_to_ast(VarLine, Type),
+
+	rcall(VarLine, st, put_value, [tuple(VarLine, [ScopeAst, JavaNameAst]), tuple(VarLine, [TypeAst, FunctionFile])]);
+
 %%------------------------------------------------------------------------------
 %% Cria elemento da east para atribuicao de array
 create_attribution(Line, ArrayName, ArrayIndex, VarValue) ->

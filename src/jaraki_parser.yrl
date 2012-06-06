@@ -17,7 +17,7 @@ method_declaration field_declaration
 block block_statements
 method_invocation field_access
 local_variable_declaration_statement element_value type variable_list
-array_declaration_list array_declaration_list2 array_declaration_list3 
+array_declaration_list array_declaration_list2 array_declaration_list3
 array_initializer array_access
 new_stmt
 add_expr mult_expr modulus_expr
@@ -81,7 +81,7 @@ class_list -> class_declaration				: ['$1'].
 class_list -> class_declaration class_list	: ['$1' | '$2'].
 
 class_declaration -> public class identifier '{' class_body '}':
-	{line('$3'), {class, unwrap('$3')}, {class_body, '$5'}}.
+	{class, {line('$3'), {name, unwrap('$3')}, {body, '$5'}}}.
 
 %% MethodOrFieldDecl
 class_body -> method_declaration			: ['$1'].
@@ -100,7 +100,7 @@ method_declaration -> public static type identifier
 			{line('$4'), '$3', {method, unwrap('$4')}, '$6', '$8'}.
 
 %% IOexception
-method_declaration -> public static type identifier 
+method_declaration -> public static type identifier
 					'(' parameters_list ')' 'throws' io_exception block:
 			{line('$4'), '$3', {method, unwrap('$4')}, '$6', '$10'}.
 
@@ -312,8 +312,7 @@ new_stmt -> 'new' scanner '(' system_in ')':
 
 new_stmt -> 'new' file_reader '(' text ')':
 		Type = {line('$2'), unwrap('$2')},
-		{new, object, {type, Type}}.
-
+		{new, object, {type, Type}, {file, unwrap('$4')}}.
 %% Funcoes da classe FileReader
 
 read_stmt -> identifier '.' read '(' ')' :
@@ -386,7 +385,7 @@ element_value_pair ->  identifier '[' element_value ']' '[' element_value ']''='
 
 %% atribuição de membros de objetos (atributos)
 element_value_pair ->	identifier '.' identifier '=' element_value ';':
-	VarName = {field, unwrap('$1'), unwrap('$3')},
+	VarName = {field, {unwrap('$1'), unwrap('$3')}},
 	{line('$1'), attribution, {var, VarName}, {var_value, '$5'}}.
 
 %%--------------
@@ -455,6 +454,12 @@ for_update -> identifier increment_op :
 				Var = {var, line('$1'), unwrap('$1')},
 				{inc_op, line('$1'), unwrap('$2'), Var}.
 
+%% Vetor
+for_update -> array_access increment_op :
+				Var = '$1',
+				{inc_op, line('$2'), unwrap('$2'), Var}.
+
+
 post_increment_expr -> identifier increment_op ';':
 				Var = {var, line('$1'), unwrap('$1')},
 				{inc_op, line('$1'), unwrap('$2'), Var}.
@@ -474,6 +479,23 @@ for_no_trailing -> for '(' int_t identifier '=' bool_expr ';'
 				{for_init, {var_type, unwrap('$3')}, {var_name, unwrap('$4')}},
 				{for_start, '$6'}, {condition_expr, '$8'},
 				{inc_expr, '$10'}, {for_body, '$12'}}.
+%% END_FOR
+
+%% BEGIN_FOR Vetor
+for_stmt -> for '(' array_access '=' bool_expr ';' bool_expr ';'
+				for_update  ')'  statement :
+			{line('$1'), for,
+				{for_init , {var_name, '$3'}},
+				{for_start, '$5'}, {condition_expr, '$7'},
+				{inc_expr, '$9'}, {for_body, '$11'}}.
+
+for_no_trailing -> for '(' array_access '=' bool_expr ';'
+					bool_expr ';'
+					for_update ')'  no_short_if_stmt :
+			{line('$1'), for,
+				{for_init,  {var_name, unwrap('$3')}},
+				{for_start, '$5'}, {condition_expr, '$7'},
+				{inc_expr, '$9'}, {for_body, '$11'}}.
 %% END_FOR
 
 %%BEGIN WHILE
@@ -509,19 +531,19 @@ method_invocation -> identifier '(' argument_list ')':
 
 %% chamada a método estático, na realidade significado do nome é resolvido
 %% na análise SEMÂNTICA
+%% Owner é tanto o nome de uma Classe quanto de uma variável!!
+%% Math.sqrt()   ou   b.trocaCor()
 method_invocation -> identifier '.' identifier '(' ')':
-	ClassName = string:to_lower(atom_to_list(unwrap('$1'))),
-	Class = {class, line('$1'), ClassName},
+	Owner = {owner, line('$1'), unwrap('$1')},
 	Method = {method, line('$3'), unwrap('$3')},
 	ArgumentList = {argument_list, []},
-	{function_call, Class, Method, ArgumentList}.
+	{function_call, Owner, Method, ArgumentList}.
 
 method_invocation -> identifier '.' identifier '(' argument_list ')':
-	ClassName = string:to_lower(atom_to_list(unwrap('$1'))),
-	Class = {class, line('$1'), ClassName},
+	Owner = {owner, line('$1'), unwrap('$1')},
 	Method = {method, line('$3'), unwrap('$3')},
 	ArgumentList = {argument_list, '$5'},
-	{function_call, Class, Method, ArgumentList}.
+	{function_call, Owner, Method, ArgumentList}.
 
 %% END_FUNCTION
 

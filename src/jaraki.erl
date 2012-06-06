@@ -82,8 +82,12 @@ get_erl_file(JavaFileName) ->
 	ErlangModuleName= get_erl_modulename(JavaAST),
 
 	ErlangFileName= get_erl_filename(ErlangModuleName),
+
+	JavaAST = ast:get_java_ast(JavaFileName),
+	ClassInfo = ast:get_class_info(JavaAST),
+
 	{ok, ErlangAST} =
-		core:transform_jast_to_east(JavaAST, ErlangModuleName, []),
+		core:transform_jast_to_east(JavaAST, ErlangModuleName, [ClassInfo]),
 	create_erl_file(ErlangAST,ErlangFileName),
 
 	ErlangFileName.
@@ -106,12 +110,12 @@ get_erl_filename(ErlangModuleName) ->
 %% o nome do modulo eh o nome da classe
 get_erl_modulename(JavaAST) ->
 	case JavaAST of
-		[{_Line1, _PackageName, {class_list, [{_Line2, {class, JavaClassName}, 
-			_JavaClassBody}]}}] ->	list_to_atom(string:to_lower(
-												atom_to_list(JavaClassName)));
-		[{_Line, {class, JavaClassName}, 
-			_JavaClassBody}] 	->	list_to_atom(string:to_lower(
-												atom_to_list(JavaClassName)))
+		[{_Line1, _PackageName, {class_list, [{class, ClassData}]}}] ->
+			{_Line2, {name, JavaClassName}, {body, _JavaClassBody}} = ClassData,
+			list_to_atom(string:to_lower(atom_to_list(JavaClassName)));
+		[{class, ClassData}] ->
+			{_Line3, {name, JavaClassName}, {body, _JavaClassBody}} = ClassData,
+			list_to_atom(string:to_lower(atom_to_list(JavaClassName)))
 	end.
 
 

@@ -11,7 +11,7 @@
 		update_counter/2,
 
 		%% tratar variáveis na semântica
-		get2/3,			get_declared/5,
+		get2/3,			get_declared/5,			is_declared_var/2,
 		put_scope/1,	get_scope/0,
 		put_error/2,	get_errors/0,
 		lookup/1,		insert/2,
@@ -19,13 +19,14 @@
 		%% informações das classes
 		insert_classes_info/1,	exist_class/1,
 		exist_method/3,			get_method_info/3,
-		exist_field/2,			get_field_info/2
+		exist_field/2,			get_field_info/2,	get_all_fields_info/1
 	]).
 
 new() ->
 	put(errors, []),
 	put(scope, '__undefined__'),
-	put(array_address, 0).
+	put(array_address, 0),
+	put(matrix_address, 0).
 
 destroy() ->
 	erase(), ok.
@@ -121,6 +122,14 @@ get_declared(Line, Scope, VarName, Type, VarValue) ->
 			{jaraki_exception:handle_error(Line, 2), undefined}
 	end.
 
+is_declared_var(Scope, VarName) ->
+	case get({Scope, VarName, get_stack(Scope)}) of
+		undefined ->
+			false;
+		_ ->
+			true
+	end.
+
 put_scope(Scope) ->
 	put(scope, Scope).
 
@@ -212,6 +221,11 @@ get_method_info(ClassName, MethodName, Parameters) ->
 %%----------------------------------------------------------------------------
 %%                              CAMPOS
 %%
+%% busca informações de todos os campos declarados
+get_all_fields_info(ClassName) ->
+	{FieldList, _} = get({oo_classes, ClassName}),
+	FieldList.
+
 %% verifica se variável existe na classe
 exist_field(ClassName, FieldName) ->
 	case get_field_info(ClassName, FieldName) of

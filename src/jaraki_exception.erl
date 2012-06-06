@@ -50,24 +50,29 @@ check_var_type(_Type, {next_float, _Line, _VarScanner}) ->
 check_var_type(_Type, {next_line, _Line, _VarScanner}) ->
 	%% match_type(Type, String);
 	ok;
+check_var_type(_Type, {read, _Line, _VarFileReader}) ->
+	%% match_type(Type, int);
+	ok;
 check_var_type(_Type, {next_int, _Line, _VarName, _RandomValue}) ->
 	%% match_type(Type, int);
 	ok;
 
+
+%% TODO: verificar retorno do new, polimorfismo, etc...
+check_var_type(_Type, {new, object, {class, 3, _Type2}}) ->
+	ok;
+
 check_var_type(Type, {op, Line, Op, RightExp}) ->
 	{op, Line, Op, check_var_type(Type, RightExp)};
-check_var_type(Type, {integer, Line, _Value}) ->
-	match_type(Line, Type, integer);
-check_var_type(Type, {float, Line, _Value}) ->
-	match_type(Line, Type, float);
-check_var_type(Type, {atom, Line, true}) ->
-	match_type(Line, Type, boolean);
-check_var_type(Type, {random, Line, _Value}) ->
-	match_type(Line, Type, random);
-check_var_type(Type, {scanner, Line, _Value}) ->
-	match_type(Line, Type, scanner);
-check_var_type(Type, {atom, Line, false}) ->
-	match_type(Line, Type, boolean);
+
+check_var_type(Type, {integer, Line, _Value})-> match_type(Line, Type, integer);
+check_var_type(Type, {float, Line, _Value})  -> match_type(Line, Type, float);
+check_var_type(Type, {atom, Line, true})     -> match_type(Line, Type, boolean);
+check_var_type(Type, {random, Line, _Value}) -> match_type(Line, Type, random);
+check_var_type(Type, {scanner, Line, _Value})-> match_type(Line, Type, scanner);
+check_var_type(Type, {file_reader, Line, _Value})-> match_type(Line, Type, file_reader);
+check_var_type(Type, {atom, Line, false})    -> match_type(Line, Type, boolean);
+check_var_type(Type, {text, Line, _String})  -> match_type(Line, Type, text);
 
 check_var_type(Type, {op, Line, Op, LeftExp, RightExp}) ->
 	{op, Line, Op,
@@ -87,13 +92,16 @@ check_var_type(AttrArrayType, {{var, Line, ArrayName},
 	{{matrix, ExprVarType}, _Value} = st:get2(Line, st:get_scope(), ArrayName),
 	match_type(Line, AttrArrayType, ExprVarType).
 
-match_type(_, int, integer) -> ok;
-match_type(_, long, integer) -> ok;
-match_type(_, double, integer) -> ok;
-match_type(_, float, int) -> ok;
-match_type(_, float, integer) -> ok;
-match_type(_, random, _) -> ok;
-match_type(_, scanner, _) -> ok;
-match_type(_, Type, Type) -> ok;
+match_type(_, 'String', text)    -> ok;
+match_type(_, int,      integer) -> ok;
+match_type(_, long,     integer) -> ok;
+match_type(_, double,   integer) -> ok;
+match_type(_, float,    int)     -> ok;
+match_type(_, float,    integer) -> ok;
+match_type(_, random,    _)      -> ok;
+match_type(_, scanner,   _)      -> ok;
+match_type(_, file_reader,   _)      -> ok;
+match_type(_, Type,     Type)    -> ok;
+
 match_type(Line, _, _) ->
 	handle_error(Line, 3).
