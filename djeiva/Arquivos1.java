@@ -1,5 +1,8 @@
 package arquivos;
 
+package arquivos;
+
+
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -9,7 +12,7 @@ public class Arquivos1 {
     
 		int caracter;
 		int counter = 0;
-		FileReader arq = new FileReader("/home/josie/teste.txt");
+		FileReader	arq = new FileReader("/home/josie/teste.txt");
 				
     	
 		caracter = arq.read();
