@@ -415,6 +415,11 @@ print_content -> text : ['$1'].
 
 print_content -> identifier : ['$1'].
 
+print_content -> identifier '.' identifier : [{field, '$1', '$3'}].
+
+print_content -> identifier '.' identifier add_op print_content :
+				[{field, unwrap('$1'), unwrap('$3')} | '$5'].
+
 print_content -> text add_op print_content : ['$1' | '$3'].
 
 print_content -> identifier add_op print_content : ['$1' | '$3'].
@@ -612,7 +617,8 @@ literal -> singles_quotes			: '$1'.
 literal -> text					: '$1'.
 literal -> integer				: '$1'.
 literal -> float				: '$1'.
-literal -> identifier			:  {var, line('$1'), unwrap('$1')}.
+literal -> identifier				 : {var, line('$1'), unwrap('$1')}.
+%literal -> identifier '.' identifier : {field, '$1', '$3'}.
 literal -> '(' bool_expr ')'	: '$2'.
 literal -> true					: {atom, line('$1'), true}.
 literal -> false				: {atom, line('$1'), false}.

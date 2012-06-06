@@ -394,57 +394,64 @@ print_text([], Line, Text, print) ->
 print_text([], Line, Text, println) ->
 	string(Line, Text ++ "~n");
 print_text([Head | L], Line, Text, _print) ->
-	case Head of
-	{{var, _, PrintElement}, _ArrayIndex} ->
-		case st:get2(Line, st:get_scope(), PrintElement) of
-			{{array, TypeId}, _VarValue} ->
-				case TypeId of
-					int ->
-						print_text(L, Line, Text ++ "~p", _print);
-					float ->
-						print_text(L, Line, Text ++ "~f", _print);
-					_ ->
-						print_text(L, Line, Text ++ "~s", _print)
-				end;
-			{{matrix, TypeId}, _VarValue} ->
-				case TypeId of
-					int ->
-						print_text(L, Line, Text ++ "~p", _print);
-					float ->
-						print_text(L, Line, Text ++ "~f", _print);
-					_ ->
-						print_text(L, Line, Text ++ "~s", _print)
-				end;
-			_ -> no_operation
-		end;
-	{Type, _, PrintElement} ->
-		case Type of
-			identifier ->
+	case get_print_format(Line, Head) of
+		no_operation ->
+			no_operation;
+		PrintFormat ->
+			print_text(L, Line, Text ++ PrintFormat, _print)
+	end.
+
+get_print_format(Line, {{var, _, PrintElement}, _ArrayIndex}) ->
+	case st:get2(Line, st:get_scope(), PrintElement) of
+		{{array, TypeId}, _VarValue} ->
+			match_format_type(TypeId);
+
+		{{matrix, TypeId}, _VarValue} ->
+			match_format_type(TypeId);
+
+		_ -> no_operation
+	end;
+
+get_print_format(Line, {field, ObjectVarName, FieldName}) ->
+	case st:get2(Line, st:get_scope(), ObjectVarName) of
+		{ClassName, _VarValue} ->
+			{TypeId, _Modifiers} = st:get_field_info(ClassName, FieldName),
+			match_format_type(TypeId);
+
+		_ -> no_operation
+	end;
+
+get_print_format(Line, {Type, _, PrintElement}) ->
+	case Type of
+		identifier ->
 			case st:get2(Line, st:get_scope(), PrintElement) of
 				{TypeId, _VarValue} ->
-					case TypeId of
-						int ->
-							print_text(L, Line, Text ++ "~p", _print);
-						long ->
-							print_text(L, Line, Text ++ "~p", _print);
-						float ->
-							print_text(L, Line, Text ++ "~f", _print);
-						double ->
-							print_text(L, Line, Text ++ "~f", _print);
-						_ ->
-							print_text(L, Line, Text ++ "~s", _print)
-					end;
-			_ -> no_operation
+					match_format_type(TypeId);
+
+				_ -> no_operation
 			end;
-		text ->
-			print_text(L, Line, Text ++ "~s", _print)
-		end
+
+		text -> "~s"
 	end.
+
+match_format_type(int)		-> "~p";
+match_format_type(long)		-> "~p";
+match_format_type(float)	-> "~f";
+match_format_type(double)	-> "~f";
+match_format_type(_)		-> "~s".
 
 print_list([], Line) ->
 	{nil, Line};
 print_list([Element|L], Line) ->
 	case Element of
+		{field, ObjectVarName, FieldName} ->
+			ScopeAst = atom(Line, st:get_scope()),
+			ObjectVarNameAst = string(Line, ObjectVarName),
+			ObjectIDAst=rcall(Line,st,get_value, [ScopeAst, ObjectVarNameAst]),
+
+			FieldNameAst = atom(Line, FieldName),
+			rcall(Line, oo_lib, get_attribute, [ObjectIDAst, FieldNameAst]);
+
 		{{var, _, PrintElement}, {index, ArrayIndex} } ->
 			IndexGetAst = match_attr_expr(ArrayIndex),
 
