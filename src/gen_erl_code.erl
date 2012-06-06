@@ -296,7 +296,7 @@ create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 			end;
 
 		{new, object, {type, _ClassType}, {file, File}} ->				
-				FileAst = create_file(new, VarLine, File),
+				FileAst = create_attribution(new, VarName, VarLine, File),
 				create_declaration_list(VarLine, Rest, [FileAst | VarAstList]);
 
 		_ ->
@@ -305,15 +305,10 @@ create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 	end.
 
 
-%% Cria Ast para instanciacao do FileReader
-create_file(new, VarLine, File) -> 	
-	New = atom(VarLine, new),
-	Read = atom(VarLine, read),
-	FileRead = string(VarLine, File),
-	call(VarLine, function_file, [New, FileRead, Read]).
+
 
 %-------------------------------------------------------------------------------
-% Cria elemento da east para Scanner e Random
+% Cria elemento da east para Scanner, Random e FileReader
 create_function_object_class(next_int, Line, VarName) ->
 	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),
 
@@ -361,7 +356,9 @@ create_function_object_class(read, Line, VarName) ->
 	    'FileReader' ->
 		Read = atom(Line, read),
 		Value = {integer, Line, 1},
-		Var = var(Line, VarName),
+		Var = rcall(Line, st, get_value, [atom(Line, st:get_scope()),
+				string(Line, VarName)]),
+
 		call(Line, function_file, [Read, Var, Value])
 	end.
 
@@ -581,6 +578,21 @@ create_attribution(Line, VarName, VarValue) ->
 				tuple(Line, [TypeAst, NewTransformedVarValue])]);
 		_ -> no_operation
 	end.
+
+%% Cria elemento east para instanciacao do FileReader
+create_attribution(new, VarName, VarLine, File) -> 	
+	New = atom(VarLine, new),
+	Read = atom(VarLine, read),
+	FileRead = string(VarLine, File),
+	FunctionFile = call(VarLine, function_file, [New, FileRead, Read]),
+
+	{Type, _VarValue} = st:get2(VarLine, st:get_scope(), VarName),
+	ScopeAst = atom(VarLine, st:get_scope()),
+	JavaNameAst = string(VarLine, VarName),
+	TypeAst = gen_ast:type_to_ast(VarLine, Type),
+
+	rcall(VarLine, st, put_value, [tuple(VarLine, [ScopeAst, JavaNameAst]), tuple(VarLine, [TypeAst, FunctionFile])]);
+
 %%------------------------------------------------------------------------------
 %% Cria elemento da east para atribuicao de array
 create_attribution(Line, ArrayName, ArrayIndex, VarValue) ->
