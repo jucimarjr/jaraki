@@ -1,9 +1,0 @@
-tempo erlang 500.000
-1 min, 4 segundos
-erlc testando
-time erl -noshell -eval "for5:main([])." -s erlang halt
-
-
-tempo java 500.000
-1 min, 2 segundos
-time java For5

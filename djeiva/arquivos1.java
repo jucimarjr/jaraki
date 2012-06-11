@@ -18,13 +18,13 @@ public class Arquivos1 {
 		caracter = arq.read();
     
 		while(!(caracter == -1)){    		
-			if(caracter != ' '){
+			//if(caracter != ' '){
 				counter ++;
-			}		
+			//}		
 			caracter = arq.read();
 		}
      
-		arq.close();
+		//arq.close();
 		System.out.println("O numero de caracteres do arquivo é:" + counter);
     
 	}
