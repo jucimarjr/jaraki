@@ -197,8 +197,8 @@ create_module(Name, ErlangAST, OOFuns) ->
 			{attribute ,6, import, {vector,[{new,1},{get_vector,1}]}},
 			{attribute ,7, import, {matrix,[{new_matrix,1},
 						{creation_matrix,2}]}},
-			{attribute, 4, import, {randomLib, [{function_random, 2}]}},
-			{attribute, 4, import, {fileLib, [{function_file, 3}, {function_file, 0}]}}]
+			{attribute, 4, import, {random_lib, [{function_random, 2}]}},
+			{attribute, 4, import, {file_lib, [{function_file, 3}, {function_file, 0}]}}]
 	++ OOFuns ++ hd(ErlangAST) ++ [ { eof, 1 }].
 
 %%-----------------------------------------------------------------------------

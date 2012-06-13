@@ -8,7 +8,7 @@
 %% Orientador : Prof Jucimar Jr ( jucimar.jr@gmail.com )
 %% Objetivo : ...
 
--module(filelib).
+-module(file_lib).
 -export([function_file/3]).
 
 

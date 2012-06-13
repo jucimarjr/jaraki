@@ -8,7 +8,7 @@
 %% Orientador : Prof Jucimar Jr ( jucimar.jr@gmail.com )
 %% Objetivo : ...
 
--module(randomLib).
+-module(random_lib).
 -export([function_random/2]).
 
 
