@@ -4,15 +4,10 @@ INCLUDE_DIR=include
 TEST_EBIN_DIR=test/ebin
 JAVA_SRC_DIR = java_src
 JAVA_CLASS_DIR = $(JAVA_SRC_DIR)/class
-ERLC=erlc -I $(INCLUDE_DIR)# -W0
-ERL=erl -noshell -pa $(EBIN_DIR) -pa $(TEST_EBIN_DIR)
+ERLC=erlc -I $(INCLUDE_DIR)
+ERL=erl -noshell -pa $(EBIN_DIR) 
 JAVAC=javac -verbose
 JAVA=java
-
-#ESRC_FILES=ast.erl gen_erl_code.erl jaraki_parser.erl\
-			loop.erl testScanner.erl core.erl jaraki.erl\
-			randomLib.erl vector.erl gen_ast.erl jaraki_exception.erl\
-			jaraki_utils.erl st.erl
 
 .PHONY: clean debug
 
@@ -25,7 +20,7 @@ test:   compile
 	@ rm -rf $(TEST_EBIN_DIR)/
 	@ mkdir -p $(TEST_EBIN_DIR)
 	@ $(ERLC) -o $(TEST_EBIN_DIR) test/test.erl
-	@ $(ERL) -eval 'eunit:test("test/ebin", [verbose]), halt().'
+	@ erl -noshell -pa test/ebin -eval 'code:add_path("ebin"), eunit:test("test/ebin", [verbose]), halt().'
 	@ mv *.erl $(TEST_EBIN_DIR)
 	@ mv *.beam $(TEST_EBIN_DIR)
 
