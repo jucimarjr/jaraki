@@ -192,10 +192,12 @@ insert_classes_info(ClassesInfoList) ->
 
 %% insere informação de uma classe
 put_class_info({ClassName, Fields, Methods}) ->
-	put({oo_classes, ClassName}, {Fields, Methods}).
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	put({oo_classes, ClassName2}, {Fields, Methods}).
 
 exist_class(ClassName) ->
-	case get({oo_classes, ClassName}) of
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	case get({oo_classes, ClassName2}) of
 		undefined  -> false;
 		_ClassInfo -> true
 	end.
@@ -223,7 +225,8 @@ get_method_info(ClassName, MethodName, Parameters) ->
 %%
 %% busca informações de todos os campos declarados
 get_all_fields_info(ClassName) ->
-	{FieldList, _} = get({oo_classes, ClassName}),
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	{FieldList, _} = get({oo_classes, ClassName2}),
 	FieldList.
 
 %% verifica se variável existe na classe
@@ -244,7 +247,8 @@ get_field_info(ClassName, FieldName) ->
 %% busca informações de um membro da classe (método ou campo)
 %% MemberType = field | method
 get_member_info(MemberType, ClassName, MemberKey) ->
-	{FieldList, MethodList} = get({oo_classes, ClassName}),
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	{FieldList, MethodList} = get({oo_classes, ClassName2}),
 	case MemberType of
 		field ->
 			get_member_info(MemberKey, FieldList);

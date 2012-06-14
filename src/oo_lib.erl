@@ -61,7 +61,7 @@ declare_object(ObjectID, ClassName, SuperClasses) ->
 %% obtém a classe de um determinado objeto
 get_class(ObjectID) ->
 	Key = {object, ObjectID},
-	[{_Key, {ClassName, _SuperClasses}}] = ets:lookup(dict, Key),
+	{ClassName, _SuperClasses} = get(Key),
 	ClassName.
 
 %%-----------------------------------------------------------------------------
@@ -78,5 +78,5 @@ update_attribute(ObjectID, {VarName, VarType, NewVarValue}) ->
 %% acessar o atributo de um determinado objeto
 get_attribute(ObjectID, VarName) ->
 	Key = {object_var, ObjectID, VarName},
-	[{_Key, {_Type, Value}}] = ets:lookup(dict, Key),
+	{_Type, Value} = get(Key),
 	Value.

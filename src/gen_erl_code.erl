@@ -450,7 +450,9 @@ print_list([Element|L], Line) ->
 			ObjectIDAst=rcall(Line,st,get_value, [ScopeAst, ObjectVarNameAst]),
 
 			FieldNameAst = atom(Line, FieldName),
-			rcall(Line, oo_lib, get_attribute, [ObjectIDAst, FieldNameAst]);
+			FieldParameters = [ObjectIDAst, FieldNameAst],
+			FieldAst = rcall(Line, oo_lib, get_attribute, FieldParameters),
+			{cons, Line, FieldAst, print_list(L, Line)};
 
 		{{var, _, PrintElement}, {index, ArrayIndex} } ->
 			IndexGetAst = match_attr_expr(ArrayIndex),

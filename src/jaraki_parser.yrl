@@ -415,7 +415,8 @@ print_content -> text : ['$1'].
 
 print_content -> identifier : ['$1'].
 
-print_content -> identifier '.' identifier : [{field, '$1', '$3'}].
+print_content -> identifier '.' identifier :
+				[{field, unwrap('$1'), unwrap('$3')}].
 
 print_content -> identifier '.' identifier add_op print_content :
 				[{field, unwrap('$1'), unwrap('$3')} | '$5'].
