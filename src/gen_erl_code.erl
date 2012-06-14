@@ -772,7 +772,8 @@ create_for(Line, VarType, VarName, Start, CondExpr, IncExpr, Body) ->
 				tuple(Line, [ScopeAst, JavaNameAst]),
 				tuple(Line, [TypeAst, match_attr_expr(Start)])]),
 
-	st:put_value({Scope, VarName}, {VarType, undefined}),
+	st:	get_declared(Line, Scope, VarName, VarType, undefined),
+	%st:put_value({Scope, VarName}, {VarType, undefined}),
 
 	CondAst	= 'fun'(Line, [clause(Line, [], [], [match_attr_expr(CondExpr)])]),
 	IncAst	= 'fun'(Line, [clause(Line, [], [], [match_statement(IncExpr)])]),
