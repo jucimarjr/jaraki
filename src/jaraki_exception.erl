@@ -62,6 +62,11 @@ check_var_type(_Type, {next_int, _Line, _VarName, _RandomValue}) ->
 check_var_type(_Type, {new, object, {class, 3, _Type2}}) ->
 	ok;
 
+check_var_type(Type, {field_access, {Line, ObjectVarName, FieldName}}) ->
+	{ClassName, _VarValue} = st:get2(Line, st:get_scope(), ObjectVarName),
+	{FieldType, _Modifiers} = st:get_field_info(ClassName, FieldName),
+	match_type(Line, Type, FieldType);
+
 check_var_type(Type, {op, Line, Op, RightExp}) ->
 	{op, Line, Op, check_var_type(Type, RightExp)};
 

@@ -216,6 +216,16 @@ match_attr_expr({length, Line, VarLength})->
 			string(Line, VarLength)]),
 	rcall(Line, vector, size_vector, [ArrayGetAst]);
 
+match_attr_expr({field_access, FieldInfo}) ->
+	{Line, ObjectVarName, FieldName} = FieldInfo,
+	ScopeAst = atom(Line, st:get_scope()),
+	ObjectVarNameAst = string(Line, ObjectVarName),
+	ObjectIDAst = rcall(Line, st, get_value, [ScopeAst, ObjectVarNameAst]),
+
+	FieldNameAst = atom(Line, FieldName),
+	FieldParameters = [ObjectIDAst, FieldNameAst],
+	rcall(Line, oo_lib, get_attribute, FieldParameters);
+
 match_attr_expr({integer, _Line, _Value} = Element) ->
 	Element;
 match_attr_expr({float, _Line, _Value} = Element) ->

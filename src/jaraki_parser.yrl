@@ -556,7 +556,7 @@ method_invocation -> identifier '.' identifier '(' argument_list ')':
 %% BEGIN_FIELD
 
 field_access -> identifier '.' identifier:
-	{field_access, unwrap('$1'), unwrap('$3')}.
+	{field_access, {line('$1'), unwrap('$1'), unwrap('$3')}}.
 
 %% END_FIELD
 
