@@ -70,8 +70,8 @@ match_erl_member([Member | Rest], ErlangModuleBody) ->
 		{var_declaration, _VarType, _VarList} ->
 			match_erl_member(Rest, ErlangModuleBody);
 
-		Method ->
-			TransformedMethod = get_erl_function(Method),
+		{method, MethodData} ->
+			TransformedMethod = get_erl_function(MethodData),
 			match_erl_member(Rest, [TransformedMethod | ErlangModuleBody])
 	end.
 
@@ -79,9 +79,8 @@ match_erl_member([Member | Rest], ErlangModuleBody) ->
 %% Extrai uma funcao erl de um metodo java
 %% ISSUE: funciona apenas para métodos públicos
 %% TODO: tratar visibilidade dos métodos quando trabalhar com POO.
-get_erl_function({Line, _Type, {method, main}, Parameters,
-					{block, _BlockLine, JavaMethodBody}})	 ->
-
+get_erl_function({Line, _Return, {name, main}, Modifiers, Parameters, Block}) ->
+	{block, _BlockLine, JavaMethodBody} = Block,
 	[{_Line, {var_type, {_Line, ArgClass}}, _ArgName}] = Parameters,
 
 	case ArgClass of
@@ -90,14 +89,20 @@ get_erl_function({Line, _Type, {method, main}, Parameters,
 		_ ->
 			jaraki_exception:handle_error(Line, 4)
 	end,
+	case Modifiers of
+		{modifiers, [public, static]} -> ok;
+		_                -> jaraki_exception:handle_error(Line, 5)
+	end,
+
 	st:put_scope(main),
 	ErlangFunctionBody =
 		get_erl_function_body(Line, JavaMethodBody, Parameters),
 	function(Line, main, Parameters, ErlangFunctionBody);
 
-get_erl_function({Line, {_TypeLine, TypeName},
-			{method, FunctionIdentifier}, Parameters,
-					{block, _BlockLine, JavaMethodBody}}) ->
+get_erl_function({Line, Return, MethodName, _Modifiers, Parameters, Block}) ->
+	{block, _BlockLine, JavaMethodBody} = Block,
+	{return, {_TypeLine, TypeName}} = Return,
+	{name, FunctionIdentifier} = MethodName,
 
 	st:put_scope(FunctionIdentifier),
 	put(type_method, TypeName),

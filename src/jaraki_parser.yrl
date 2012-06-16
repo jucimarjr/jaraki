@@ -10,31 +10,41 @@
 
 Nonterminals
 start_parser
-import_list import_declaration
+import_list				import_declaration
 qualified_identifier
-class_declaration class_body class_list
-method_declaration field_declaration
-block block_statements
-method_invocation field_access
-local_variable_declaration_statement element_value type variable_list
-array_declaration_list array_declaration_list2 array_declaration_list3
-array_initializer array_access
+class_declaration		class_body			class_list
+method_declaration		field_declaration	modifiers
+block_statements		block
+method_invocation		field_access
+
+%% variables
+local_variable_declaration_statement		element_value			type
+variable_list								element_value_pair
+
+%% arrays
+array_declaration_list		array_declaration_list2		array_declaration_list3
+array_initializer			array_access
 new_stmt
-add_expr mult_expr modulus_expr
-unary_expr literal
-comparation_expr bool_expr
-element_value_pair
-sqrt_stmt length_stmt
-print_stmt print_content if_stmt if_else_stmt if_else_no_trailing
-next_int_stmt next_float_stmt next_line_stmt read_stmt close_stmt
-return_statement
-for_stmt for_no_trailing
-while_stmt while_no_trailing
-no_trailing_stmt no_short_if_stmt
-parameters_list	parameter
-argument argument_list
-for_update post_increment_expr
-try_catch_stmt catches catch_clause break_stmt
+
+%% expressions
+comparation_expr	add_expr	mult_expr	modulus_expr	unary_expr
+literal				bool_expr	sqrt_stmt	length_stmt
+
+%% functions
+print_stmt		print_content	next_int_stmt	next_float_stmt
+next_line_stmt	read_stmt		close_stmt
+
+%% statements
+if_stmt		if_else_stmt		if_else_no_trailing		no_short_if_stmt
+for_stmt	for_no_trailing		no_trailing_stmt		return_statement
+parameter	parameters_list		while_stmt				while_no_trailing
+for_update	post_increment_expr
+
+try_catch_stmt
+
+argument	argument_list
+catches		catch_clause break_stmt
+
 statement.
 
 Terminals
@@ -92,42 +102,59 @@ class_body -> field_declaration class_body	: ['$1' | '$2'].
 field_declaration -> local_variable_declaration_statement:
 	'$1'.
 
-method_declaration -> public static type identifier '(' ')' block:
-			{line('$4'), '$3', {method, unwrap('$4')}, [], '$7'}.
+modifiers -> public static : [unwrap('$1'), unwrap('$2')].
+modifiers -> public : [unwrap('$1')].
 
-method_declaration -> public static type identifier
+method_declaration -> modifiers type identifier '(' ')' block:
+	Return = {return, '$2'},
+	Name = {name, unwrap('$3')},
+	Modifiers = {modifiers, '$1'},
+	{method, {line('$3'), Return, Name, Modifiers, [], '$6'}}.
+
+method_declaration -> modifiers type identifier
 					'(' parameters_list ')' block:
-			{line('$4'), '$3', {method, unwrap('$4')}, '$6', '$8'}.
+	Return = {return, '$2'},
+	Name   = {name, unwrap('$3')},
+	Modifiers = {modifiers, '$1'},
+	{method, {line('$3'), Return, Name, Modifiers, '$5', '$7'}}.
 
 %% IOexception
-method_declaration -> public static type identifier
+method_declaration -> modifiers type identifier
 					'(' parameters_list ')' 'throws' io_exception block:
-			{line('$4'), '$3', {method, unwrap('$4')}, '$6', '$10'}.
+	Return = {return, '$2'},
+	Name   = {name, unwrap('$3')},
+	Modifiers = {modifiers, '$1'},
+	{method, {line('$3'), Return, Name, Modifiers, '$5', '$9'}}.
 
+%% Vector
+method_declaration -> modifiers type '[' ']' identifier '(' ')' block:
+	Return = {return, make_array_type('$2')},
+	Name   = {name, unwrap('$5')},
+	Modifiers = {modifiers, '$1'},
+	{method, {line('$5'), Return, Name, Modifiers, [], '$8'}}.
 
-%%Vector
-method_declaration -> public static type '[' ']' identifier '(' ')' block:
-			{line('$6'),
-				make_array_type('$3'),
-				{method, unwrap('$6')}, [], '$9'}.
-
-method_declaration -> public static type '[' ']' identifier
+method_declaration -> modifiers type '[' ']' identifier
 					'(' parameters_list ')' block:
-			{line('$6'),
-				make_array_type('$3'),
-				{method, unwrap('$6')}, '$8', '$10'}.
 
-method_declaration -> public static type '[' ']' '[' ']'
+	Return = {return, make_array_type('$2')},
+	Name   = {name, unwrap('$5')},
+	Modifiers = {modifiers, '$1'},
+	{method, {line('$5'), Return, Name, Modifiers, '$7', '$9'}}.
+
+%% Matriz
+method_declaration -> modifiers type '[' ']' '[' ']'
 										identifier '(' ')' block:
-			{line('$8'),
-				make_matrix_type('$3'),
-				{method, unwrap('$8')}, [], '$11'}.
+	Return = {return, make_matrix_type('$2')},
+	Name   = {name, unwrap('$7')},
+	Modifiers = {modifiers, '$1'},
+	{method, {line('$7'), Return, Name, Modifiers, [], '$10'}}.
 
-method_declaration -> public static type '[' ']' '[' ']' identifier
+method_declaration -> modifiers type '[' ']' '[' ']' identifier
 					'(' parameters_list ')' block:
-			{line('$8'),
-				make_matrix_type('$3'),
-				{method, unwrap('$8')}, '$10', '$12'}.
+	Return = {return, make_matrix_type('$2')},
+	Name   = {name, unwrap('$7')},
+	Modifiers = {modifiers, '$1'},
+	{method, {line('$7'), Return, Name, Modifiers, '$9', '$11'}}.
 
 %% método main na análise sintática obsoleto
 %% method_declaration ->

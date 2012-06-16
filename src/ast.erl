@@ -82,25 +82,29 @@ get_members_info(ClassBody) ->
 get_members_info([], FieldsInfo, MethodsInfo) ->
 	{lists:reverse(FieldsInfo, []), lists:reverse(MethodsInfo, [])};
 
-%% TODO: Tratar Modificadores
-get_members_info([Member | Rest], FieldsInfo, MethodsInfo) ->
-	case Member of
-		{_,{_, ReturnType}, {method, MethodName}, ParameterList, _} ->
-			NewMethod = get_method_info(MethodName, ReturnType, ParameterList),
-			get_members_info(Rest, FieldsInfo, [NewMethod | MethodsInfo]);
+get_members_info([{method, MethodData} | Rest], FieldsInfo, MethodsInfo) ->
+	{_, ReturnJast, NameJast, ModifiersJast, ParameterList, _} = MethodData,
+	{return, {_, Return}} = ReturnJast,
+	{name, Name} = NameJast,
+	{modifiers, ModifierList} = ModifiersJast,
+	NewMethod = get_method_info(Name, ModifierList, Return, ParameterList),
+	get_members_info(Rest, FieldsInfo, [NewMethod | MethodsInfo]);
 
-		{var_declaration, {var_type, TypeJast}, {var_list, VarJastList}} ->
-			{_line, VarType} = TypeJast,
-			NewField = get_fields_info(VarJastList, VarType),
-			get_members_info(Rest, [NewField | FieldsInfo], MethodsInfo)
-	end.
+%% TODO: Tratar Modificadores de campos
+get_members_info([{var_declaration, VarType, VarList} | Rest],
+					FieldsInfo, MethodsInfo) ->
+	{var_type, TypeJast}    = VarType,
+	{var_list, VarJastList} = VarList,
+	{_line, VarType} = TypeJast,
+	NewField = get_fields_info(VarJastList, VarType),
+	get_members_info(Rest, [NewField | FieldsInfo], MethodsInfo).
 
 %%-----------------------------------------------------------------------------
 %% info de métodos
-get_method_info(MethodName, ReturnType, ParameterList) ->
+get_method_info(MethodName, ModifierList, ReturnType, ParameterList) ->
 	ParametersInfo = get_parameters_info(ParameterList),
 	MethodKey      = {MethodName, ParametersInfo},
-	MethodValue    = {ReturnType, []}, %% TODO: [] = Modifiers
+	MethodValue    = {ReturnType, ModifierList},
 	{MethodKey, MethodValue}.
 
 get_parameters_info(ParameterList) ->

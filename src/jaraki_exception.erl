@@ -19,7 +19,8 @@ get_error_text(1) -> "Variable not declared";
 get_error_text(2) -> "Variable already declared";
 get_error_text(3) -> "Incompatible variable assignment type";
 get_error_text(4) -> "The unique argument of the \"main method\""
-					"is not String[]".
+						 "is not String[]";
+get_error_text(5) -> "The main method modifiers should be \"public static\"".
 
 print_errors([]) ->
 	io:format("\n");
