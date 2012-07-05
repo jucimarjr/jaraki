@@ -18,7 +18,7 @@
 
 		%% informações das classes
 		insert_classes_info/1,	exist_class/1,
-		exist_method/3,			get_method_info/3,
+		exist_method/3,			get_method_info/3,	is_static_method/3,
 		exist_field/2,			get_field_info/2,	get_all_fields_info/1
 	]).
 
@@ -178,7 +178,7 @@ update_counter(DictVar, Increment) ->
 %%		  |			 |
 %%		  |			 |> {TipoRetorno, Modificadores}
 %%		  |
-%%		  |> {Nome, Parametros}
+%%		  |> {Nome, []} ---> Parametros temporariamente desativado
 %%
 %% Outros:
 %%		Tipo			=> atom()
@@ -207,7 +207,7 @@ exist_class(ClassName) ->
 %%
 %% a assinatura de um método (que o trona único na classe) corresponde a:
 %% - Nome (identificador)
-%% - Tipos dos parâmetros (em ordem)
+%% ----- temporariamente desativado: Tipos dos parâmetros (em ordem)
 %%
 %% verifica existência do método
 exist_method(ClassName, MethodName, Parameters) ->
@@ -219,6 +219,14 @@ exist_method(ClassName, MethodName, Parameters) ->
 %% busca informações do método de uma classe
 get_method_info(ClassName, MethodName, Parameters) ->
 	get_member_info(method, ClassName, {MethodName, Parameters}).
+
+is_static_method(ClassName, FunctionName, Parameters) ->
+	{_ReturnType, Modifiers} = st:get_method_info(ClassName, FunctionName, []),
+	has_element(static, Modifiers).
+
+has_element(static, [static | _]) -> true;
+has_element(static, [_ | Rest]) -> has_element(static, Rest);
+has_element(_, []) -> false.
 
 %%----------------------------------------------------------------------------
 %%                              CAMPOS

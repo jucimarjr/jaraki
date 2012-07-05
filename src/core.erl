@@ -99,7 +99,7 @@ get_erl_function({Line, _Return, {name, main}, Modifiers, Parameters, Block}) ->
 		get_erl_function_body(Line, JavaMethodBody, Parameters),
 	function(Line, main, Parameters, ErlangFunctionBody);
 
-get_erl_function({Line, Return, MethodName, _Modifiers, Parameters, Block}) ->
+get_erl_function({Line, Return, MethodName, Modifiers, Parameters, Block}) ->
 	{block, _BlockLine, JavaMethodBody} = Block,
 	{return, {_TypeLine, TypeName}} = Return,
 	{name, FunctionIdentifier} = MethodName,

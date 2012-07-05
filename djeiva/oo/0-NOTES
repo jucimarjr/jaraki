@@ -1,8 +1,8 @@
-Ao compilar um módulo, será necessário checar todos os métodos da superclasse
-Se houver herança, criar chamada "proxy"
-Se houver sobrescrita de métodos, acrescentar nova cláusula no topo da função do módulo atual
+-------------------------------------------------------------------
+			 Mudar o que outros fizeram
+-------------------------------------------------------------------
+armazenamento do tipo de retorno do método em type_method no dict!!
 
-Verificar possível mudança: realmente é preciso declarar as cláusulas dos métodos da superclasse??? o.o
 
 -------------------------------------------------------------------
 POSSÍVEIS FACILITADORES DE IMPLEMENTAÇÃO
@@ -13,6 +13,14 @@ POSSÍVEIS FACILITADORES DE IMPLEMENTAÇÃO
 -------------------------------------------------------------------
 				DETALHES PARA Compilador
 -------------------------------------------------------------------
+Ao compilar um módulo, será necessário checar todos os métodos da superclasse
+Se houver herança, criar chamada "proxy"
+Se houver sobrescrita de métodos, acrescentar nova cláusula no topo da função do módulo atual
+Se houver sobrecarga, o escopo deixará de ser apenas o nome do método. Será acrescentado os tipos de retorno em ordem
+
+Verificar possível mudança: realmente é preciso declarar as cláusulas dos métodos da superclasse??? o.o
+
+
 - super.ideentifier é resolvido em tempo de compilação!
 	- para métodos, chama o da super classe idenpendente de qualquer implementação ou visibilidade na superclasse
 	- para atributos, acessa o campo independente de qualquer visibilidade e referencia campo instanciado na superclasse!

@@ -185,7 +185,7 @@ match_attr_expr({function_call, {Line, FunctionName},
 	create_function_call(Line, FunctionName, ArgumentsList);
 
 %% criação de objetos
-match_attr_expr({new, object, {class, 3, ClassName}}) ->
+match_attr_expr({new, object, {class, _Line, ClassName}}) ->
 	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
 	rcall(0, ClassName2, '__constructor__', []);
 
@@ -509,6 +509,7 @@ create_function_call(Line, FunctionName, ArgumentsList) ->
 			create_list(TransformedArgumentList, Line)]).
 
 %% Chamada do tipo Owner.Metodo()
+%% TODO tratar Parameters, lista de parametros
 create_function_call(Line, Owner, FunctionName, ArgumentsList) ->
 	case st:is_declared_var(st:get_scope(), Owner) of
 		true ->
@@ -518,30 +519,67 @@ create_function_call(Line, Owner, FunctionName, ArgumentsList) ->
 	end.
 
 create_object_method_call(Line, ObjVarName, FunctionName, ArgumentList) ->
-	ScopeAst = atom(Line, st:get_scope()),
-	ObjVarNameAst = string(Line, ObjVarName),
-	ObjectIDAst = rcall(Line, st, get_value, [ScopeAst, ObjVarNameAst]),
+	{ClassName, _VarValue} = st:get2(Line, st:get_scope(), ObjVarName),
 
-	ObjectClassAst = rcall(Line, oo_lib, get_class, [ObjectIDAst]),
+	Check =
+		case st:exist_method(ClassName, FunctionName, []) of
+			true ->
+				case st:is_static_method(ClassName, FunctionName, []) of
+					true -> jaraki_exception:handle_error(Line, 8);
+					false -> ok
+				end;
+			false -> jaraki_exception:handle_error(Line, 9)
+		end,
 
-	ArgumentAstList = [ObjectIDAst]++[match_attr_expr(V) || V <- ArgumentList],
-	ArgumentListAst = list(Line, ArgumentAstList),
+	case Check of
+		error -> no_operation;
+		ok ->
+			ScopeAst = atom(Line, st:get_scope()),
+			ObjVarNameAst = string(Line, ObjVarName),
+			ObjectIDAst = rcall(Line, st, get_value, [ScopeAst, ObjVarNameAst]),
 
-	FunctionNameAst = atom(Line, FunctionName),
+			ObjectClassAst = rcall(Line, oo_lib, get_class, [ObjectIDAst]),
 
-	ApplyArguments = [ObjectClassAst, FunctionNameAst, ArgumentListAst],
-	rcall(Line, erlang, apply, ApplyArguments).
+			ArgumentAstList = [ObjectIDAst]
+								++ [match_attr_expr(V) || V <- ArgumentList],
+			ArgumentListAst = list(Line, ArgumentAstList),
+
+			FunctionNameAst = atom(Line, FunctionName),
+
+			ApplyArguments = [ObjectClassAst, FunctionNameAst, ArgumentListAst],
+			rcall(Line, erlang, apply, ApplyArguments)
+	end.
 
 create_static_method_call(Line, ClassName, FunctionName, ArgumentsList) ->
-	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
-	ArgumentListAst = [match_attr_expr(V) || V <- ArgumentsList],
-	FunctionCall= rcall(Line, ClassName2, FunctionName, ArgumentListAst),
-	Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),
-	rcall(Line, st, return_function,
-		[Fun, atom(Line, FunctionName),
-			create_list(ArgumentListAst, Line)]).
+	Check =
+		case st:exist_class(ClassName) of
+			true ->
+				case st:exist_method(ClassName, FunctionName, []) of
+					true ->
+						case st:is_static_method(ClassName, FunctionName, []) of
+							true  -> ok;
+							false -> jaraki_exception:handle_error(Line, 6)
+						end;
 
+					false ->
+						jaraki_exception:handle_error(Line, 9)
+				end;
 
+			false ->
+				jaraki_exception:handle_error(Line, 7)
+		 end,
+
+	case Check of
+		error -> no_operation;
+		ok ->
+			ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+			ArgumentListAst = [match_attr_expr(V) || V <- ArgumentsList],
+			FunctionCall= rcall(Line, ClassName2,FunctionName, ArgumentListAst),
+			Fun = 'fun'(Line, [clause(Line, [], [], [FunctionCall])]),
+			rcall(Line, st, return_function,
+				[Fun, atom(Line, FunctionName),
+					create_list(ArgumentListAst, Line)])
+	end.
 
 create_list([], Line) ->
 	{nil, Line};

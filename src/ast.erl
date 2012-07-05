@@ -82,18 +82,19 @@ get_members_info(ClassBody) ->
 get_members_info([], FieldsInfo, MethodsInfo) ->
 	{lists:reverse(FieldsInfo, []), lists:reverse(MethodsInfo, [])};
 
+%% TODO descomentar ParameterList...
 get_members_info([{method, MethodData} | Rest], FieldsInfo, MethodsInfo) ->
 	{_, ReturnJast, NameJast, ModifiersJast, ParameterList, _} = MethodData,
 	{return, {_, Return}} = ReturnJast,
 	{name, Name} = NameJast,
 	{modifiers, ModifierList} = ModifiersJast,
-	NewMethod = get_method_info(Name, ModifierList, Return, ParameterList),
+	NewMethod = get_method_info(Name, ModifierList, Return, []),%ParameterList),
 	get_members_info(Rest, FieldsInfo, [NewMethod | MethodsInfo]);
 
 %% TODO: Tratar Modificadores de campos
-get_members_info([{var_declaration, VarType, VarList} | Rest],
+get_members_info([{var_declaration, VarTypeJast, VarList} | Rest],
 					FieldsInfo, MethodsInfo) ->
-	{var_type, TypeJast}    = VarType,
+	{var_type, TypeJast}    = VarTypeJast,
 	{var_list, VarJastList} = VarList,
 	{_line, VarType} = TypeJast,
 	NewField = get_fields_info(VarJastList, VarType),
