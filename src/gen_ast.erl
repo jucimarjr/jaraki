@@ -11,8 +11,8 @@
 -module(gen_ast).
 -compile(export_all).
 
-function(Line, Name, Parameters, ErlangFunctionBody) ->
-	{function, Line, Name, length(Parameters), ErlangFunctionBody}.
+function(Line, Name, ParametersLength, ErlangFunctionBody) ->
+	{function, Line, Name, ParametersLength, ErlangFunctionBody}.
 
 var(Line, Name) when is_list(Name)-> {var, Line, list_to_atom(Name)};
 var(Line, Name) when is_atom(Name) -> {var, Line, Name}.
@@ -20,7 +20,12 @@ var(Line, Name) when is_atom(Name) -> {var, Line, Name}.
 atom(Line, Name) when is_atom(Name) ->
 	{atom, Line, Name};
 atom(Line, Name) when is_list(Name) ->
-	{atom, Line, list_to_atom(Name)}.
+	{atom, Line, list_to_atom(Name)};
+atom(Line, Name) when is_tuple(Name) ->
+	ElementsList = tuple_to_list(Name),
+	ElementsAstList =
+		lists:map(fun(Element) -> atom(Line, Element) end, ElementsList),
+	tuple(Line, ElementsAstList).
 
 call(Line, FunctionName, Arguments) ->
 	{call, Line, atom(Line, FunctionName), Arguments}.

@@ -21,7 +21,7 @@ get_error_text(3) -> "Incompatible variable assignment type";
 get_error_text(4) -> "The unique argument of the \"main method\""
 						 "is not String[]";
 get_error_text(5) -> "The main method modifiers should be \"public static\"";
-get_error_text(6) -> "Calling a object method through a static way";
+get_error_text(6) -> "Cannot call a non-static method from a static context";
 get_error_text(7) -> "Calling method of non-existing class";
 get_error_text(8) -> "Calling static method on a nonstatic way";
 get_error_text(9) -> "Calling a non-existing method".

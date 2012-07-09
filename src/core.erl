@@ -49,37 +49,76 @@ transform_jast_to_east(JavaAST, ErlangModuleName, ClassesInfo) ->
 get_erl_body(JavaClass) ->
 	case JavaClass of
 		{_Line1, _PackageName, {class_list, [{class, ClassData}]}} ->
-			{_Line2, _JavaClassName, {body, JavaClassBody}} = ClassData,
-			match_erl_member(JavaClassBody);
+			{_Line2, {name, ClassName}, {body, JavaClassBody}} = ClassData,
+			match_erl_member(ClassName, JavaClassBody);
 
 		{class, ClassData} ->
-			{_Line, _JavaClassName, {body, JavaClassBody}} = ClassData,
-			match_erl_member(JavaClassBody)
+			{_Line, {name, ClassName}, {body, JavaClassBody}} = ClassData,
+			match_erl_member(ClassName, JavaClassBody)
 	end.
 
 %%-----------------------------------------------------------------------------
 %% Extrai um campo ou funcao da classe
 %% Observação: campos são tratados em outro momendo da análise
-match_erl_member(JavaClassBody) ->
-	match_erl_member(JavaClassBody, []).
+match_erl_member(ClassName, JavaClassBody) ->
+	match_erl_member(ClassName, JavaClassBody, []).
 
-match_erl_member([], ErlangModuleBody) ->
+%% ---------------
+match_erl_member(_ClassName, [], ErlangModuleBody) ->
 	lists:reverse(ErlangModuleBody, []);
-match_erl_member([Member | Rest], ErlangModuleBody) ->
+
+match_erl_member(ClassName, [Member | Rest], ErlangModuleBody) ->
 	case Member of
 		{var_declaration, _VarType, _VarList} ->
-			match_erl_member(Rest, ErlangModuleBody);
+			match_erl_member(ClassName, Rest, ErlangModuleBody);
 
 		{method, MethodData} ->
-			TransformedMethod = get_erl_function(MethodData),
-			match_erl_member(Rest, [TransformedMethod | ErlangModuleBody])
+			TransformedMethod = get_erl_function(ClassName, MethodData),
+			NewErlangModuleBody = [TransformedMethod | ErlangModuleBody],
+			match_erl_member(ClassName, Rest, NewErlangModuleBody)
 	end.
 
 %%-----------------------------------------------------------------------------
 %% Extrai uma funcao erl de um metodo java
 %% ISSUE: funciona apenas para métodos públicos
 %% TODO: tratar visibilidade dos métodos quando trabalhar com POO.
-get_erl_function({Line, _Return, {name, main}, Modifiers, Parameters, Block}) ->
+
+get_erl_function(ClassName, MethodData) ->
+	{_, _, {name, MethodName}, _, _, _} = MethodData,
+
+	case MethodName of
+		main -> get_erl_function(main, ClassName, MethodData);
+		_Other -> get_erl_function(other_method, ClassName, MethodData)
+	end.
+
+%% TODO: trocar o put(type_method, TypeName) por buscar oo na st!
+get_erl_function(other_method, ClassName, MethodData) ->
+	{Line, Return, MethodName, _Modifiers, Parameters, Block} = MethodData,
+
+	{block, _BlockLine, JavaMethodBody} = Block,
+	{return, {_TypeLine, TypeName}} = Return,
+	{name, FunctionIdentifier} = MethodName,
+
+	st:put_scope({ClassName, FunctionIdentifier}),
+	put(type_method, TypeName),
+
+	{ArgumentsLength, ErlangFunctionBody} =
+		get_erl_function_body(Line, JavaMethodBody, Parameters),
+
+	function(Line, FunctionIdentifier, ArgumentsLength, ErlangFunctionBody);
+
+%%% tem que saber qual a classe pq se for chamada de método de objeto,
+%%  precisa saber quais os campos que são acessíveis, para saber qual código
+%% transformado botar
+%%
+%% se for método de classe, static, é preciso saber qual a classe para dar
+%% acesso as atributos static!!!
+
+%% TODO: verificar quando retorno não é void!!
+%% TODO: verificar se é static!!
+get_erl_function(main, ClassName, MethodData) ->
+	{Line, _Return, _MethodName, Modifiers, Parameters, Block} = MethodData,
+
 	{block, _BlockLine, JavaMethodBody} = Block,
 	[{_Line, {var_type, {_Line, ArgClass}}, _ArgName}] = Parameters,
 
@@ -94,32 +133,34 @@ get_erl_function({Line, _Return, {name, main}, Modifiers, Parameters, Block}) ->
 		_                -> jaraki_exception:handle_error(Line, 5)
 	end,
 
-	st:put_scope(main),
-	ErlangFunctionBody =
-		get_erl_function_body(Line, JavaMethodBody, Parameters),
-	function(Line, main, Parameters, ErlangFunctionBody);
+	st:put_scope({ClassName, main}),
 
-get_erl_function({Line, Return, MethodName, Modifiers, Parameters, Block}) ->
-	{block, _BlockLine, JavaMethodBody} = Block,
-	{return, {_TypeLine, TypeName}} = Return,
-	{name, FunctionIdentifier} = MethodName,
-
-	st:put_scope(FunctionIdentifier),
-	put(type_method, TypeName),
-	ErlangFunctionBody =
+	{ArgumentsLength, ErlangFunctionBody} =
 		get_erl_function_body(Line, JavaMethodBody, Parameters),
-	function(Line, FunctionIdentifier, Parameters, ErlangFunctionBody).
+
+	function(Line, main, ArgumentsLength, ErlangFunctionBody).
 
 %%-----------------------------------------------------------------------------
 %% Converte o corpo do metodo java em funcao erlang.
 %% TODO: Verificar melhor forma de detectar "{nil, Line}".
 %% TODO: Declarar variável em qualquer lugar (mover o fun)
+%% TODO: tratar assinatura do método por tipo de args, linha 157
 get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
-	ErlangArgsList =
+	Scope = st:get_scope(),
+	{ScopeClass, ScopeMethod} = Scope,
+
+	ErlangArgsListTemp1 =
 		[var(ParamLine,"V_" ++ atom_to_list(ParamName)) ||
 			{ParamLine, _ClassIdentifier, {parameter, ParamName}}
 			<- ParametersList
 		],
+
+	case st:is_static_method(ScopeClass, ScopeMethod, []) of
+		true ->
+			ErlangArgsList = ErlangArgsListTemp1;
+		false ->
+			ErlangArgsList = var(Line, "ObjectID") ++ ErlangArgsListTemp1
+	end,
 
 	MappedParamsFun =
 		fun ({_VarLine, {var_type, {_Line, VarType}},
@@ -128,8 +169,8 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 		end,
 	lists:map( MappedParamsFun, ParametersList),
 
-
 	ScopeAst = atom(Line, st:get_scope()),
+
 	InitArgs = [
 		rcall(Line, st, put_value, [
 			tuple(Line,	[ScopeAst, string(Line, InitArgName)]),
@@ -156,7 +197,7 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 
 	New =
 		case st:get_scope() of
-			main ->
+			{_ScopeClass1, main} ->
 				[rcall(Line, st, new, [])];
 			_ ->
 				[]
@@ -172,7 +213,7 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 	end,
 
 	Destroy = case st:get_scope() of
-		main ->
+		{_ScopeClass2, main} ->
 			[rcall(Line,st, destroy, [])];
 		_ ->
 			[]
@@ -192,7 +233,10 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 			Element <- ErlangStmtTemp1,
 			Element =/= no_operation
 			],
-	[{clause, Line, ErlangArgsList, [], ErlangStmt}].
+
+	ErlangFunctionBody = [{clause, Line, ErlangArgsList, [], ErlangStmt}],
+
+	{length(ErlangArgsList), ErlangFunctionBody}.
 
 %%-----------------------------------------------------------------------------
 %% Cria o modulo a partir do east.

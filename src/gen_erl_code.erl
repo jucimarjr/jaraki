@@ -817,7 +817,7 @@ create_for(Line, VarType, VarName, Start, CondExpr, IncExpr, Body) ->
 	JavaNameAst = string(Line, VarName),
 	TypeAst = gen_ast:type_to_ast(Line, VarType),
 	Scope = st:get_scope(),
-	ScopeAst = {atom, Line, Scope},
+	ScopeAst = atom(Line, Scope),
 	InitAst = rcall(Line, st, put_value,[
 				tuple(Line, [ScopeAst, JavaNameAst]),
 				tuple(Line, [TypeAst, match_attr_expr(Start)])]),
