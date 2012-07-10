@@ -159,7 +159,7 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 		true ->
 			ErlangArgsList = ErlangArgsListTemp1;
 		false ->
-			ErlangArgsList = var(Line, "ObjectID") ++ ErlangArgsListTemp1
+			ErlangArgsList = [var(Line, "ObjectID") | ErlangArgsListTemp1]
 	end,
 
 	MappedParamsFun =

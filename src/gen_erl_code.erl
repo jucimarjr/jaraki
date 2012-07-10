@@ -238,10 +238,28 @@ match_attr_expr({text, Line, String}) ->
 	{string, Line, String};
 match_attr_expr({op, Line, Op, LeftExp, RightExp}) ->
 	{op, Line, Op, match_attr_expr(LeftExp), match_attr_expr(RightExp)};
+
 match_attr_expr({var, Line, VarName}) ->
-	st:get2(Line, st:get_scope(), VarName),
-	rcall(Line, st, get_value,
-		  [atom(Line, st:get_scope()), string(Line, VarName)]);
+	Scope = st:get_scope(),
+
+	VarContext = helpers:get_variable_context(Scope, VarName),
+
+	case VarContext of
+		{error, ErrorNumber} ->
+			jaraki_exception:handle_error(Line, ErrorNumber),
+			no_operation;
+
+		{ok, local} ->
+			GetParamAst = [atom(Line, st:get_scope()), string(Line, VarName)],
+			rcall(Line, st, get_value, GetParamAst);
+
+		{ok, object} ->
+			ObjectIDAst = var(Line, "ObjectID"),
+			FieldNameAst = atom(Line, VarName),
+			GetParameters = [ObjectIDAst, FieldNameAst],
+			rcall(Line, oo_lib, get_attribute, GetParameters)
+	end;
+
 match_attr_expr({{var, Line, VarName}, {index, ArrayIndex}}) ->
 	st:get2(Line, st:get_scope(), VarName),
 	IndexAst = match_attr_expr(ArrayIndex),

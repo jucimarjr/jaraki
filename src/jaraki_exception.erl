@@ -15,16 +15,18 @@ handle_error(Line, Code) ->
 	st:put_error(Line, Code),
 	error.
 
-get_error_text(1) -> "Variable not declared";
-get_error_text(2) -> "Variable already declared";
-get_error_text(3) -> "Incompatible variable assignment type";
-get_error_text(4) -> "The unique argument of the \"main method\""
+get_error_text(1)  -> "Variable not declared";
+get_error_text(2)  -> "Variable already declared";
+get_error_text(3)  -> "Incompatible variable assignment type";
+get_error_text(4)  -> "The unique argument of the \"main method\""
 						 "is not String[]";
-get_error_text(5) -> "The main method modifiers should be \"public static\"";
-get_error_text(6) -> "Cannot call a non-static method from a static context";
-get_error_text(7) -> "Calling method of non-existing class";
-get_error_text(8) -> "Calling static method on a nonstatic way";
-get_error_text(9) -> "Calling a non-existing method".
+get_error_text(5)  -> "The main method modifiers should be \"public static\"";
+get_error_text(6)  -> "Cannot call a non-static method from a static context";
+get_error_text(7)  -> "Calling method of non-existing class";
+get_error_text(8)  -> "Calling static method on a nonstatic way";
+get_error_text(9)  -> "Calling a non-existing method";
+get_error_text(10) -> "Non-static variable a cannot be referenced "
+						"from a static context".
 
 print_errors([]) ->
 	io:format("\n");
@@ -89,9 +91,34 @@ check_var_type(Type, {op, Line, Op, LeftExp, RightExp}) ->
 		check_var_type(Type, LeftExp),
 		check_var_type(Type, RightExp)};
 
+%% checa o tipo de variáveis, sendo que se ela não tiver sido declarada o erro
+%% é gerado em uma análise já realizada no gen_erl_code
 check_var_type(AttrVarType, {var, Line, VarName}) ->
-	{ExprVarType, _Value} = st:get2(Line, st:get_scope(), VarName),
-	match_type(Line, AttrVarType, ExprVarType);
+	Scope = st:get_scope(),
+	VarContext = helpers:get_variable_context(Scope, VarName),
+
+	case VarContext of
+		{error, _}  -> error;
+
+		{ok, local} ->
+			case st:is_declared_var(Scope, VarName) of
+				true ->
+					{ExprVarType, _} = st:get2(Line, st:get_scope(), VarName),
+					match_type(Line, AttrVarType, ExprVarType);
+
+				false ->
+					error
+			end;
+
+		{ok, object} ->
+			{ScopeClass, ScopeMethod} = Scope,
+			case st:get_field_info(ScopeClass, VarName) of
+				false -> error;
+
+				{ExprVarType, _} ->
+					match_type(Line, AttrVarType, ExprVarType)
+			end
+	end;
 
 check_var_type(AttrArrayType, {{var, Line, ArrayName}, {index, _ArrayIndex}}) ->
 	{{array, ExprVarType}, _Value} = st:get2(Line, st:get_scope(), ArrayName),
