@@ -218,13 +218,7 @@ match_attr_expr({length, Line, VarLength})->
 
 match_attr_expr({field_access, FieldInfo}) ->
 	{Line, ObjectVarName, FieldName} = FieldInfo,
-	ScopeAst = atom(Line, st:get_scope()),
-	ObjectVarNameAst = string(Line, ObjectVarName),
-	ObjectIDAst = rcall(Line, st, get_value, [ScopeAst, ObjectVarNameAst]),
-
-	FieldNameAst = atom(Line, FieldName),
-	FieldParameters = [ObjectIDAst, FieldNameAst],
-	rcall(Line, oo_lib, get_attribute, FieldParameters);
+	gen_ast:field_refVar(Line, st:get_scope(), ObjectVarName, FieldName);
 
 match_attr_expr({integer, _Line, _Value} = Element) ->
 	Element;
@@ -254,10 +248,7 @@ match_attr_expr({var, Line, VarName}) ->
 			rcall(Line, st, get_value, GetParamAst);
 
 		{ok, object} ->
-			ObjectIDAst = var(Line, "ObjectID"),
-			FieldNameAst = atom(Line, VarName),
-			GetParameters = [ObjectIDAst, FieldNameAst],
-			rcall(Line, oo_lib, get_attribute, GetParameters)
+			gen_ast:field_access_var(Line, VarName)
 	end;
 
 match_attr_expr({{var, Line, VarName}, {index, ArrayIndex}}) ->
@@ -323,7 +314,7 @@ create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 					ok
 			end;
 
-		{new, object, {type, _ClassType}, {file, File}} ->				
+		{new, object, {type, _ClassType}, {file, File}} ->
 				FileAst = create_attribution(new, VarName, VarLine, File),
 				create_declaration_list(VarLine, Rest, [FileAst | VarAstList]);
 
@@ -378,16 +369,16 @@ create_function_object_class(read, Line, VarName) ->
 
 	case Type of
 	   'Scanner' ->
-		no_operation;
-	    'Random' ->
-		no_operation;
-	    'FileReader' ->
-		Read = atom(Line, read),
-		Value = {integer, Line, 1},
-		Var = rcall(Line, st, get_value, [atom(Line, st:get_scope()),
-				string(Line, VarName)]),
+			no_operation;
+		'Random' ->
+			no_operation;
+		'FileReader' ->
+			Read = atom(Line, read),
+			Value = {integer, Line, 1},
+			Var = rcall(Line, st, get_value, [atom(Line, st:get_scope()),
+						string(Line, VarName)]),
 
-		call(Line, function_file, [Read, Var, Value])
+			call(Line, function_file, [Read, Var, Value])
 	end.
 
 
@@ -396,10 +387,10 @@ create_function_object_class(next_int, Line, VarName, RandomValue) ->
 
 	case Type of
 	   'Scanner' ->
-		no_operation;
+			no_operation;
 		'Random' ->
-		ObjectType = atom(Line, next_int),
-		call(Line, function_random, [ObjectType, RandomValue])
+			ObjectType = atom(Line, next_int),
+			call(Line, function_random, [ObjectType, RandomValue])
 	end.
 
  %%-----------------------------------------------------------------------------
@@ -429,6 +420,23 @@ print_text([Head | L], Line, Text, _print) ->
 			print_text(L, Line, Text ++ PrintFormat, _print)
 	end.
 
+get_print_format(Line, {identifier, _, PrintElement}) ->
+	Scope = st:get_scope(),
+	VarContext = helpers:get_variable_context(Scope, PrintElement),
+
+	case VarContext of
+		{error, ErrorNum} -> jaraki_exception:handle_error(Line, ErrorNum);
+
+		{ok, local} ->
+			{TypeId, _VarValue} = st:get2(Line, st:get_scope(), PrintElement),
+			match_format_type(TypeId);
+
+		{ok, object} ->
+			{ScopeClass, _} = Scope,
+			{TypeId, _Modifiers} = st:get_field_info(ScopeClass, PrintElement),
+			match_format_type(TypeId)
+	end;
+
 get_print_format(Line, {{var, _, PrintElement}, _ArrayIndex}) ->
 	case st:get2(Line, st:get_scope(), PrintElement) of
 		{{array, TypeId}, _VarValue} ->
@@ -449,18 +457,7 @@ get_print_format(Line, {field, ObjectVarName, FieldName}) ->
 		_ -> no_operation
 	end;
 
-get_print_format(Line, {Type, _, PrintElement}) ->
-	case Type of
-		identifier ->
-			case st:get2(Line, st:get_scope(), PrintElement) of
-				{TypeId, _VarValue} ->
-					match_format_type(TypeId);
-
-				_ -> no_operation
-			end;
-
-		text -> "~s"
-	end.
+get_print_format(_, {text, _, _}) -> "~s".
 
 match_format_type(int)		-> "~p";
 match_format_type(long)		-> "~p";
@@ -471,21 +468,17 @@ match_format_type(_)		-> "~s".
 print_list([], Line) ->
 	{nil, Line};
 print_list([Element|L], Line) ->
+	Scope = st:get_scope(),
+
 	case Element of
 		{field, ObjectVarName, FieldName} ->
-			ScopeAst = atom(Line, st:get_scope()),
-			ObjectVarNameAst = string(Line, ObjectVarName),
-			ObjectIDAst=rcall(Line,st,get_value, [ScopeAst, ObjectVarNameAst]),
-
-			FieldNameAst = atom(Line, FieldName),
-			FieldParameters = [ObjectIDAst, FieldNameAst],
-			FieldAst = rcall(Line, oo_lib, get_attribute, FieldParameters),
+			FieldAst=gen_ast:field_refVar(Line,Scope,ObjectVarName, FieldName),
 			{cons, Line, FieldAst, print_list(L, Line)};
 
 		{{var, _, PrintElement}, {index, ArrayIndex} } ->
 			IndexGetAst = match_attr_expr(ArrayIndex),
 
-			ValueGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
+			ValueGetAst = rcall(Line, st, get_value,[atom(Line, Scope),
 				string(Line, PrintElement)]),
 			VectorAst = rcall(Line, vector,access_vector,
 							[IndexGetAst, ValueGetAst]),
@@ -495,22 +488,31 @@ print_list([Element|L], Line) ->
 					{index, {row, RowIndex}, {column, ColumnIndex}}} ->
 			RowAst = match_attr_expr(RowIndex),
 			ColumnAst = match_attr_expr(ColumnIndex),
-			ValueGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
+			ValueGetAst = rcall(Line, st, get_value,[atom(Line, Scope),
 				string(Line, PrintElement)]),
 			MatrixAst = rcall(Line, matrix, access_matrix,
 							[RowAst, ColumnAst, ValueGetAst]),
 			{cons, Line, MatrixAst, print_list(L, Line)};
 
-		 {Type, _, PrintElement} ->
-			case Type of
-				identifier ->
-				Identifier =
-					rcall(Line, st, get_value, [atom(Line, st:get_scope()),
-					string(Line, PrintElement)]),
-				 {cons, Line, Identifier, print_list(L, Line)};
-				text ->
-				{cons, Line, string(Line, PrintElement), print_list(L, Line)}
-			end
+		 {identifier, _, PrintElement} ->
+			VarContext = helpers:get_variable_context(Scope, PrintElement),
+
+			case VarContext of
+				{error, ErrorNum} ->
+					jaraki_exception:handle_error(Line, ErrorNum);
+
+				{ok, local} ->
+					GetParamAst=[atom(Line, Scope), string(Line, PrintElement)],
+					VariableAst = rcall(Line, st, get_value, GetParamAst),
+					{cons, Line, VariableAst, print_list(L, Line)};
+
+				{ok, object} ->
+					VariableAst = gen_ast:field_access_var(Line, PrintElement),
+					{cons, Line, VariableAst, print_list(L, Line)}
+			end;
+
+		 {text, _, PrintElement} ->
+			{cons, Line, string(Line, PrintElement), print_list(L, Line)}
 	end.
 %%---------------------------------------------------------------------------%%
 %% TODO: checar se método existe na classe atual (this, primeiro caso) ou
@@ -655,7 +657,7 @@ create_attribution(Line, VarName, VarValue) ->
 	end.
 
 %% Cria elemento east para instanciacao do FileReader
-create_attribution(new, VarName, VarLine, File) -> 	
+create_attribution(new, VarName, VarLine, File) ->
 	New = atom(VarLine, new),
 	Read = atom(VarLine, read),
 	FileRead = string(VarLine, File),

@@ -77,3 +77,21 @@ float(Line, Value) -> {float, Line, Value}.
 
 list(Line, [])               -> {nil, Line};
 list(Line, [Element | Rest]) -> {cons, Line, Element, list(Line, Rest)}.
+
+%%---------------------------------------------------------------------------%%
+%% gen_ast complexos para OO
+
+field_access_var(Line, VarName) ->
+	ObjectIDAst = var(Line, "ObjectID"),
+	FieldNameAst = atom(Line, VarName),
+	GetParameters = [ObjectIDAst, FieldNameAst],
+	rcall(Line, oo_lib, get_attribute, GetParameters).
+
+field_refVar(Line, Scope, ObjectVarName, FieldName) ->
+	ScopeAst = atom(Line, Scope),
+	ObjectVarNameAst = string(Line, ObjectVarName),
+	ObjectIDAst = rcall(Line, st,get_value, [ScopeAst, ObjectVarNameAst]),
+
+	FieldNameAst = atom(Line, FieldName),
+	FieldParameters = [ObjectIDAst, FieldNameAst],
+	rcall(Line, oo_lib, get_attribute, FieldParameters).

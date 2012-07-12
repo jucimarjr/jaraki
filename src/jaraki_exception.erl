@@ -111,7 +111,7 @@ check_var_type(AttrVarType, {var, Line, VarName}) ->
 			end;
 
 		{ok, object} ->
-			{ScopeClass, ScopeMethod} = Scope,
+			{ScopeClass, _} = Scope,
 			case st:get_field_info(ScopeClass, VarName) of
 				false -> error;
 
