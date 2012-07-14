@@ -218,7 +218,13 @@ match_attr_expr({length, Line, VarLength})->
 
 match_attr_expr({field_access, FieldInfo}) ->
 	{Line, ObjectVarName, FieldName} = FieldInfo,
-	gen_ast:field_refVar(Line, st:get_scope(), ObjectVarName, FieldName);
+	case ObjectVarName of
+		this ->
+			gen_ast:field_access_var(Line, FieldName);
+
+		_ ->
+			gen_ast:field_refVar(Line,st:get_scope(), ObjectVarName, FieldName)
+	end;
 
 match_attr_expr({integer, _Line, _Value} = Element) ->
 	Element;
@@ -448,7 +454,7 @@ get_print_format(Line, {{var, _, PrintElement}, _ArrayIndex}) ->
 		_ -> no_operation
 	end;
 
-get_print_format(Line, {field, ObjectVarName, FieldName}) ->
+get_print_format(Line, {field_access, ObjectVarName, FieldName}) ->
 	case st:get2(Line, st:get_scope(), ObjectVarName) of
 		{ClassName, _VarValue} ->
 			{TypeId, _Modifiers} = st:get_field_info(ClassName, FieldName),
@@ -471,7 +477,7 @@ print_list([Element|L], Line) ->
 	Scope = st:get_scope(),
 
 	case Element of
-		{field, ObjectVarName, FieldName} ->
+		{field_access, ObjectVarName, FieldName} ->
 			FieldAst=gen_ast:field_refVar(Line,Scope,ObjectVarName, FieldName),
 			{cons, Line, FieldAst, print_list(L, Line)};
 

@@ -53,7 +53,7 @@ return sqrt random print scanner
 length
 '(' ')' '[' ']' '{' '}' ';' '=' '.' '.*' ','
 string_t int_t long_t float_t double_t boolean_t
-next_int	next_line	next_float	'new'	system_in
+next_int	next_line	next_float	new this system_in
 'if' 'else' true false
 for while	try catch break exception
 io_exception 'throws'
@@ -67,7 +67,7 @@ Rootsymbol start_parser.
 
 %% TODO: interpretar pacotes e imports na análise semântica
 start_parser -> class_list											: '$1'.
-start_parser -> package qualified_identifier class_list				: 
+start_parser -> package qualified_identifier class_list				:
 					[{line('$1'), {package,'$2'}, {class_list, '$3'}}].
 start_parser -> package qualified_identifier import_list class_list	: '$4'.
 start_parser -> import_list class_list								: '$2'.
@@ -443,10 +443,10 @@ print_content -> text : ['$1'].
 print_content -> identifier : ['$1'].
 
 print_content -> identifier '.' identifier :
-				[{field, unwrap('$1'), unwrap('$3')}].
+				[{field_access, unwrap('$1'), unwrap('$3')}].
 
 print_content -> identifier '.' identifier add_op print_content :
-				[{field, unwrap('$1'), unwrap('$3')} | '$5'].
+				[{field_access, unwrap('$1'), unwrap('$3')} | '$5'].
 
 print_content -> text add_op print_content : ['$1' | '$3'].
 
@@ -585,6 +585,9 @@ method_invocation -> identifier '.' identifier '(' argument_list ')':
 field_access -> identifier '.' identifier:
 	{field_access, {line('$1'), unwrap('$1'), unwrap('$3')}}.
 
+field_access -> this '.' identifier:
+	{field_access, {line('$1'), unwrap('$1'), unwrap('$3')}}.
+
 %% END_FIELD
 
 %% BEGIN_RETURN
@@ -646,7 +649,7 @@ literal -> text					: '$1'.
 literal -> integer				: '$1'.
 literal -> float				: '$1'.
 literal -> identifier				 : {var, line('$1'), unwrap('$1')}.
-%literal -> identifier '.' identifier : {field, '$1', '$3'}.
+%literal -> identifier '.' identifier : {field_access, '$1', '$3'}.
 literal -> '(' bool_expr ')'	: '$2'.
 literal -> true					: {atom, line('$1'), true}.
 literal -> false				: {atom, line('$1'), false}.

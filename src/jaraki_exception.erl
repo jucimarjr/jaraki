@@ -26,7 +26,10 @@ get_error_text(7)  -> "Calling method of non-existing class";
 get_error_text(8)  -> "Calling static method on a nonstatic way";
 get_error_text(9)  -> "Calling a non-existing method";
 get_error_text(10) -> "Non-static variable a cannot be referenced "
-						"from a static context".
+						"from a static context";
+get_error_text(11) -> "Field not declared";
+get_error_text(12) -> "Non-static variable \"this\" cannot be referenced from "
+						"a static context".
 
 print_errors([]) ->
 	io:format("\n");
@@ -70,9 +73,22 @@ check_var_type(_Type, {new, object, {class, _Line, _Type2}}) ->
 	ok;
 
 check_var_type(Type, {field_access, {Line, ObjectVarName, FieldName}}) ->
-	{ClassName, _VarValue} = st:get2(Line, st:get_scope(), ObjectVarName),
-	{FieldType, _Modifiers} = st:get_field_info(ClassName, FieldName),
-	match_type(Line, Type, FieldType);
+	Scope = st:get_scope(),
+
+	case ObjectVarName of
+		this   -> {ClassName, _} = Scope;
+		_Other -> {ClassName, _VarValue} = st:get2(Line, Scope, ObjectVarName)
+	end,
+
+	case st:exist_field(ClassName, FieldName) of
+		true ->
+			{FieldType, _Modifiers} = st:get_field_info(ClassName, FieldName),
+			match_type(Line, Type, FieldType);
+
+		false ->
+			handle_error(Line, 11),
+			error
+	end;
 
 check_var_type(Type, {op, Line, Op, RightExp}) ->
 	{op, Line, Op, check_var_type(Type, RightExp)};
