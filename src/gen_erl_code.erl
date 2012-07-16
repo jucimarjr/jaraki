@@ -560,9 +560,7 @@ create_object_method_call(Line, ObjVarName, FunctionName, ArgumentList) ->
 	case Check of
 		error -> no_operation;
 		ok ->
-			ScopeAst = atom(Line, st:get_scope()),
-			ObjVarNameAst = string(Line, ObjVarName),
-			ObjectIDAst = rcall(Line, st, get_value, [ScopeAst, ObjVarNameAst]),
+			ObjectIDAst = gen_ast:objectID(Line, st:get_scope(), ObjVarName),
 
 			ObjectClassAst = rcall(Line, oo_lib, get_class, [ObjectIDAst]),
 
@@ -617,15 +615,19 @@ create_list([Element| Rest], Line) ->
 %% TODO: detecção de erro como:
 %%			variável não declarada (que contém o objectID)
 %%			não existente (campos não declarados na classe)
-create_attribution(Line, {field, FieldInfoJast}, VarValue) ->
+create_attribution(Line, {field_attribution, FieldInfoJast}, VarValue) ->
 	{ObjectVarName, FieldName} = FieldInfoJast,
+	Scope = st:get_scope(),
 
-	ScopeAst = atom(Line, st:get_scope()),
-	ObjectVarNameAst = string(Line, ObjectVarName),
-	ObjectIDAst = rcall(Line, st, get_value, [ScopeAst, ObjectVarNameAst]),
+	ObjectIDAst = gen_ast:objectID(Line, Scope, ObjectVarName),
 
-	{ClassName, _VarValue} = st:get2(Line, st:get_scope(), ObjectVarName),
-	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	case ObjectVarName of
+		this ->
+			{ClassName2, _} = Scope;
+		_ ->
+			{ClassName, _VarValue} = st:get2(Line, Scope, ObjectVarName),
+			ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName)))
+	end,
 
 	{FieldType, _Modifiers} = st:get_field_info(ClassName2, FieldName),
 	FieldTypeAst = gen_ast:type_to_ast(Line, FieldType),
