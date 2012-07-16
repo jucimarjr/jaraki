@@ -642,24 +642,45 @@ create_attribution(Line, {field, FieldInfoJast}, VarValue) ->
 %%-----------------------------------------------------------------------------
 %% Cria o elemento da east para atribuiçao de variaveis do java
 create_attribution(Line, VarName, VarValue) ->
-	case st:get2(Line, st:get_scope(), VarName) of
-		{Type, _Value} ->
-			TypeAst = gen_ast:type_to_ast(Line, Type),
-			jaraki_exception:check_var_type(Type, VarValue),
-			TransformedVarValue = match_attr_expr(VarValue),
-			JavaNameAst = string(Line, VarName),
-			ScopeAst = atom(Line, st:get_scope()),
-			CheckInt = gen_ast:check_int(Type),
-			NewTransformedVarValue =
-				case CheckInt of
-					other_type -> TransformedVarValue;
-					_ -> call(Line, trunc, [TransformedVarValue])
+	Scope = st:get_scope(),
+
+	VarContext = helpers:get_variable_context(Scope, VarName),
+
+	case VarContext of
+		{error, ErrorNumber} ->
+			jaraki_exception:handle_error(Line, ErrorNumber),
+			no_operation;
+
+		{ok, VarContext2} ->
+			Type =
+				case VarContext2 of
+					local  -> element(1, st:get2(Line, Scope, VarName));
+					object ->
+						{ClassName, _} = Scope,
+						element(1, st:get_field_info(ClassName, VarName))
 				end,
 
-			rcall(Line, st, put_value, [
-				tuple(Line, [ScopeAst, JavaNameAst]),
-				tuple(Line, [TypeAst, NewTransformedVarValue])]);
-		_ -> no_operation
+			TypeAst = gen_ast:type_to_ast(Line, Type),
+			jaraki_exception:check_var_type(Type, VarValue),
+			VarValueAst = match_attr_expr(VarValue),
+			CheckInt = gen_ast:check_int(Type),
+			NewVarValueAst =
+				case CheckInt of
+					other_type -> VarValueAst;
+					_ -> call(Line, trunc, [VarValueAst])
+				end,
+
+			case VarContext2 of
+				local ->
+					JavaNameAst = string(Line, VarName),
+					ScopeAst = atom(Line, Scope),
+					rcall(Line, st, put_value, [
+						tuple(Line, [ScopeAst, JavaNameAst]),
+						tuple(Line, [TypeAst, NewVarValueAst])]);
+
+				object ->
+					gen_ast:update_field_1(Line, VarName,TypeAst,NewVarValueAst)
+			end
 	end.
 
 %% Cria elemento east para instanciacao do FileReader

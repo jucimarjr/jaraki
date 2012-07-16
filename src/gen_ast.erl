@@ -95,3 +95,9 @@ field_refVar(Line, Scope, ObjectVarName, FieldName) ->
 	FieldNameAst = atom(Line, FieldName),
 	FieldParameters = [ObjectIDAst, FieldNameAst],
 	rcall(Line, oo_lib, get_attribute, FieldParameters).
+
+update_field_1(Line, VarName, TypeAst, NewVarValue) ->
+	ObjectIDAst = var(Line, "ObjectID"),
+	FieldNameAst = atom(Line, VarName),
+	VarParamAst = tuple(Line, [FieldNameAst, TypeAst, NewVarValue]),
+	rcall(Line, oo_lib, update_attribute, [ObjectIDAst, VarParamAst]).
