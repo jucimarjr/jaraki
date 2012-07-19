@@ -24,12 +24,14 @@ get_error_text(5)  -> "The main method modifiers should be \"public static\"";
 get_error_text(6)  -> "Cannot call a non-static method from a static context";
 get_error_text(7)  -> "Calling method of non-existing class";
 get_error_text(8)  -> "Calling static method on a nonstatic way";
-get_error_text(9)  -> "Calling a non-existing method";
+get_error_text(9)  -> "Calling a non-existing method or incompatible method "
+						"parameters";
 get_error_text(10) -> "Non-static variable a cannot be referenced "
 						"from a static context";
 get_error_text(11) -> "Field not declared";
 get_error_text(12) -> "Non-static variable \"this\" cannot be referenced from "
-						"a static context".
+						"a static context";
+get_error_text(13) -> "Unexpected type on method call!".
 
 print_errors([]) ->
 	io:format("\n");
@@ -67,7 +69,6 @@ check_var_type(_Type, {next_int, _Line, _VarName, _RandomValue}) ->
 	%% match_type(Type, int);
 	ok;
 
-
 %% TODO: verificar retorno do new, polimorfismo, etc...
 check_var_type(_Type, {new, object, {class, _Line, _Type2}}) ->
 	ok;
@@ -101,6 +102,8 @@ check_var_type(Type, {scanner, Line, _Value})-> match_type(Line, Type, scanner);
 check_var_type(Type, {file_reader, Line, _Value})-> match_type(Line, Type, file_reader);
 check_var_type(Type, {atom, Line, false})    -> match_type(Line, Type, boolean);
 check_var_type(Type, {text, Line, _String})  -> match_type(Line, Type, text);
+check_var_type(Type, {length, Line, _VarLength}) ->
+	match_type(Line, Type, integer);
 
 check_var_type(Type, {op, Line, Op, LeftExp, RightExp}) ->
 	{op, Line, Op,
@@ -117,23 +120,13 @@ check_var_type(AttrVarType, {var, Line, VarName}) ->
 		{error, _}  -> error;
 
 		{ok, local} ->
-			case st:is_declared_var(Scope, VarName) of
-				true ->
-					{ExprVarType, _} = st:get2(Line, st:get_scope(), VarName),
-					match_type(Line, AttrVarType, ExprVarType);
-
-				false ->
-					error
-			end;
+			{ExprVarType, _} = st:get2(Line, st:get_scope(), VarName),
+			match_type(Line, AttrVarType, ExprVarType);
 
 		{ok, object} ->
 			{ScopeClass, _} = Scope,
-			case st:get_field_info(ScopeClass, VarName) of
-				false -> error;
-
-				{ExprVarType, _} ->
-					match_type(Line, AttrVarType, ExprVarType)
-			end
+			{ExprVarType, _} = st:get_field_info(ScopeClass, VarName),
+			match_type(Line, AttrVarType, ExprVarType)
 	end;
 
 check_var_type(AttrArrayType, {{var, Line, ArrayName}, {index, _ArrayIndex}}) ->

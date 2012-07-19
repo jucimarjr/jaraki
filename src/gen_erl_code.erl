@@ -144,7 +144,7 @@ match_statement({inc_op, Line, IncOp, Variable}) ->
 match_statement({Line, return, Value}) ->
 	{block, Line,
 		[{match, Line, var(Line,'Return'), match_attr_expr(Value)},
-		rcall(Line, st, get_old_stack, [atom(Line, st:get_scope())]),
+		rcall(Line, st, get_old_stack, [gen_ast:scope(Line, st:get_scope())]),
 		var(Line,'Return')]
 	}.
 
@@ -212,7 +212,8 @@ match_attr_expr({read, Line, VarName})->
 	create_function_object_class(read, Line, VarName);
 
 match_attr_expr({length, Line, VarLength})->
-	ArrayGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
+	ScopeAst = gen_ast:scope(Line, st:get_scope()),
+	ArrayGetAst = rcall(Line, st, get_value,[ScopeAst,
 			string(Line, VarLength)]),
 	rcall(Line, vector, size_vector, [ArrayGetAst]);
 
@@ -241,6 +242,7 @@ match_attr_expr({op, Line, Op, LeftExp, RightExp}) ->
 
 match_attr_expr({var, Line, VarName}) ->
 	Scope = st:get_scope(),
+	ScopeAst = gen_ast:scope(Line, st:get_scope()),
 
 	VarContext = helpers:get_variable_context(Scope, VarName),
 
@@ -250,7 +252,7 @@ match_attr_expr({var, Line, VarName}) ->
 			no_operation;
 
 		{ok, local} ->
-			GetParamAst = [atom(Line, st:get_scope()), string(Line, VarName)],
+			GetParamAst = [ScopeAst, string(Line, VarName)],
 			rcall(Line, st, get_value, GetParamAst);
 
 		{ok, object} ->
@@ -260,16 +262,19 @@ match_attr_expr({var, Line, VarName}) ->
 match_attr_expr({{var, Line, VarName}, {index, ArrayIndex}}) ->
 	st:get2(Line, st:get_scope(), VarName),
 	IndexAst = match_attr_expr(ArrayIndex),
+	ScopeAst = gen_ast:scope(Line, st:get_scope()),
 
-	ArrayGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
+	ArrayGetAst = rcall(Line, st, get_value,[ScopeAst,
 				string(Line, VarName)]),
 	rcall(Line, vector, access_vector, [IndexAst, ArrayGetAst]);
 match_attr_expr({{var, Line, VarName},
 					{index, {row, RowIndex}, {column, ColumnIndex}}}) ->
 	st:get2(Line, st:get_scope(), VarName),
+	ScopeAst = gen_ast:scope(Line, st:get_scope()),
+
 	RowAst = match_attr_expr(RowIndex),
 	ColumnAst = match_attr_expr(ColumnIndex),
-	MatrixGetAst = rcall(Line, st, get_value,[atom(Line, st:get_scope()),
+	MatrixGetAst = rcall(Line, st, get_value,[ScopeAst,
 				string(Line, VarName)]),
 	rcall(Line, matrix, access_matrix, [RowAst, ColumnAst, MatrixGetAst]).
 
@@ -372,6 +377,7 @@ create_function_object_class(next_line, Line, VarName) ->
 
 create_function_object_class(read, Line, VarName) ->
 	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),
+	ScopeAst = gen_ast:scope(Line, st:get_scope()),
 
 	case Type of
 	   'Scanner' ->
@@ -381,7 +387,7 @@ create_function_object_class(read, Line, VarName) ->
 		'FileReader' ->
 			Read = atom(Line, read),
 			Value = {integer, Line, 1},
-			Var = rcall(Line, st, get_value, [atom(Line, st:get_scope()),
+			Var = rcall(Line, st, get_value, [ScopeAst,
 						string(Line, VarName)]),
 
 			call(Line, function_file, [Read, Var, Value])
@@ -475,6 +481,7 @@ print_list([], Line) ->
 	{nil, Line};
 print_list([Element|L], Line) ->
 	Scope = st:get_scope(),
+	ScopeAst = gen_ast:scope(Line, st:get_scope()),
 
 	case Element of
 		{field_access, ObjectVarName, FieldName} ->
@@ -484,7 +491,7 @@ print_list([Element|L], Line) ->
 		{{var, _, PrintElement}, {index, ArrayIndex} } ->
 			IndexGetAst = match_attr_expr(ArrayIndex),
 
-			ValueGetAst = rcall(Line, st, get_value,[atom(Line, Scope),
+			ValueGetAst = rcall(Line, st, get_value,[ScopeAst,
 				string(Line, PrintElement)]),
 			VectorAst = rcall(Line, vector,access_vector,
 							[IndexGetAst, ValueGetAst]),
@@ -494,7 +501,7 @@ print_list([Element|L], Line) ->
 					{index, {row, RowIndex}, {column, ColumnIndex}}} ->
 			RowAst = match_attr_expr(RowIndex),
 			ColumnAst = match_attr_expr(ColumnIndex),
-			ValueGetAst = rcall(Line, st, get_value,[atom(Line, Scope),
+			ValueGetAst = rcall(Line, st, get_value,[ScopeAst,
 				string(Line, PrintElement)]),
 			MatrixAst = rcall(Line, matrix, access_matrix,
 							[RowAst, ColumnAst, ValueGetAst]),
@@ -508,7 +515,7 @@ print_list([Element|L], Line) ->
 					jaraki_exception:handle_error(Line, ErrorNum);
 
 				{ok, local} ->
-					GetParamAst=[atom(Line, Scope), string(Line, PrintElement)],
+					GetParamAst=[ScopeAst, string(Line, PrintElement)],
 					VariableAst = rcall(Line, st, get_value, GetParamAst),
 					{cons, Line, VariableAst, print_list(L, Line)};
 
@@ -527,12 +534,22 @@ print_list([Element|L], Line) ->
 %%       se houver dependência A <-> B, checar código todo antes de compilar!
 
 create_function_call(Line, FunctionName, ArgumentsList) ->
-	TransformedArgumentList = [match_attr_expr(V) || V <- ArgumentsList],
-	FunctionCall = call(Line, FunctionName, TransformedArgumentList),
-	Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),
-	rcall(Line, st, return_function,
-		[Fun, atom(Line, FunctionName),
-			create_list(TransformedArgumentList, Line)]).
+	ArgumentAstList_temp1 = [match_attr_expr(V) || V <- ArgumentsList],
+
+	case helpers:get_arg_type_list(ArgumentsList) of
+		{error, ErrorNumber} ->
+			jaraki_exception:handle_error(Line, ErrorNumber),
+			no_operation;
+
+		ArgTypeList ->
+			ArgumentAstList = gen_ast:function_call_args(
+								Line, ArgumentAstList_temp1, ArgTypeList),
+
+			FunctionCall = call(Line, FunctionName, ArgumentAstList),
+			Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),
+			rcall(Line, st, return_function,
+				[Fun, atom(Line, FunctionName), list(Line, ArgumentAstList)])
+	end.
 
 %% Chamada do tipo Owner.Metodo()
 %% TODO tratar Parameters, lista de parametros
@@ -545,12 +562,17 @@ create_function_call(Line, Owner, FunctionName, ArgumentsList) ->
 	end.
 
 create_object_method_call(Line, ObjVarName, FunctionName, ArgumentList) ->
-	{ClassName, _VarValue} = st:get2(Line, st:get_scope(), ObjVarName),
+	Scope = st:get_scope(),
+
+	{ClassName, _VarValue} = st:get2(Line, Scope, ObjVarName),
+
+	ArgTypeList = helpers:get_arg_type_list(ArgumentList),
+	MethodKey = {FunctionName, ArgTypeList},
 
 	Check =
-		case st:exist_method(ClassName, FunctionName, []) of
+		case st:exist_method(ClassName, MethodKey) of
 			true ->
-				case st:is_static_method(ClassName, FunctionName, []) of
+				case st:is_static_method(ClassName, MethodKey) of
 					true -> jaraki_exception:handle_error(Line, 8);
 					false -> ok
 				end;
@@ -564,8 +586,12 @@ create_object_method_call(Line, ObjVarName, FunctionName, ArgumentList) ->
 
 			ObjectClassAst = rcall(Line, oo_lib, get_class, [ObjectIDAst]),
 
-			ArgumentAstList = [ObjectIDAst]
-								++ [match_attr_expr(V) || V <- ArgumentList],
+			ArgTypeList = helpers:get_arg_type_list(ArgumentList),
+			ArgumentAstList1 = [match_attr_expr(V) || V <- ArgumentList],
+			ArgumentAstList2 =
+				gen_ast:function_call_args(Line, ArgumentAstList1, ArgTypeList),
+			ArgumentAstList = [ObjectIDAst] ++ ArgumentAstList2,
+
 			ArgumentListAst = list(Line, ArgumentAstList),
 
 			FunctionNameAst = atom(Line, FunctionName),
@@ -575,12 +601,17 @@ create_object_method_call(Line, ObjVarName, FunctionName, ArgumentList) ->
 	end.
 
 create_static_method_call(Line, ClassName, FunctionName, ArgumentsList) ->
+	Scope = st:get_scope(),
+
+	ArgTypeList = helpers:get_arg_type_list(Scope, ArgumentsList),
+	MethodKey = {FunctionName, ArgTypeList},
+
 	Check =
 		case st:exist_class(ClassName) of
 			true ->
-				case st:exist_method(ClassName, FunctionName, []) of
+				case st:exist_method(ClassName, MethodKey) of
 					true ->
-						case st:is_static_method(ClassName, FunctionName, []) of
+						case st:is_static_method(ClassName, MethodKey) of
 							true  -> ok;
 							false -> jaraki_exception:handle_error(Line, 6)
 						end;
@@ -597,18 +628,17 @@ create_static_method_call(Line, ClassName, FunctionName, ArgumentsList) ->
 		error -> no_operation;
 		ok ->
 			ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
-			ArgumentListAst = [match_attr_expr(V) || V <- ArgumentsList],
-			FunctionCall= rcall(Line, ClassName2,FunctionName, ArgumentListAst),
+
+			ArgTypeList = helpers:get_arg_type_list(ArgumentsList),
+			ArgumentAstList1 = [match_attr_expr(V) || V <- ArgumentsList],
+			ArgumentAstList =
+				gen_ast:function_call_args(Line, ArgumentAstList1, ArgTypeList),
+
+			FunctionCall= rcall(Line, ClassName2,FunctionName, ArgumentAstList),
 			Fun = 'fun'(Line, [clause(Line, [], [], [FunctionCall])]),
 			rcall(Line, st, return_function,
-				[Fun, atom(Line, FunctionName),
-					create_list(ArgumentListAst, Line)])
+				[Fun, atom(Line, FunctionName), list(Line, ArgumentAstList)])
 	end.
-
-create_list([], Line) ->
-	{nil, Line};
-create_list([Element| Rest], Line) ->
-	{cons, Line, Element, create_list(Rest, Line)}.
 
 %%-----------------------------------------------------------------------------
 %% Cria o elemento da east para atribuiçao de campos de um objeto
@@ -675,7 +705,7 @@ create_attribution(Line, VarName, VarValue) ->
 			case VarContext2 of
 				local ->
 					JavaNameAst = string(Line, VarName),
-					ScopeAst = atom(Line, Scope),
+					ScopeAst = gen_ast:scope(Line, st:get_scope()),
 					rcall(Line, st, put_value, [
 						tuple(Line, [ScopeAst, JavaNameAst]),
 						tuple(Line, [TypeAst, NewVarValueAst])]);
@@ -693,7 +723,8 @@ create_attribution(new, VarName, VarLine, File) ->
 	FunctionFile = call(VarLine, function_file, [New, FileRead, Read]),
 
 	{Type, _VarValue} = st:get2(VarLine, st:get_scope(), VarName),
-	ScopeAst = atom(VarLine, st:get_scope()),
+	ScopeAst = gen_ast:scope(VarLine, st:get_scope()),
+
 	JavaNameAst = string(VarLine, VarName),
 	TypeAst = gen_ast:type_to_ast(VarLine, Type),
 
@@ -708,7 +739,7 @@ create_attribution(Line, ArrayName, ArrayIndex, VarValue) ->
 			TransformedVarValue = match_attr_expr(VarValue),
 			JavaNameAst = string(Line, ArrayName),
 			TypeAst = gen_ast:type_to_ast(Line, Type),
-			ScopeAst = atom(Line, st:get_scope()),
+			ScopeAst = gen_ast:scope(Line, st:get_scope()),
 			IndexAst = match_attr_expr(ArrayIndex),
 			ArrayGetAst = rcall(Line, st, get_value, [ScopeAst, JavaNameAst]),
 			VectorAst = rcall(Line, vector, set_vector, [IndexAst,
@@ -728,7 +759,7 @@ create_attribution(Line, MatrixName, RowIndex, ColumnIndex, VarValue) ->
 			TransformedVarValue = match_attr_expr(VarValue),
 			JavaNameAst = string(Line, MatrixName),
 			TypeAst = gen_ast:type_to_ast(Line, Type),
-			ScopeAst = atom(Line, st:get_scope()),
+			ScopeAst = gen_ast:scope(Line, st:get_scope()),
 			RowAst = match_attr_expr(RowIndex),
 			ColumnAst = match_attr_expr(ColumnIndex),
 			ArrayGetAst = rcall(Line, st, get_value, [ScopeAst, JavaNameAst]),
@@ -777,7 +808,7 @@ create_array_initializer(Line, VarName, ArrayValues) ->
 	%jaraki_exception:check_var_type(Type, VarName),
 	JavaNameAst = string(Line, VarName),
 	TypeAst = gen_ast:type_to_ast(Line, Type),
-	ScopeAst = atom(Line, st:get_scope()),
+	ScopeAst = gen_ast:scope(Line, st:get_scope()),
 
 	case ArrayValues of
 		[{array_element, _} | _] ->
@@ -803,7 +834,7 @@ create_array(Line, VarName, {_L, Type}, ArrayLength) ->
 						{index, ArrayLength}}),
 	JavaNameAst = string(Line, VarName),
 	TypeAst = gen_ast:type_to_ast(Line, Type),
-	ScopeAst = atom(Line, st:get_scope()),
+	ScopeAst = gen_ast:scope(Line, st:get_scope()),
 	IndexAst = match_attr_expr(ArrayLength),
 	%%Usado para a instanciação do array, cria um tamanho fixo
 
@@ -819,7 +850,7 @@ create_array(Line, VarName, {_L, Type}, RowLength, ColumnLength) ->
 	%jaraki_exception:check_var_type(Type, {var, VarLine, VarName}),
 	JavaNameAst = string(Line, VarName),
 	TypeAst = gen_ast:type_to_ast(Line, Type),
-	ScopeAst = atom(Line, st:get_scope()),
+	ScopeAst = gen_ast:scope(Line, st:get_scope()),
 	RowAst = match_attr_expr(RowLength),
 	ColumnAst = match_attr_expr(ColumnLength),
 	%%Usado para a instanciação do array, cria um tamanho fixo
@@ -866,7 +897,7 @@ create_for(Line, VarType, VarName, Start, CondExpr, IncExpr, Body) ->
 	JavaNameAst = string(Line, VarName),
 	TypeAst = gen_ast:type_to_ast(Line, VarType),
 	Scope = st:get_scope(),
-	ScopeAst = atom(Line, Scope),
+	ScopeAst = gen_ast:scope(Line, Scope),
 	InitAst = rcall(Line, st, put_value,[
 				tuple(Line, [ScopeAst, JavaNameAst]),
 				tuple(Line, [TypeAst, match_attr_expr(Start)])]),
@@ -905,7 +936,7 @@ create_undeclare_vars(_Line, [], _Scope, UndeclareVarsAst) ->
 create_undeclare_vars(Line, [Var | Rest], Scope, UndeclareVarsAst) ->
 	{{var, VarName}, _VarValue} = Var,
 	st:delete(Scope, VarName),
-	ScopeAst = atom(Line, Scope),
+	ScopeAst = gen_ast:scope(Line, st:get_scope()),
 
 	UndeclareAst = rcall(Line, st, delete, [ScopeAst, string(Line, VarName)]),
 

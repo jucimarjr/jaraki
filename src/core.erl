@@ -93,19 +93,20 @@ get_erl_function(ClassName, MethodData) ->
 
 %% TODO: trocar o put(type_method, TypeName) por buscar oo na st!
 get_erl_function(other_method, ClassName, MethodData) ->
-	{Line, Return, MethodName, _Modifiers, Parameters, Block} = MethodData,
+	{Line, Return, MethodNameJast, _Modifiers, Parameters, Block} = MethodData,
 
 	{block, _BlockLine, JavaMethodBody} = Block,
 	{return, {_TypeLine, TypeName}} = Return,
-	{name, FunctionIdentifier} = MethodName,
+	{name, MethodName} = MethodNameJast,
 
-	st:put_scope({ClassName, FunctionIdentifier}),
+	ParametersTypeList = [Type || {_, {var_type, {_, Type}}, _} <- Parameters],
+	st:put_scope({ClassName, {MethodName, ParametersTypeList}}),
 	put(type_method, TypeName),
 
 	{ArgumentsLength, ErlangFunctionBody} =
 		get_erl_function_body(Line, JavaMethodBody, Parameters),
 
-	function(Line, FunctionIdentifier, ArgumentsLength, ErlangFunctionBody);
+	function(Line, MethodName, ArgumentsLength, ErlangFunctionBody);
 
 %%% tem que saber qual a classe pq se for chamada de método de objeto,
 %%  precisa saber quais os campos que são acessíveis, para saber qual código
@@ -133,7 +134,8 @@ get_erl_function(main, ClassName, MethodData) ->
 		_                -> jaraki_exception:handle_error(Line, 5)
 	end,
 
-	st:put_scope({ClassName, main}),
+	ParametersTypeList = [Type || {_, {var_type, {_, Type}}, _} <- Parameters],
+	st:put_scope({ClassName, {main, ParametersTypeList}}),
 
 	{ArgumentsLength, ErlangFunctionBody} =
 		get_erl_function_body(Line, JavaMethodBody, Parameters),
@@ -149,13 +151,9 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 	Scope = st:get_scope(),
 	{ScopeClass, ScopeMethod} = Scope,
 
-	ErlangArgsListTemp1 =
-		[var(ParamLine,"V_" ++ atom_to_list(ParamName)) ||
-			{ParamLine, _ClassIdentifier, {parameter, ParamName}}
-			<- ParametersList
-		],
+	ErlangArgsListTemp1 = gen_ast:function_args_list(Line, ParametersList),
 
-	case st:is_static_method(ScopeClass, ScopeMethod, []) of
+	case st:is_static_method(ScopeClass, ScopeMethod) of
 		true ->
 			ErlangArgsList = ErlangArgsListTemp1;
 		false ->
@@ -169,7 +167,7 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 		end,
 	lists:map( MappedParamsFun, ParametersList),
 
-	ScopeAst = atom(Line, st:get_scope()),
+	ScopeAst = gen_ast:scope(Line, st:get_scope()),
 
 	InitArgs = [
 		rcall(Line, st, put_value, [
@@ -197,7 +195,7 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 
 	New =
 		case st:get_scope() of
-			{_ScopeClass1, main} ->
+			{_ScopeClass1, {main,_}} ->
 				[rcall(Line, st, new, [])];
 			_ ->
 				[]
@@ -207,22 +205,21 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 	case get(type_method) of
 		void ->
 			[rcall(Line, st, get_old_stack,
-				[atom(Line, st:get_scope())])];
+				[gen_ast:scope(Line, st:get_scope())])];
 		_ ->
 			[]
 	end,
 
 	Destroy = case st:get_scope() of
-		{_ScopeClass2, main} ->
+		{_ScopeClass2, {main, _}} ->
 			[rcall(Line,st, destroy, [])];
 		_ ->
 			[]
 	end,
 
-
 	ErlangStmtTemp1 =
 		New ++
-		[rcall(Line, st, get_new_stack,[atom(Line, st:get_scope())])]
+		[rcall(Line, st, get_new_stack,[gen_ast:scope(Line, st:get_scope())])]
 		++
 		InitArgs ++
 		lists:map(MappedErlangFun, JavaMethodBody) ++

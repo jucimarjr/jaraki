@@ -104,7 +104,7 @@ run(ModuleName, Args) ->
 			"---------------------------------------\n\n"),
 
 	{_, _, StartTime} = now(),
-	ModuleName:main(Args),
+	ModuleName:main({{array, 'String'}, Args}),
 	{_, _, EndTime} = now(),
 
 	ElapsedTime = EndTime - StartTime,

@@ -14,6 +14,30 @@
 function(Line, Name, ParametersLength, ErlangFunctionBody) ->
 	{function, Line, Name, ParametersLength, ErlangFunctionBody}.
 
+%% lista de parâmetros da definição de uma função
+function_args_list(Line, ParametersList) ->
+	function_args_list(Line, ParametersList, []).
+
+function_args_list(_, [], ParametersListAst) ->
+	lists:reverse(ParametersListAst, []);
+
+function_args_list(Line, ParametersList, ParametersListAst) ->
+	[{ParamLine, TypeJast, ParamJast} | Rest] = ParametersList,
+	{var_type, {_TypeLine, Type}} = TypeJast,
+	{parameter, ParamName} = ParamJast,
+	VarAst = var(ParamLine,"V_" ++ atom_to_list(ParamName)),
+	ParamAst = tuple(Line, [atom(Line, Type), VarAst]),
+	function_args_list(Line, Rest, [ParamAst | ParametersListAst]).
+
+%% lista de parâmetros da chamada de função
+%% acrescenta o tipo ao valor: fazendo f(1) virar f({integer, 1})
+%%
+%% assume que ArgumentsList são variáveis ou literais (números, string)
+function_call_args(Line, ArgumentAstList, ArgTypeList) ->
+	ArgTypeAstList = [atom(Line, X) || X <- ArgTypeList],
+	FinalArgList = lists:zip(ArgTypeAstList, ArgumentAstList),
+	[tuple(Line, X) || X <- FinalArgList].
+
 var(Line, Name) when is_list(Name)-> {var, Line, list_to_atom(Name)};
 var(Line, Name) when is_atom(Name) -> {var, Line, Name}.
 
@@ -43,6 +67,10 @@ clause(Line, Pattern, Guard, Body)->
 
 'fun'(Line, Clauses) ->
 	{'fun', Line, {clauses, Clauses}}.
+
+tuple(Line, Arguments) when is_tuple(Arguments) ->
+	ArgumentsList = tuple_to_list(Arguments),
+	{tuple, Line, ArgumentsList};
 
 tuple(Line, Arguments) ->
 	{tuple, Line, Arguments}.
@@ -78,6 +106,14 @@ float(Line, Value) -> {float, Line, Value}.
 list(Line, [])               -> {nil, Line};
 list(Line, [Element | Rest]) -> {cons, Line, Element, list(Line, Rest)}.
 
+scope(Line, {ClassName, {MethodName, Parameters}}) ->
+	ClassNameAst = atom(Line, ClassName),
+	MethodNameAst = atom(Line, MethodName),
+	ParametersAstList = [atom(Line, Element) || Element <- Parameters],
+	ParametersListAst = list(Line, ParametersAstList),
+	ScopeMethodAst = tuple(Line, [MethodNameAst, ParametersListAst]),
+	tuple(Line, [ClassNameAst, ScopeMethodAst]).
+
 %%---------------------------------------------------------------------------%%
 %% gen_ast complexos para OO
 
@@ -104,6 +140,6 @@ objectID(Line, this) -> var(Line, "ObjectID").
 
 objectID(Line, _, this) -> var(Line, "ObjectID");
 objectID(Line, Scope, ObjectVarName) ->
-	ScopeAst = atom(Line, Scope),
+	ScopeAst = scope(Line, Scope),
 	ObjectVarNameAst = string(Line, ObjectVarName),
 	rcall(Line, st,get_value, [ScopeAst, ObjectVarNameAst]).

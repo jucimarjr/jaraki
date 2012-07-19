@@ -88,7 +88,7 @@ get_members_info([{method, MethodData} | Rest], FieldsInfo, MethodsInfo) ->
 	{return, {_, Return}} = ReturnJast,
 	{name, Name} = NameJast,
 	{modifiers, ModifierList} = ModifiersJast,
-	NewMethod = get_method_info(Name, ModifierList, Return, []),%ParameterList),
+	NewMethod = get_method_info(Name, ModifierList, Return, ParameterList),
 	get_members_info(Rest, FieldsInfo, [NewMethod | MethodsInfo]);
 
 %% TODO: Tratar Modificadores de campos
