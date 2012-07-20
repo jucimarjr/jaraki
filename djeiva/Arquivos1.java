@@ -1,6 +1,5 @@
 package arquivos;
 
-package arquivos;
 
 
 import java.io.FileReader;
