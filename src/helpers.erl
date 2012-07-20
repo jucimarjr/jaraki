@@ -88,6 +88,9 @@ get_arg_type({integer, _,_}) -> int;
 get_arg_type({long, _,_}) -> long;
 get_arg_type({double, _,_}) -> double;
 get_arg_type({float, _,_}) -> float;
+get_arg_type({length, _,_}) -> int;
+get_arg_type({atom, _, true}) -> boolean;
+get_arg_type({atom, _, false}) -> boolean;
 get_arg_type({Type, _,_}) when is_atom(Type) -> Type;
 
 get_arg_type({op, _, _, Expr}) -> get_arg_type(Expr);

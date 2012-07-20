@@ -93,15 +93,15 @@ get_erl_function(ClassName, MethodData) ->
 
 %% TODO: trocar o put(type_method, TypeName) por buscar oo na st!
 get_erl_function(other_method, ClassName, MethodData) ->
-	{Line, Return, MethodNameJast, _Modifiers, Parameters, Block} = MethodData,
+	{Line, _Return, MethodNameJast, _Modifiers, Parameters, Block} = MethodData,
 
 	{block, _BlockLine, JavaMethodBody} = Block,
-	{return, {_TypeLine, TypeName}} = Return,
+	%{return, {_TypeLine, TypeName}} = Return,
 	{name, MethodName} = MethodNameJast,
 
 	ParametersTypeList = [Type || {_, {var_type, {_, Type}}, _} <- Parameters],
 	st:put_scope({ClassName, {MethodName, ParametersTypeList}}),
-	put(type_method, TypeName),
+	%put(type_method, TypeName),
 
 	{ArgumentsLength, ErlangFunctionBody} =
 		get_erl_function_body(Line, JavaMethodBody, Parameters),
