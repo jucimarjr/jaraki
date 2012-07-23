@@ -3,7 +3,7 @@ package matriz;
 import java.util.Random;
 
 
-public class Matriz2 {
+public class TesteMatrizFuncao {
 
 	public static void lerMatriz(int[][] matriz, int tam) {
 		Random valor = new Random(); 	
@@ -43,15 +43,14 @@ public class Matriz2 {
 		
 		System.out.println("MatA...");
 		imprimirMatriz(matA, 4);
-	        imprimirMatriz(matA, 4);
+	    imprimirMatriz(matA, 4);
 
 		System.out.println("MatB...");
 		imprimirMatriz(matB, 4);
 		
 		imprimirMatriz(matA, 4);
 
-		matE = matrizTransposta(matA);
-		imprimirMatriz(matE, 4);
+
 		
 		}
 }
