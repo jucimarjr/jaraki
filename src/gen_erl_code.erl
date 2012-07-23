@@ -534,6 +534,8 @@ print_list([Element|L], Line) ->
 %%       se houver dependência A <-> B, checar código todo antes de compilar!
 
 create_function_call(Line, FunctionName, ArgumentsList) ->
+	{ScopeClass, _ScopeMethod} = st:get_scope(),
+
 	ArgumentAstList_temp1 = [match_attr_expr(V) || V <- ArgumentsList],
 
 	case helpers:get_arg_type_list(ArgumentsList) of
@@ -542,23 +544,32 @@ create_function_call(Line, FunctionName, ArgumentsList) ->
 			no_operation;
 
 		ArgTypeList ->
-			ArgumentAstList = gen_ast:function_call_args(
-								Line, ArgumentAstList_temp1, ArgTypeList),
-			{ClassName, _Method} = st:get_scope(),
-			io:format("~p\n~p\n~p\n\n", [get(), FunctionName, ArgTypeList]),
-			{TypeReturn, _Modificadores} = 
-					st:get_method_info(ClassName, {FunctionName, ArgTypeList}),
-			
-			FunctionCall = call(Line, FunctionName, ArgumentAstList),
-			Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),
-			io:format("~p~n~n",[TypeReturn]),
-			case TypeReturn of
-				void -> FunctionCall;
-                {array, void} -> FunctionCall;
-				{matrix, void} -> FunctionCall;
-				_OtherType -> rcall(Line, st, return_function, 
-								[Fun, atom(Line, FunctionName), 
-								list(Line, ArgumentAstList)])
+			MethodKey = {FunctionName, ArgTypeList},
+			case st:exist_method(ScopeClass, MethodKey) of
+				false ->
+					jaraki_exception:handle_error(Line, 9),
+					no_operation;
+
+				true ->
+					ArgumentAstList = gen_ast:function_call_args(
+									  Line, ArgumentAstList_temp1, ArgTypeList),
+					{ClassName, _Method} = st:get_scope(),
+			%%io:format("~p\n~p\n~p\n\n", [get(), FunctionName, ArgTypeList]),
+					{TypeReturn, _Modificadores} =
+						st:get_method_info(
+							ClassName, {FunctionName, ArgTypeList}),
+
+					FunctionCall = call(Line, FunctionName, ArgumentAstList),
+					Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),
+			%io:format("~p~n~n",[TypeReturn]),
+					case TypeReturn of
+						void -> FunctionCall;
+						{array, void} -> FunctionCall;
+						{matrix, void} -> FunctionCall;
+						_OtherType -> rcall(Line, st, return_function,
+										[Fun, atom(Line, FunctionName),
+										list(Line, ArgumentAstList)])
+					end
 			end
 	end.
 

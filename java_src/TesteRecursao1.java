@@ -14,7 +14,8 @@ public class TesteRecursao1 {
        }
 	
 	public static void main(String[] args) {
-		int n ;
+		long n;
+		//int n ;
 		n = 10;
 		int a;
 		a = fibo(n-1);

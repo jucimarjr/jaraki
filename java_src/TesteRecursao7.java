@@ -10,7 +10,8 @@ public class TesteRecursao7 {
 	}
 
 	public static void main(String[] args) {
-		int m;
+		//int m;
+		long m;
 		long a;
 		m = 100;
 		a = x(m);

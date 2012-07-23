@@ -77,21 +77,21 @@ get_erl_file_list([JavaAST | Rest], ClassesInfo, ErlangFileList) ->
 %%-----------------------------------------------------------------------------
 %% gera um arquivo .erl de um .java
 %% FUNÇÃO OBSOLETA, falta atualizar dependências
-get_erl_file(JavaFileName) ->
-	JavaAST = ast:get_java_ast(JavaFileName),
+%% get_erl_file(JavaFileName) ->
+%% 	JavaAST = ast:get_java_ast(JavaFileName),
 
-	ErlangModuleName= get_erl_modulename(JavaAST),
+%% 	ErlangModuleName= get_erl_modulename(JavaAST),
 
-	ErlangFileName= get_erl_filename(ErlangModuleName),
+%% 	ErlangFileName= get_erl_filename(ErlangModuleName),
 
-	JavaAST = ast:get_java_ast(JavaFileName),
-	ClassInfo = ast:get_class_info(JavaAST),
+%% 	JavaAST = ast:get_java_ast(JavaFileName),
+%% 	ClassInfo = ast:get_class_info(JavaAST),
 
-	{ok, ErlangAST} =
-		core:transform_jast_to_east(JavaAST, ErlangModuleName, [ClassInfo]),
-	create_erl_file(ErlangAST,ErlangFileName),
+%% 	{ok, ErlangAST} =
+%% 		core:transform_jast_to_east(JavaAST, ErlangModuleName, [ClassInfo]),
+%% 	create_erl_file(ErlangAST,ErlangFileName),
 
-	ErlangFileName.
+%% 	ErlangFileName.
 
 %%-----------------------------------------------------------------------------
 %% Mostra a versao, autores e ano do Jaraki.

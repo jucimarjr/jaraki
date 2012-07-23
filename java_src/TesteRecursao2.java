@@ -14,7 +14,8 @@ public class TesteRecursao2 {
 	}
 
 	public static void main(String[] args) {
-		int n;
+		//int n;
+		long n;
 		long a;
 		n = 5;
 		a = fat(n);

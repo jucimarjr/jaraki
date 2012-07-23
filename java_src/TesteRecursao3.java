@@ -12,7 +12,8 @@ public class TesteRecursao3 {
 	}
 
 	public static void main(String[] args) {
-		int n;
+		//int n;
+		long n;
 		long a;
 		n = 10;
 		a = soma(n);
