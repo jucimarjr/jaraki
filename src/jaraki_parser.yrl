@@ -32,7 +32,7 @@ literal				bool_expr	sqrt_stmt	length_stmt
 
 %% functions
 print_stmt		print_content	next_int_stmt	next_float_stmt
-next_line_stmt	read_stmt		close_stmt
+next_line_stmt	read_stmt		write_stmt		close_stmt
 
 %% statements
 if_stmt		if_else_stmt		if_else_no_trailing		no_short_if_stmt
@@ -57,7 +57,7 @@ next_int	next_line	next_float	new this system_in
 'if' 'else' true false
 for while	try catch break exception
 io_exception 'throws'
-file_reader  read  close
+file_reader	file_writer	write  read  close
 integer float
 identifier text singles_quotes
 add_op mult_op modulus_op increment_op
@@ -85,6 +85,7 @@ import_declaration -> identifier '.' import_declaration	: ['$1' | '$3'].
 import_declaration -> scanner ';' : ['$1'].
 import_declaration -> random ';' : ['$1'].
 import_declaration -> file_reader ';' : ['$1'].
+import_declaration -> file_writer ';' : ['$1'].
 import_declaration -> io_exception ';' : ['$1'].
 
 class_list -> class_declaration				: ['$1'].
@@ -226,6 +227,8 @@ no_trailing_stmt -> element_value_pair					: '$1'.
 no_trailing_stmt -> print_stmt							: '$1'.
 no_trailing_stmt -> post_increment_expr					: '$1'.
 no_trailing_stmt -> return_statement					: '$1'.
+no_trailing_stmt -> write_stmt							: '$1'.
+no_trailing_stmt -> close_stmt							: '$1'.
 
 %% Declaração de variáveis
 local_variable_declaration_statement -> type variable_list ';':
@@ -246,6 +249,11 @@ local_variable_declaration_statement -> scanner variable_list ';':
 	{var_declaration, {var_type, Type}, {var_list, '$2'}}.
 
 local_variable_declaration_statement -> file_reader variable_list ';':
+	Type = {line('$1'), unwrap('$1')},
+	{var_declaration, {var_type, Type}, {var_list, '$2'}}.
+
+
+local_variable_declaration_statement -> file_writer variable_list ';':
 	Type = {line('$1'), unwrap('$1')},
 	{var_declaration, {var_type, Type}, {var_list, '$2'}}.
 %%-------------
@@ -340,13 +348,23 @@ new_stmt -> 'new' scanner '(' system_in ')':
 new_stmt -> 'new' file_reader '(' text ')':
 		Type = {line('$2'), unwrap('$2')},
 		{new, object, {type, Type}, {file, unwrap('$4')}}.
-%% Funcoes da classe FileReader
+
+new_stmt -> 'new' file_writer '(' text ',' true ')':
+		Type = {line('$2'), unwrap('$2')},
+		{new, object, {type, Type}, {file, unwrap('$4')}}.
+
+%% Funcoes da classe FileReader e FileWrite
 
 read_stmt -> identifier '.' read '(' ')' :
 					{read, line('$1'),  unwrap('$1')}.
 
-close_stmt -> identifier '.' close '(' ')' :
-					{close, line('$1'),  unwrap('$1')}.
+
+write_stmt -> identifier '.' write '(' text ')' ';':
+					{write, line('$1'),  unwrap('$1'),
+						{write_text, unwrap('$5')}}.
+
+close_stmt -> identifier '.' close '(' ')' ';':
+				{close, line('$1'),  unwrap('$1')}.
 
 
 % declaração de instâncias de qualquer classe, CONSTRUTOR PADRÃO
@@ -661,7 +679,6 @@ literal -> next_int_stmt		: '$1'.
 literal -> next_float_stmt		: '$1'.
 literal -> next_line_stmt		: '$1'.
 literal -> read_stmt			: '$1'.
-literal -> close_stmt			: '$1'.
 literal -> array_access			: '$1'.
 literal -> length_stmt			: '$1'.
 literal -> new_stmt				: '$1'.

@@ -62,6 +62,8 @@ Scanner				= Scanner
 SystemIn			= System\.in
 FileReader			= FileReader
 Read				= read
+FileWriter			= FileWriter	
+Write				= write
 Close				= close
 NextInt				= nextInt
 NextFloat			= nextFloat
@@ -143,6 +145,8 @@ Rules.
 {NextLine}	: {token, {next_line,	TokenLine, list_to_atom(TokenChars)}}.
 {FileReader}	: {token, {file_reader,	TokenLine, list_to_atom(TokenChars)}}.
 {Read}		: {token, {read,	TokenLine, list_to_atom(TokenChars)}}.
+{FileWriter}	: {token, {file_writer,	TokenLine, list_to_atom(TokenChars)}}.
+{Write}		: {token, {write,	TokenLine, list_to_atom(TokenChars)}}.
 {close}		: {token, {close,	TokenLine, list_to_atom(TokenChars)}}.
 {New}		: {token, {new,	TokenLine, list_to_atom(TokenChars)}}.
 {This}		: {token, {this,	TokenLine, list_to_atom(TokenChars)}}.
