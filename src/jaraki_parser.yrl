@@ -52,7 +52,7 @@ package import class public static void %% main, obsoleto
 return sqrt random print scanner
 length
 '(' ')' '[' ']' '{' '}' ';' '=' '.' '.*' ','
-string_t int_t long_t float_t double_t boolean_t
+string_t int_t long_t float_t double_t boolean_t char_t
 next_int	next_line	next_float	new this system_in
 'if' 'else' true false
 for while	try catch break exception
@@ -73,7 +73,7 @@ start_parser -> package qualified_identifier import_list class_list	: '$4'.
 start_parser -> import_list class_list								: '$2'.
 
 qualified_identifier -> identifier ';'						: unwrap('$1').
-qualified_identifier -> identifier '.' qualified_identifier	: 
+qualified_identifier -> identifier '.' qualified_identifier	:
 														[unwrap('$1') | '$3'].
 
 import_list -> import import_declaration				: ['$2'] .
@@ -630,6 +630,7 @@ type -> long_t	: {line('$1'), unwrap('$1')}.
 type -> float_t	: {line('$1'), unwrap('$1')}.
 type -> double_t	: {line('$1'), unwrap('$1')}.
 type -> boolean_t	: {line('$1'), unwrap('$1')}.
+type -> char_t	: {line('$1'), unwrap('$1')}.
 
 %% -Trata expressoes matematicas (numericas).
 %% TODO: acrescentar tipo boolean e tratar precedencia de op booleanos

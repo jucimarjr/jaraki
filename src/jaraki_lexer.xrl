@@ -29,6 +29,7 @@ Integer				= int
 Long				= long
 Float				= float
 Double				= double
+Char				= char
 Boolean				= boolean
 If					= if
 Else				= else
@@ -123,6 +124,7 @@ Rules.
 {Float}		: {token, {float_t,	TokenLine, list_to_atom(TokenChars)}}.
 {Double}	: {token, {double_t,	TokenLine, list_to_atom(TokenChars)}}.
 {Boolean}	: {token, {boolean_t,	TokenLine, list_to_atom(TokenChars)}}.
+{Char}		: {token, {char_t,	TokenLine, list_to_atom(TokenChars)}}.
 {If}		: {token, {'if',	TokenLine, list_to_atom(TokenChars)}}.
 {Else}		: {token, {'else',	TokenLine, list_to_atom(TokenChars)}}.
 {For}		: {token, {'for',	TokenLine, list_to_atom(TokenChars)}}.
