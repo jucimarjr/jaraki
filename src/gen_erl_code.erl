@@ -27,6 +27,10 @@ match_statement({var_declaration, VarType, VarList}) ->
 match_statement(no_operation) ->
 	no_operation;
 
+%% Casa expressões do tipo identifier.write()
+match_statement({write, Line, VarName, WriteText}) ->
+	create_function_object_class(write, Line, VarName, WriteText);
+
 %% transforma expressoes do tipo System.out.print em Erlang
 match_statement({Line, print, Content}) ->
 	create_print_function(Line, print, Content);
@@ -325,8 +329,12 @@ create_declaration_list(VarLine, [H| Rest], VarAstList) ->
 					ok
 			end;
 
-		{new, object, {type, _ClassType}, {file, File}} ->
-				FileAst = create_attribution(new, VarName, VarLine, File),
+		{new, object, {type, _ClassType}, {file_reader, File}} ->
+				FileAst = create_attribution(new_read, VarName, VarLine, File),
+				create_declaration_list(VarLine, Rest, [FileAst | VarAstList]);
+
+		{new, object, {type, _ClassType}, {file_writer, File}} ->
+				FileAst = create_attribution(new_write, VarName, VarLine, File),
 				create_declaration_list(VarLine, Rest, [FileAst | VarAstList]);
 
 		_ ->
@@ -392,6 +400,21 @@ create_function_object_class(read, Line, VarName) ->
 
 			call(Line, function_file, [Read, Var, Value])
 	end.
+
+
+create_function_object_class(write, Line, VarName, WriteText) ->
+%	{Type, _VarValue} = st:get2(Line, st:get_scope(), VarName),
+	ScopeAst = gen_ast:scope(Line, st:get_scope()),
+
+		{write_text, WriteText2} = WriteText,
+		Write = atom(Line, write),
+		VarNew = rcall(Line, st, get_value, [ScopeAst,
+					string(Line, VarName)]),
+
+		VarWrite = rcall(Line, st, get_value, [ScopeAst,
+					string(Line, WriteText2)]),
+
+		call(Line, function_file, [Write, VarNew, VarWrite]);
 
 
 create_function_object_class(next_int, Line, VarName, RandomValue) ->
@@ -738,7 +761,7 @@ create_attribution(Line, VarName, VarValue) ->
 	end.
 
 %% Cria elemento east para instanciacao do FileReader
-create_attribution(new, VarName, VarLine, File) ->
+create_attribution(new_read, VarName, VarLine, File) ->
 	New = atom(VarLine, new),
 	Read = atom(VarLine, read),
 	FileRead = string(VarLine, File),
@@ -750,7 +773,23 @@ create_attribution(new, VarName, VarLine, File) ->
 	JavaNameAst = string(VarLine, VarName),
 	TypeAst = gen_ast:type_to_ast(VarLine, Type),
 
-	rcall(VarLine, st, put_value, [tuple(VarLine, [ScopeAst, JavaNameAst]), tuple(VarLine, [TypeAst, FunctionFile])]);
+	rcall(VarLine, st, put_value, [tuple(VarLine, [ScopeAst, JavaNameAst]),
+		tuple(VarLine, [TypeAst, FunctionFile])]);
+
+%% Cria elemento east para instanciacao do FileWriter
+create_attribution(new_write, VarName, VarLine, File) ->
+
+	FileWrite = string(VarLine, File),
+
+	{Type, _VarValue} = st:get2(VarLine, st:get_scope(), VarName),
+	ScopeAst = gen_ast:scope(VarLine, st:get_scope()),
+
+	JavaNameAst = string(VarLine, VarName),
+	TypeAst = gen_ast:type_to_ast(VarLine, Type),
+
+	rcall(VarLine, st, put_value, [tuple(VarLine, [ScopeAst, JavaNameAst]),
+		tuple(VarLine, [TypeAst, FileWrite])]);
+
 
 %%------------------------------------------------------------------------------
 %% Cria elemento da east para atribuicao de array

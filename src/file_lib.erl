@@ -9,16 +9,21 @@
 %% Objetivo : ...
 
 -module(file_lib).
--export([function_file/3]).
+-export([function_file/3, function_file/1]).
 
 
 function_file(Par1, Par2, Par3) ->
 	case Par1 of
 		new ->
-			file:open(Par2, Par3);
+			{ok, File} = file:open(Par2, Par3),
+			File;
 		read ->
-			file:read(Par2, Par3);
+			{ok, Read} = file:read(Par2, Par3),
+			Read;
 		write -> 
-			file:write(Par2, Par3)
+			file:write_file(Par2, Par3)
 	end.
+
+function_file(File) ->
+	file:close(File).
 

@@ -347,11 +347,11 @@ new_stmt -> 'new' scanner '(' system_in ')':
 
 new_stmt -> 'new' file_reader '(' text ')':
 		Type = {line('$2'), unwrap('$2')},
-		{new, object, {type, Type}, {file, unwrap('$4')}}.
+		{new, object, {type, Type}, {file_reader, unwrap('$4')}}.
 
 new_stmt -> 'new' file_writer '(' text ',' true ')':
 		Type = {line('$2'), unwrap('$2')},
-		{new, object, {type, Type}, {file, unwrap('$4')}}.
+		{new, object, {type, Type}, {file_writer, unwrap('$4')}}.
 
 %% Funcoes da classe FileReader e FileWrite
 
@@ -362,6 +362,10 @@ read_stmt -> identifier '.' read '(' ')' :
 write_stmt -> identifier '.' write '(' text ')' ';':
 					{write, line('$1'),  unwrap('$1'),
 						{write_text, unwrap('$5')}}.
+
+write_stmt -> identifier '.' write '(' identifier ')' ';':
+					{write, line('$1'),  unwrap('$1'),
+							{write_text, unwrap('$5')}}.
 
 close_stmt -> identifier '.' close '(' ')' ';':
 				{close, line('$1'),  unwrap('$1')}.
