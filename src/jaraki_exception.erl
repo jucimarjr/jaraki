@@ -102,6 +102,8 @@ check_var_type(Type, {scanner, Line, _Value})-> match_type(Line, Type, scanner);
 check_var_type(Type, {file_reader, Line, _Value})-> match_type(Line, Type, file_reader);
 check_var_type(Type, {atom, Line, false})    -> match_type(Line, Type, boolean);
 check_var_type(Type, {text, Line, _String})  -> match_type(Line, Type, text);
+check_var_type(Type, {singles_quotes, Line, _Char}) -> 
+	match_type(Line, Type, singles_quotes);
 check_var_type(Type, {length, Line, _VarLength}) ->
 	match_type(Line, Type, integer);
 
@@ -147,6 +149,7 @@ match_type(_, float,    integer) -> ok;
 match_type(_, random,    _)      -> ok;
 match_type(_, scanner,   _)      -> ok;
 match_type(_, file_reader,   _)      -> ok;
+match_type(_, char, singles_quotes) -> ok;
 match_type(_, Type,     Type)    -> ok;
 
 match_type(Line, _, _) ->

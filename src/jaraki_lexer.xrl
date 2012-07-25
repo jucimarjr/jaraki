@@ -74,8 +74,8 @@ This				= this
 Digit				= [0-9]
 Identifier			= [a-zA-Z_][a-zA-Z0-9_]*
 
-SinglesQuotesLiteral		= '.*'
 StringLiteral		= "(\\\^.|\\.|[^\"])*"
+SinglesQuotesLiteral= '(\\\^.|\\.|[^\'])*'
 
 % Separator: one of
 
@@ -176,11 +176,14 @@ Rules.
 {Digit}+\.{Digit}+	: {token, {float, TokenLine, list_to_float(TokenChars)}}.
 
 {Identifier}	: {token, {identifier, TokenLine, list_to_atom(TokenChars)}}.
-{SinglesQuotesLiteral}	: build_text(singles_quotes, TokenChars, TokenLine, TokenLen).
+{SinglesQuotesLiteral} : build_char(singles_quotes, TokenChars, TokenLine, TokenLen).
 {WhiteSpace}+	: skip_token.
 {StringLiteral}	: build_text(text, TokenChars, TokenLine, TokenLen).
 
 Erlang code.
+build_char(Type, Chars, Line, Len) ->
+	Text = lists:sublist(Chars, 2, Len - 2),
+	{token, {Type, Line, list_to_atom(Text)}}.
 
 build_text(Type, Chars, Line, Length) ->
 	Text = detect_special_char(lists:sublist(Chars, 2, Length - 2)),
