@@ -31,7 +31,13 @@ get_error_text(10) -> "Non-static variable a cannot be referenced "
 get_error_text(11) -> "Field not declared";
 get_error_text(12) -> "Non-static variable \"this\" cannot be referenced from "
 						"a static context";
-get_error_text(13) -> "Unexpected type on method call!".
+get_error_text(13) -> "Unexpected type on method call!";
+
+%-------------------------------------------------------------------------------
+%% Erros de Pacotes TODO: Traduzir os textos para o ingles
+get_error_text(14) -> "Diretorio inexistente";
+get_error_text(15) -> "O aquivo nao consta no diretorio";
+get_error_text(16) -> "Diretorio sem permissao de acesso".
 
 print_errors([]) ->
 	io:format("\n");

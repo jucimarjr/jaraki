@@ -72,7 +72,7 @@ start_parser -> package qualified_identifier class_list				:
 start_parser -> package qualified_identifier import_list class_list	: '$4'.
 start_parser -> import_list class_list								: '$2'.
 
-qualified_identifier -> identifier ';'						: unwrap('$1').
+qualified_identifier -> identifier ';'						: [unwrap('$1')].
 qualified_identifier -> identifier '.' qualified_identifier	:
 														[unwrap('$1') | '$3'].
 

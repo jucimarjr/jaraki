@@ -61,17 +61,73 @@ get_java_tokens(JavaFileName) ->
 %% info das classes
 get_class_info(JavaAST) ->
 	case JavaAST of
-		[{_Line, _PackageName, {class_list, [{class, ClassData}]}}] ->
-			{_Line2, {name, ClassName}, {body, ClassBody}} = ClassData,
-			{FieldsInfo, MethodsInfo} = get_members_info(ClassBody),
-			LowerClassName = to_lower_atom(ClassName),
-			{LowerClassName, lists:flatten(FieldsInfo), MethodsInfo};
+		[{Line, {package,PackageName}, {class_list, [{class, ClassData}]}}] ->
+			{ok,DirAtual} = file:get_cwd(),
+			Package = get_packge_struct(PackageName),
+			Dir = DirAtual ++ "/java_src/" ++ Package,
+
+			case file:list_dir(list_to_atom(Dir)) of
+				{error, eacces} ->
+									jaraki_exception:handle_error(Line, 16),
+									io:format("diretorio sem permissão de acesso!\n\n");
+				{error, enoent} ->
+									jaraki_exception:handle_error(Line, 14),
+									io:format("diretorio inexistente!\n\n");
+				{ok, FileList} -> 
+					{_Line2, {name, ClassName}, {body, ClassBody}} = ClassData,
+					Retorno = get_file_exists(FileList, atom_to_list(ClassName)++".java"),
+					
+					case Retorno of
+						true ->
+							{FieldsInfo, MethodsInfo} = get_members_info(ClassBody),
+							LowerClassName = to_lower_atom(ClassName),
+							{LowerClassName, lists:flatten(FieldsInfo), MethodsInfo};
+						false ->
+							jaraki_exception:handle_error(Line, 15),
+							io:format("O aquivo nao consta no diretorio!\n\n")
+					end
+					%io:format("bbbbb  ~p~n~n~n", [FileList])
+			end;
+
+			
+			%	false ->
+			%			jaraki_exception:handle_error(Line, 15),
+			%			io:format("O aquivo nao consta no diretorio!\n\n")
+			%end;
+
+			
+			
 
 		[{class, ClassData}] ->
 			{_Line3, {name, ClassName}, {body, ClassBody}} = ClassData,
 			{FieldsInfo, MethodsInfo} = get_members_info(ClassBody),
 			LowerClassName = to_lower_atom(ClassName),
 			{LowerClassName, lists:flatten(FieldsInfo), MethodsInfo}
+	end.
+
+
+%%-----------------------------------------------------------------------------
+%% Monta a estrutura do pacote
+get_packge_struct([Head|Rest])	->
+	get_packge_struct(Rest, atom_to_list(Head)).
+
+get_packge_struct([], Struct)	->
+	Struct;
+
+get_packge_struct([Head|Rest], Struct)	->
+	get_packge_struct(Rest,Struct++"/"++atom_to_list(Head)).
+
+get_file_exists([Head|[]], File) ->
+	
+	case Head of
+		File -> true;
+		_	-> false
+	end;
+
+get_file_exists([Head|Rest], File) ->
+	case Head of
+		File -> true;
+		_	-> get_file_exists(Rest,File)
 	end.
 
 %%-----------------------------------------------------------------------------
