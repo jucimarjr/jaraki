@@ -241,6 +241,8 @@ match_attr_expr({atom, _Line, false} = Element) ->
 	Element;
 match_attr_expr({text, Line, String}) ->
 	{string, Line, String};
+match_attr_expr({singles_quotes, Line, Char}) ->
+	{char, Line, Char};
 match_attr_expr({op, Line, Op, LeftExp, RightExp}) ->
 	{op, Line, Op, match_attr_expr(LeftExp), match_attr_expr(RightExp)};
 
@@ -498,6 +500,7 @@ match_format_type(int)		-> "~p";
 match_format_type(long)		-> "~p";
 match_format_type(float)	-> "~f";
 match_format_type(double)	-> "~f";
+match_format_type(char)		-> "~c";
 match_format_type(_)		-> "~s".
 
 print_list([], Line) ->

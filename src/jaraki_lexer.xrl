@@ -63,7 +63,7 @@ Scanner				= Scanner
 SystemIn			= System\.in
 FileReader			= FileReader
 Read				= read
-FileWriter			= FileWriter	
+FileWriter			= FileWriter
 Write				= write
 Close				= close
 NextInt				= nextInt
@@ -75,7 +75,7 @@ Digit				= [0-9]
 Identifier			= [a-zA-Z_][a-zA-Z0-9_]*
 
 StringLiteral		= "(\\\^.|\\.|[^\"])*"
-SinglesQuotesLiteral= '(\\\^.|\\.|[^\'])*'
+SinglesQuotesLiteral= '[a-zA-Z0-9_]'
 
 % Separator: one of
 
@@ -176,14 +176,16 @@ Rules.
 {Digit}+\.{Digit}+	: {token, {float, TokenLine, list_to_float(TokenChars)}}.
 
 {Identifier}	: {token, {identifier, TokenLine, list_to_atom(TokenChars)}}.
-{SinglesQuotesLiteral} : build_char(singles_quotes, TokenChars, TokenLine, TokenLen).
+{SinglesQuotesLiteral} :
+				  build_char(singles_quotes, TokenChars, TokenLine, TokenLen).
 {WhiteSpace}+	: skip_token.
 {StringLiteral}	: build_text(text, TokenChars, TokenLine, TokenLen).
 
 Erlang code.
-build_char(Type, Chars, Line, Len) ->
-	Text = lists:sublist(Chars, 2, Len - 2),
-	{token, {Type, Line, list_to_atom(Text)}}.
+build_char(Type, Chars, Line, Length) ->
+	Chars1 = string:substr(Chars, 2, Length-2),
+	Char = hd(Chars1),
+	{token, {Type, Line, Char}}.
 
 build_text(Type, Chars, Line, Length) ->
 	Text = detect_special_char(lists:sublist(Chars, 2, Length - 2)),
@@ -198,8 +200,8 @@ detect_special_char([$\\, SpecialChar | Rest], Output) ->
 	Char = case SpecialChar of
 		$\\	-> $\\;
 		$/	-> $/;
-		$\" 	-> $\";
-		$\' 	-> $\';
+		$\"	-> $\";
+		$\'	-> $\';
 		$b	-> $\b;
 		$d	-> $\d;
 		$e	-> $\e;

@@ -1,6 +1,6 @@
 package matriz;
 
-public class Matriz09 {
+public class Matriz08 {
 	public static void main(String[] args) {
 		int[][] matriz1 = { { 1, 3 }, { 5, 7 } };
 		int[][] matriz2 = new int[2][2];
