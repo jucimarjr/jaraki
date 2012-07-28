@@ -31,6 +31,10 @@ match_statement(no_operation) ->
 match_statement({write, Line, VarName, WriteText}) ->
 	create_function_object_class(write, Line, VarName, WriteText);
 
+%% Casa expressões do tipo identifier.close()
+match_statement({close, Line, CloseFile}) ->
+	create_function_object_class(close, Line, CloseFile);
+
 %% transforma expressoes do tipo System.out.print em Erlang
 match_statement({Line, print, Content}) ->
 	create_print_function(Line, print, Content);
@@ -401,7 +405,16 @@ create_function_object_class(read, Line, VarName) ->
 						string(Line, VarName)]),
 
 			call(Line, function_file, [Read, Var, Value])
-	end.
+	end;
+
+create_function_object_class(close, Line, CloseFile) ->
+	ScopeAst = gen_ast:scope(Line, st:get_scope()),
+
+		CloseFile2 = rcall(Line, st, get_value, [ScopeAst,
+					string(Line, CloseFile)]),
+
+
+		call(Line, function_file, [CloseFile2]).
 
 
 create_function_object_class(write, Line, VarName, WriteText) ->

@@ -368,7 +368,7 @@ write_stmt -> identifier '.' write '(' identifier ')' ';':
 							{write_text, unwrap('$5')}}.
 
 close_stmt -> identifier '.' close '(' ')' ';':
-				{close, line('$1'),  unwrap('$1')}.
+				{close, line('$1'), unwrap('$1')}.
 
 
 % declaração de instâncias de qualquer classe, CONSTRUTOR PADRÃO

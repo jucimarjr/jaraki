@@ -149,7 +149,7 @@ Rules.
 {Read}		: {token, {read,	TokenLine, list_to_atom(TokenChars)}}.
 {FileWriter}	: {token, {file_writer,	TokenLine, list_to_atom(TokenChars)}}.
 {Write}		: {token, {write,	TokenLine, list_to_atom(TokenChars)}}.
-{close}		: {token, {close,	TokenLine, list_to_atom(TokenChars)}}.
+{Close}		: {token, {close,	TokenLine, list_to_atom(TokenChars)}}.
 {New}		: {token, {new,	TokenLine, list_to_atom(TokenChars)}}.
 {This}		: {token, {this,	TokenLine, list_to_atom(TokenChars)}}.
 {True}		: {token, {true,	TokenLine, list_to_atom(TokenChars)}}.
