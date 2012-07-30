@@ -244,7 +244,7 @@ create_module(Name, ErlangAST, OOFuns) ->
 			{attribute ,7, import, {matrix,[{new_matrix,1},
 						{creation_matrix,2}]}},
 			{attribute, 4, import, {random_lib, [{function_random, 2}]}},
-			{attribute, 4, import, {file_lib, [{function_file, 3}, {function_file, 0}]}}]
+			{attribute, 4, import, {file_lib, [{function_file, 3}, {function_file, 1}]}}]
 	++ OOFuns ++ hd(ErlangAST) ++ [ { eof, 1 }].
 
 %%-----------------------------------------------------------------------------

@@ -38,6 +38,7 @@ next_line_stmt	read_stmt		write_stmt		close_stmt
 if_stmt		if_else_stmt		if_else_no_trailing		no_short_if_stmt
 for_stmt	for_no_trailing		no_trailing_stmt		return_statement
 parameter	parameters_list		while_stmt				while_no_trailing
+do_while_stmt	do_while_no_trailing
 for_update	post_increment_expr
 
 try_catch_stmt
@@ -55,7 +56,7 @@ length
 string_t int_t long_t float_t double_t boolean_t char_t
 next_int	next_line	next_float	new this system_in
 'if' 'else' true false
-for while	try catch break exception
+for while	'do'	try catch break exception
 io_exception 'throws'
 file_reader	file_writer	write  read  close
 integer float
@@ -209,16 +210,17 @@ block_statements -> statement block_statements	: ['$1'| '$2'].
 statement -> method_invocation ';'	: '$1'.
 statement -> for_stmt				: '$1'.
 statement -> while_stmt				: '$1'.
+statement -> do_while_stmt			: '$1'.
 statement -> if_stmt				: '$1'.
 statement -> if_else_stmt			: '$1'.
 statement -> try_catch_stmt			: '$1'.
 statement -> break_stmt				: '$1'.
-
 statement -> no_trailing_stmt		: '$1'.
 
 no_short_if_stmt -> for_no_trailing						: '$1'.
 no_short_if_stmt -> while_no_trailing					: '$1'.
-no_short_if_stmt -> no_trailing_stmt					: '$1'.
+no_short_if_stmt -> do_while_no_trailing				: '$1'.
+%no_short_if_stmt -> no_trailing_stmt					: '$1'.
 no_short_if_stmt -> if_else_no_trailing					: '$1'.
 
 no_trailing_stmt -> block								: '$1'.
@@ -564,6 +566,16 @@ while_stmt -> while '(' bool_expr ')' statement:
 while_no_trailing -> while '(' bool_expr ')' no_short_if_stmt:
 	{line('$1'), while, {condition_expr, '$3'}, {while_body, '$5'}}.
 %%END WHILE
+
+
+%%BEGIN DO_WHILE
+do_while_stmt -> do statement while '(' bool_expr ')' ';':
+	{line('$1'), do_while,  {do_while_body, '$2'}, {condition_expr, '$5'}}.
+
+do_while_no_trailing -> do no_short_if_stmt while '(' bool_expr ')' ';':
+	{line('$1'), do_while,  {do_while_body, '$2'}, {condition_expr, '$5'}}.
+%%END DO_WHILE
+
 
 %% BEGIN_IF
 if_stmt -> 'if' '(' bool_expr ')' statement:

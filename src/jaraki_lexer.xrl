@@ -35,6 +35,7 @@ If					= if
 Else				= else
 For					= for
 While				= while
+Do					= do
 Try					= try
 Catch				= catch
 Break				= break
@@ -129,6 +130,7 @@ Rules.
 {Else}		: {token, {'else',	TokenLine, list_to_atom(TokenChars)}}.
 {For}		: {token, {'for',	TokenLine, list_to_atom(TokenChars)}}.
 {While}		: {token, {'while',	TokenLine, list_to_atom(TokenChars)}}.
+{Do}		: {token, { 'do',	TokenLine, list_to_atom(TokenChars)}}.
 {Try}		: {token, {'try',	TokenLine, list_to_atom(TokenChars)}}.
 {Catch}		: {token, {'catch',	TokenLine, list_to_atom(TokenChars)}}.
 {Break}		: {token, {'break',	TokenLine, list_to_atom(TokenChars)}}.
