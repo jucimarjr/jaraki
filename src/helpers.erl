@@ -9,7 +9,16 @@
 %% Objetivo : Funções auxiliares usadas em diferentes partes da semântica
 
 -module(helpers).
--export([get_variable_context/2, get_arg_type_list/1]).
+-export([get_variable_context/2, get_arg_type_list/1, remove_nop/1]).
+
+%%-----------------------------------------------------------------------------
+%% remove todas as ocorrências de no_operation de uma lista
+remove_nop(ErlangStmtList) ->
+	[Element ||
+			Element <- ErlangStmtList,
+			Element =/= no_operation
+	].
+
 
 %%-----------------------------------------------------------------------------
 %% Ao usar uma variável, determina se está sendo feito referência a uma variável

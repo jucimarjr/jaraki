@@ -193,9 +193,38 @@ match_attr_expr({function_call, {Line, FunctionName},
 	create_function_call(Line, FunctionName, ArgumentsList);
 
 %% criação de objetos
+%% construtor padrão
 match_attr_expr({new, object, {class, _Line, ClassName}}) ->
 	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
 	rcall(0, ClassName2, '__constructor__', []);
+
+%% construtor definido pelo usuário
+match_attr_expr({new, object, {class, Line, ClassName, ArgumentsJast}}) ->
+	{arguments, ArgumentsList} = ArgumentsJast,
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+
+	case helpers:get_arg_type_list(ArgumentsList) of
+		{error, ErrorNumber} ->
+			jaraki_exception:handle_error(Line, ErrorNumber),
+			no_operation;
+
+		ArgTypeList ->
+			case st:exist_constructor(ClassName2, ArgTypeList) of
+				false ->
+					jaraki_exception:handle_error(Line, 9),
+					no_operation;
+
+				true ->
+					ArgAstList_temp1 = [match_attr_expr(V) || V<-ArgumentsList],
+					ArgumentAstList = gen_ast:function_call_args(
+									  Line, ArgAstList_temp1, ArgTypeList),
+
+					_Modificador = st:get_constr_info(ClassName, ArgTypeList),
+
+					FunctionName = '__constructor__',
+					rcall(Line, ClassName2, FunctionName, ArgumentAstList)
+			end
+	end;
 
 %% chamada a métodos estáticos
 match_attr_expr({function_call,
@@ -227,12 +256,13 @@ match_attr_expr({length, Line, VarLength})->
 
 match_attr_expr({field_access, FieldInfo}) ->
 	{Line, ObjectVarName, FieldName} = FieldInfo,
+	Scope = st:get_scope(),
 	case ObjectVarName of
 		this ->
 			gen_ast:field_access_var(Line, FieldName);
 
 		_ ->
-			gen_ast:field_refVar(Line,st:get_scope(), ObjectVarName, FieldName)
+			gen_ast:field_refVar(Line, Scope, ObjectVarName, FieldName)
 	end;
 
 match_attr_expr({integer, _Line, _Value} = Element) ->

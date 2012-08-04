@@ -75,6 +75,11 @@ match_erl_member(ClassName, [Member | Rest], ErlangModuleBody) ->
 		{method, MethodData} ->
 			TransformedMethod = get_erl_function(ClassName, MethodData),
 			NewErlangModuleBody = [TransformedMethod | ErlangModuleBody],
+			match_erl_member(ClassName, Rest, NewErlangModuleBody);
+
+		{constructor, ConstructorData} ->
+			ConstructorAst = create_constructor(ClassName, ConstructorData),
+			NewErlangModuleBody = [ConstructorAst | ErlangModuleBody],
 			match_erl_member(ClassName, Rest, NewErlangModuleBody)
 	end.
 
@@ -160,26 +165,11 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 			ErlangArgsList = [var(Line, "ObjectID") | ErlangArgsListTemp1]
 	end,
 
-	MappedParamsFun =
-		fun ({_VarLine, {var_type, {_Line, VarType}},
-				{parameter, VarName}}) ->
-			st:put_value({st:get_scope(), VarName}, {VarType, undefined})
-		end,
-	lists:map( MappedParamsFun, ParametersList),
+	declare_parameters(ParametersList),
 
-	ScopeAst = gen_ast:scope(Line, st:get_scope()),
+	InitArgsAst = gen_ast:init_args(Line, ParametersList),
 
-	InitArgs = [
-		rcall(Line, st, put_value, [
-			tuple(Line,	[ScopeAst, string(Line, InitArgName)]),
-			tuple(Line,
-				[gen_ast:type_to_ast(Line, InitArgType),
-					var(Line, "V_" ++ atom_to_list(InitArgName))])]) ||
-		({_Line, {var_type, {_Line, InitArgType}},
-				{parameter, InitArgName}}) <-ParametersList
-		],
-
-	MappedErlangFun =
+	MapBodyFun =
 		fun(
 			{var_declaration,
 				{var_type,{VarLine, VarType}},
@@ -221,15 +211,11 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 		New ++
 		[rcall(Line, st, get_new_stack,[gen_ast:scope(Line, st:get_scope())])]
 		++
-		InitArgs ++
-		lists:map(MappedErlangFun, JavaMethodBody) ++
+		InitArgsAst ++
+		lists:map(MapBodyFun, JavaMethodBody) ++
 		OldStack ++ Destroy,
 
-	ErlangStmt = [
-			Element ||
-			Element <- ErlangStmtTemp1,
-			Element =/= no_operation
-			],
+	ErlangStmt = helpers:remove_nop(ErlangStmtTemp1),
 
 	ErlangFunctionBody = [{clause, Line, ErlangArgsList, [], ErlangStmt}],
 
@@ -248,44 +234,78 @@ create_module(Name, ErlangAST, OOFuns) ->
 	++ OOFuns ++ hd(ErlangAST) ++ [ { eof, 1 }].
 
 %%-----------------------------------------------------------------------------
+%% cria o construtor
+create_constructor(ClassName, ConstructorData) ->
+	{Line, ClassNameJast, _Visibility, Parameters, Block} = ConstructorData,
+
+	{block, _BlockLine, JavaMethodBody} = Block,
+	{name, ConstructorName} = ClassNameJast,
+
+	%% TODO: verificar se nome do construtor bate com o nome da classe
+
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	NewObjectAst = gen_ast:new_object(Line, ClassName2),
+
+	ObjectIDAst = gen_ast:match(Line, var(Line, "ObjectID"), NewObjectAst),
+
+	ParametersTypeList = [Type || {_, {var_type, {_, Type}}, _} <- Parameters],
+
+	Scope = {ClassName, {'__constructor__', ParametersTypeList}},
+	st:put_scope(Scope),
+
+	ErlangArgsAstList = gen_ast:function_args_list(Line, Parameters),
+
+	declare_parameters(Parameters),
+
+	InitArgsAst = gen_ast:init_args(Line, Parameters),
+
+	MapBodyFun =
+		fun(
+			{var_declaration,
+				{var_type,{VarLine, VarType}},
+				{var_list, VarList}
+			} = VarDeclaration
+		) ->
+			st:insert_var_list(VarLine, st:get_scope(), VarList, VarType),
+			gen_erl_code:match_statement(VarDeclaration);
+
+		(Statement) ->
+			gen_erl_code:match_statement(Statement)
+		end,
+
+	ErlangStmtTemp1 =
+		[ObjectIDAst] ++ InitArgsAst ++ lists:map(MapBodyFun, JavaMethodBody)
+		++ [var(Line, "ObjectID")],
+
+	ErlangStmt = helpers:remove_nop(ErlangStmtTemp1),
+
+	ErlangFunctionBody = [{clause, Line, ErlangArgsAstList, [], ErlangStmt}],
+
+	FunctionName = '__constructor__',
+	ArgumentsLength = length(ErlangArgsAstList),
+
+	function(Line, FunctionName, ArgumentsLength, ErlangFunctionBody).
+
+%%-----------------------------------------------------------------------------
 %% cria o construtor padrão da classe
 create_default_constructor(ErlangModuleName) ->
 	Line = 0,
 	FunctionName = '__constructor__',
 	Parameters = [],
 
-	ClassNameAst = atom(Line, ErlangModuleName),
-	%% TODO: tratar super classes!
-	SuperClassesAst = {nil, Line},
+	NewObjectAst = gen_ast:new_object(Line, ErlangModuleName),
 
-	FieldsInfoList = st:get_all_fields_info(ErlangModuleName),
-	FieldsListAst = create_field_list(FieldsInfoList),
-
-	Arguments = [ClassNameAst, SuperClassesAst, FieldsListAst],
-	ConstructorBody = [rcall(Line, oo_lib, new, Arguments)],
+	ConstructorBody = [NewObjectAst],
 
 	FunctionBody = [{clause, Line, [], [], ConstructorBody}],
 
 	function(Line, FunctionName, Parameters, FunctionBody).
 
 %%-----------------------------------------------------------------------------
-%% cria a lista de campos no formato AST para o construtor padrão da classe
-create_field_list(FieldInfoList) ->
-	FieldAstList = lists:map(fun create_field/1, FieldInfoList),
-	list(0, FieldAstList).
-
-%%-----------------------------------------------------------------------------
-%% cria a AST de um campo do construtor padrão da classe
-create_field({Name, {Type, _Modifiers}}) ->
-	NameAst = atom(0, Name),
-	TypeAst = atom(0, Type),
-	ValueAst =
-		case Type of
-			float    -> float(0, 0.0);
-			int      -> integer(0, 0);
-			long     -> integer(0, 0);
-			double   -> integer(0, 0);
-			boolean  -> atom(0, false);
-			_RefType -> atom(0, undefined)
-		end,
-	tuple(0, [NameAst, TypeAst, ValueAst]).
+%% declara na st as variáveis do parâmetro de uma função ou construtor
+declare_parameters([]) ->
+	ok;
+declare_parameters([Param | ParametersList]) ->
+	{_VarLine, {var_type, {_Line, VarType}}, {parameter, VarName}} = Param,
+	st:put_value({st:get_scope(), VarName}, {VarType, undefined}),
+	declare_parameters(ParametersList).

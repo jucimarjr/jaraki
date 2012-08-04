@@ -14,6 +14,7 @@ import_list				import_declaration
 qualified_identifier
 class_declaration		class_body			class_list
 method_declaration		field_declaration	modifiers
+constructor_declaration
 block_statements		block
 method_invocation		field_access
 
@@ -98,8 +99,10 @@ class_declaration -> public class identifier '{' class_body '}':
 %% MethodOrFieldDecl
 class_body -> method_declaration			: ['$1'].
 class_body -> field_declaration				: ['$1'].
+class_body -> constructor_declaration		: ['$1'].
 class_body -> method_declaration class_body	: ['$1' | '$2'].
 class_body -> field_declaration class_body	: ['$1' | '$2'].
+class_body -> constructor_declaration class_body	: ['$1' | '$2'].
 
 field_declaration -> local_variable_declaration_statement:
 	'$1'.
@@ -107,6 +110,18 @@ field_declaration -> local_variable_declaration_statement:
 modifiers -> public static : [unwrap('$1'), unwrap('$2')].
 modifiers -> public : [unwrap('$1')].
 
+%% declaração de construtores
+constructor_declaration -> public identifier '(' ')' block:
+	Name = {name, unwrap('$2')},
+	Modifier = {visibility, '$1'},
+	{constructor, {line('$2'), Name, Modifier, [], '$5'}}.
+
+constructor_declaration -> public identifier '(' parameters_list ')' block:
+	Name = {name, unwrap('$2')},
+	Modifier = {visibility, '$1'},
+	{constructor, {line('$2'), Name, Modifier, '$4', '$6'}}.
+
+%% declaração de métodos
 method_declaration -> modifiers type identifier '(' ')' block:
 	Return = {return, '$2'},
 	Name = {name, unwrap('$3')},
@@ -334,7 +349,8 @@ new_stmt -> 'new' type '[' integer ']' '[' identifier ']': {new, array,
 			{type, '$2'}, {index, {row, '$4'}, {column,
 						{var, line('$7'), unwrap('$7')}} } }.
 
-% declaração de instâncias de classes predefinidas (Scanner, Random e FileReader)
+% declaração de instâncias de classes predefinidas
+% (Scanner, Random e FileReader)
 new_stmt -> 'new' scanner '(' ')':
 		Type = {line('$2'), unwrap('$2')},
 		{new, object, {type, Type}}.
@@ -373,9 +389,13 @@ close_stmt -> identifier '.' close '(' ')' ';':
 				{close, line('$1'), unwrap('$1')}.
 
 
-% declaração de instâncias de qualquer classe, CONSTRUTOR PADRÃO
+% instanciação de objetos de qualquer classe, CONSTRUTOR PADRÃO
 new_stmt -> 'new' identifier '(' ')':
 		{new, object, {class, line('$2'), unwrap('$2')}}.
+
+% instanciação de objetos de qualquer classe
+new_stmt -> 'new' identifier '(' argument_list ')':
+		{new, object, {class, line('$2'), unwrap('$2'), {arguments, '$4'}}}.
 
 %% Array com tipo após identifier
 %% ------------------------------------------

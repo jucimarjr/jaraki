@@ -19,7 +19,8 @@
 		%% informações das classes
 		insert_classes_info/1,	exist_class/1,
 		exist_method/2,			get_method_info/2,	is_static_method/2,
-		exist_field/2,			get_field_info/2,	get_all_fields_info/1
+		exist_field/2,			get_field_info/2,	get_all_fields_info/1,
+		exist_constructor/2,	get_constr_info/2
 	]).
 
 new() ->
@@ -191,9 +192,9 @@ insert_classes_info(ClassesInfoList) ->
 	lists:map(fun put_class_info/1, ClassesInfoList).
 
 %% insere informação de uma classe
-put_class_info({ClassName, Fields, Methods}) ->
+put_class_info({ClassName, Fields, Methods, Constructors}) ->
 	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
-	put({oo_classes, ClassName2}, {Fields, Methods}).
+	put({oo_classes, ClassName2}, {Fields, Methods, Constructors}).
 
 exist_class(ClassName) ->
 	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
@@ -220,6 +221,7 @@ exist_method(ClassName, {MethodName, Parameters}) ->
 get_method_info(ClassName, {MethodName, Parameters}) ->
 	get_member_info(method, ClassName, {MethodName, Parameters}).
 
+is_static_method(_, {'__constructor__', _})           -> false;
 is_static_method(ClassName, {MethodName, Parameters}) ->
 	{_ReturnType, Modifiers} =
 		get_method_info(ClassName, {MethodName, Parameters}),
@@ -235,7 +237,7 @@ has_element(_, []) -> false.
 %% busca informações de todos os campos declarados
 get_all_fields_info(ClassName) ->
 	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
-	{FieldList, _} = get({oo_classes, ClassName2}),
+	{FieldList, _, _} = get({oo_classes, ClassName2}),
 	FieldList.
 
 %% verifica se variável existe na classe
@@ -249,6 +251,18 @@ exist_field(ClassName, FieldName) ->
 get_field_info(ClassName, FieldName) ->
 	get_member_info(field, ClassName, FieldName).
 
+%%----------------------------------------------------------------------------
+%%                            CONSTRUTORES
+%%
+%% busca informações dos construtores declarados
+exist_constructor(ClassName, Parameters) ->
+	case get_constr_info(ClassName, Parameters) of
+		false            -> false;
+		_ConstructorInfo -> true
+	end.
+
+get_constr_info(ClassName, Parameters) ->
+	get_member_info(constructor, ClassName, Parameters).
 
 %%----------------------------------------------------------------------------
 %%                       MÉTODOS E CAMPOS (MEMBROS)
@@ -257,12 +271,14 @@ get_field_info(ClassName, FieldName) ->
 %% MemberType = field | method
 get_member_info(MemberType, ClassName, MemberKey) ->
 	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
-	{FieldList, MethodList} = get({oo_classes, ClassName2}),
+	{FieldList, MethodList, ConstrList} = get({oo_classes, ClassName2}),
 	case MemberType of
 		field ->
 			get_member_info(MemberKey, FieldList);
 		method ->
-			get_member_info(MemberKey, MethodList)
+			get_member_info(MemberKey, MethodList);
+		constructor ->
+			get_member_info(MemberKey, ConstrList)
 	end.
 
 get_member_info(MemberKey, MemberList) ->

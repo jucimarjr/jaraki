@@ -38,6 +38,29 @@ function_call_args(Line, ArgumentAstList, ArgTypeList) ->
 	FinalArgList = lists:zip(ArgTypeAstList, ArgumentAstList),
 	[tuple(Line, X) || X <- FinalArgList].
 
+%%---------------------------------------------------------------------------%%
+%% Declaração dos parâmetros da função na st
+init_args(Line, ParametersList) ->
+	init_args(Line, ParametersList, []).
+
+init_args(_, [], ParametersAstList) ->
+	lists:reverse(ParametersAstList, []);
+
+init_args(Line, [Parameter | ParametersList], ParametersAstList) ->
+	ScopeAst = gen_ast:scope(Line, st:get_scope()),
+
+	{_, {var_type, {_, InitArgType}}, {parameter, InitArgName}} = Parameter,
+
+	ParameterAst =
+		rcall(Line, st, put_value, [
+			tuple(Line,	[ScopeAst, string(Line, InitArgName)]),
+				tuple(Line,
+					[gen_ast:type_to_ast(Line, InitArgType),
+					 var(Line, "V_" ++ atom_to_list(InitArgName))])]),
+	init_args(Line, ParametersList, [ParameterAst | ParametersAstList]).
+
+%%---------------------------------------------------------------------------%%
+
 var(Line, Name) when is_list(Name)-> {var, Line, list_to_atom(Name)};
 var(Line, Name) when is_atom(Name) -> {var, Line, Name}.
 
@@ -106,6 +129,9 @@ float(Line, Value) -> {float, Line, Value}.
 list(Line, [])               -> {nil, Line};
 list(Line, [Element | Rest]) -> {cons, Line, Element, list(Line, Rest)}.
 
+match(Line, LeftExpAst, RightExpAst) ->
+	{match, Line, LeftExpAst, RightExpAst}.
+
 scope(Line, {ClassName, {MethodName, Parameters}}) ->
 	ClassNameAst = atom(Line, ClassName),
 	MethodNameAst = atom(Line, MethodName),
@@ -143,3 +169,39 @@ objectID(Line, Scope, ObjectVarName) ->
 	ScopeAst = scope(Line, Scope),
 	ObjectVarNameAst = string(Line, ObjectVarName),
 	rcall(Line, st,get_value, [ScopeAst, ObjectVarNameAst]).
+
+%%-----------------------------------------------------------------------------
+%% cria a lista de campos no formato AST para o construtor padrão da classe
+create_field_list(FieldInfoList) ->
+	FieldAstList = lists:map(fun create_field/1, FieldInfoList),
+	list(0, FieldAstList).
+
+%%-----------------------------------------------------------------------------
+%% cria a AST de um campo do construtor padrão da classe
+create_field({Name, {Type, _Modifiers}}) ->
+	NameAst = atom(0, Name),
+	TypeAst = atom(0, Type),
+	ValueAst =
+		case Type of
+			float    -> float(0, 0.0);
+			int      -> integer(0, 0);
+			long     -> integer(0, 0);
+			double   -> integer(0, 0);
+			boolean  -> atom(0, false);
+			_RefType -> atom(0, undefined)
+		end,
+	tuple(0, [NameAst, TypeAst, ValueAst]).
+
+%%-----------------------------------------------------------------------------
+%% novo obbjeto usando oo_lib
+new_object(Line, ClassName) ->
+	ClassNameAst = atom(Line, ClassName),
+
+	%% TODO: tratar superclasses
+	SuperClassesAst = {nil, Line},
+
+	FieldsInfoList = st:get_all_fields_info(ClassName),
+	FieldsListAst = gen_ast:create_field_list(FieldsInfoList),
+
+	ArgumentsAstList = [ClassNameAst, SuperClassesAst, FieldsListAst],
+	rcall(Line, oo_lib, new, ArgumentsAstList).

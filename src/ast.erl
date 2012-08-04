@@ -51,11 +51,18 @@ get_java_tokens(JavaFileName) ->
 %%		  |
 %%		  |> {Nome, Parametros}
 %%
+%% ConstrutorN:
+%%		{ ConsrutorKey, ConstrutorValue }
+%%		  |             |
+%%		  |             |> Visibilidade
+%%		  |> Parametros
+%%
 %% Outros:
 %%		Tipo			=> atom()
 %%		Nome			=> atom()
 %%		Modificadores	=> [ atom() ]
 %%		Parametros		=> [ Tipo ]
+%%		Visibilidade    => atom()
 
 %%-----------------------------------------------------------------------------
 %% info das classes
@@ -68,20 +75,23 @@ get_class_info(JavaAST) ->
 
 			case file:list_dir(list_to_atom(Dir)) of
 				{error, eacces} ->
-									jaraki_exception:handle_error(Line, 16),
-									io:format("diretorio sem permissão de acesso!\n\n");
+					jaraki_exception:handle_error(Line, 16),
+					io:format("diretorio sem permissão de acesso!\n\n");
 				{error, enoent} ->
-									jaraki_exception:handle_error(Line, 14),
-									io:format("diretorio inexistente!\n\n");
-				{ok, FileList} -> 
+					jaraki_exception:handle_error(Line, 14),
+					io:format("diretorio inexistente!\n\n");
+				{ok, FileList} ->
 					{_Line2, {name, ClassName}, {body, ClassBody}} = ClassData,
-					Retorno = get_file_exists(FileList, atom_to_list(ClassName)++".java"),
-					
+					Retorno = get_file_exists(FileList,
+									atom_to_list(ClassName)++".java"),
+
 					case Retorno of
 						true ->
-							{FieldsInfo, MethodsInfo} = get_members_info(ClassBody),
+							{FieldsInfo, MethodsInfo, ConstrInfo} =
+								get_members_info(ClassBody),
 							LowerClassName = to_lower_atom(ClassName),
-							{LowerClassName, lists:flatten(FieldsInfo), MethodsInfo};
+							FieldsInfo2 = lists:flatten(FieldsInfo),
+							{LowerClassName,FieldsInfo2,MethodsInfo,ConstrInfo};
 						false ->
 							jaraki_exception:handle_error(Line, 15),
 							io:format("O aquivo nao consta no diretorio!\n\n")
@@ -89,20 +99,16 @@ get_class_info(JavaAST) ->
 					%io:format("bbbbb  ~p~n~n~n", [FileList])
 			end;
 
-			
 			%	false ->
 			%			jaraki_exception:handle_error(Line, 15),
 			%			io:format("O aquivo nao consta no diretorio!\n\n")
 			%end;
 
-			
-			
-
 		[{class, ClassData}] ->
 			{_Line3, {name, ClassName}, {body, ClassBody}} = ClassData,
-			{FieldsInfo, MethodsInfo} = get_members_info(ClassBody),
+			{FieldsInfo, MethodsInfo, ConstrInfo} = get_members_info(ClassBody),
 			LowerClassName = to_lower_atom(ClassName),
-			{LowerClassName, lists:flatten(FieldsInfo), MethodsInfo}
+			{LowerClassName, lists:flatten(FieldsInfo), MethodsInfo, ConstrInfo}
 	end.
 
 
@@ -131,30 +137,41 @@ get_file_exists([Head|Rest], File) ->
 	end.
 
 %%-----------------------------------------------------------------------------
-%% info de membros (método ou campo)
+%% info de membros (método ou campo) e construtores
 get_members_info(ClassBody) ->
-	get_members_info(ClassBody, [], []).
+	get_members_info(ClassBody, [], [], []).
 
-get_members_info([], FieldsInfo, MethodsInfo) ->
-	{lists:reverse(FieldsInfo, []), lists:reverse(MethodsInfo, [])};
+get_members_info([], FieldsInfo, MethodsInfo, ConstructorsInfo) ->
+	FieldsInfo2 = lists:reverse(FieldsInfo, []),
+	MethodsInfo2 = lists:reverse(MethodsInfo, []),
+	ConstructorsInfo2 = lists:reverse(ConstructorsInfo, []),
+	{FieldsInfo2, MethodsInfo2, ConstructorsInfo2};
 
-%% TODO descomentar ParameterList...
-get_members_info([{method, MethodData} | Rest], FieldsInfo, MethodsInfo) ->
+get_members_info([{method, MethodData} | Rest],
+						FieldsInfo, MethodsInfo, ConstInfo) ->
 	{_, ReturnJast, NameJast, ModifiersJast, ParameterList, _} = MethodData,
 	{return, {_, Return}} = ReturnJast,
 	{name, Name} = NameJast,
 	{modifiers, ModifierList} = ModifiersJast,
 	NewMethod = get_method_info(Name, ModifierList, Return, ParameterList),
-	get_members_info(Rest, FieldsInfo, [NewMethod | MethodsInfo]);
+	get_members_info(Rest, FieldsInfo, [NewMethod | MethodsInfo], ConstInfo);
 
 %% TODO: Tratar Modificadores de campos
 get_members_info([{var_declaration, VarTypeJast, VarList} | Rest],
-					FieldsInfo, MethodsInfo) ->
+						FieldsInfo, MethodsInfo, ConstInfo) ->
 	{var_type, TypeJast}    = VarTypeJast,
 	{var_list, VarJastList} = VarList,
 	{_line, VarType} = TypeJast,
 	NewField = get_fields_info(VarJastList, VarType),
-	get_members_info(Rest, [NewField | FieldsInfo], MethodsInfo).
+	get_members_info(Rest, [NewField | FieldsInfo], MethodsInfo, ConstInfo);
+
+%% checagem nome da classe x nome do construtor decladado realizada depois
+get_members_info([{constructor, ConstData} | Rest],
+						FieldsInfo, MethodsInfo, ConstInfo) ->
+	{_, _Name, VisibilityJast, ParameterList, _} = ConstData,
+	{visibility, Visibility} = VisibilityJast,
+	NewConst = get_constructor_info(Visibility, ParameterList),
+	get_members_info(Rest, FieldsInfo, MethodsInfo, [NewConst | ConstInfo]).
 
 %%-----------------------------------------------------------------------------
 %% info de métodos
@@ -180,6 +197,14 @@ get_fields_info([VarJast | Rest], VarType, FieldsInfo) ->
 	VarValue = {VarType, []}, %% TODO: [] = Modifiers
 	NewFieldInfo = {VarKey, VarValue},
 	get_fields_info(Rest, VarType, [ NewFieldInfo | FieldsInfo ]).
+
+%%-----------------------------------------------------------------------------
+%% construtores
+get_constructor_info(Visibility, ParameterList) ->
+	ParametersInfo = get_parameters_info(ParameterList),
+	ConstructorKey = ParametersInfo,
+	ConstructorValue    = Visibility,
+	{ConstructorKey, ConstructorValue}.
 
 %%-----------------------------------------------------------------------------
 %% normaliza o nome da classe

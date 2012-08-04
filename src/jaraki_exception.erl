@@ -76,7 +76,11 @@ check_var_type(_Type, {next_int, _Line, _VarName, _RandomValue}) ->
 	ok;
 
 %% TODO: verificar retorno do new, polimorfismo, etc...
+%% construtor PADRÃO
 check_var_type(_Type, {new, object, {class, _Line, _Type2}}) ->
+	ok;
+%% construtor NOVO
+check_var_type(_Type, {new, object, {class, _, _Type2, _ArgumemtsJast}}) ->
 	ok;
 
 check_var_type(Type, {field_access, {Line, ObjectVarName, FieldName}}) ->
