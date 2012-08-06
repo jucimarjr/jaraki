@@ -10,9 +10,9 @@ public class Arquivos3 {
 		
 		int caracter;
 
-		FileReader	arq = new FileReader("/home/josie/teste.txt");
+		FileReader	arq = new FileReader("/home/pec/teste.txt");
 		
-		FileWriter writer = new FileWriter("/home/josie/saida.txt", true);
+		FileWriter writer = new FileWriter("/home/pec/saida.txt", true);
 		
 		caracter = arq.read();		
 

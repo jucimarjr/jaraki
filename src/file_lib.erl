@@ -19,9 +19,9 @@ function_file(Par1, Par2, Par3) ->
 			File;
 		read ->
 			{ok, Read} = file:read(Par2, Par3),
-			Read;
+			hd(Read);
 		write -> 
-			file:write_file(Par2, Par3)
+			file:write_file(Par2, [Par3])
 	end.
 
 function_file(File) ->
