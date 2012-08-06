@@ -39,7 +39,7 @@ next_line_stmt	read_stmt		write_stmt		close_stmt
 if_stmt		if_else_stmt		if_else_no_trailing		no_short_if_stmt
 for_stmt	for_no_trailing		no_trailing_stmt		return_statement
 parameter	parameters_list		while_stmt				while_no_trailing
-do_while_stmt	do_while_no_trailing
+do_while_stmt
 for_update	post_increment_expr
 
 try_catch_stmt
@@ -225,7 +225,6 @@ block_statements -> statement block_statements	: ['$1'| '$2'].
 statement -> method_invocation ';'	: '$1'.
 statement -> for_stmt				: '$1'.
 statement -> while_stmt				: '$1'.
-statement -> do_while_stmt			: '$1'.
 statement -> if_stmt				: '$1'.
 statement -> if_else_stmt			: '$1'.
 statement -> try_catch_stmt			: '$1'.
@@ -234,8 +233,7 @@ statement -> no_trailing_stmt		: '$1'.
 
 no_short_if_stmt -> for_no_trailing						: '$1'.
 no_short_if_stmt -> while_no_trailing					: '$1'.
-no_short_if_stmt -> do_while_no_trailing				: '$1'.
-%no_short_if_stmt -> no_trailing_stmt					: '$1'.
+no_short_if_stmt -> no_trailing_stmt					: '$1'.
 no_short_if_stmt -> if_else_no_trailing					: '$1'.
 
 no_trailing_stmt -> block								: '$1'.
@@ -246,6 +244,7 @@ no_trailing_stmt -> post_increment_expr					: '$1'.
 no_trailing_stmt -> return_statement					: '$1'.
 no_trailing_stmt -> write_stmt							: '$1'.
 no_trailing_stmt -> close_stmt							: '$1'.
+no_trailing_stmt -> do_while_stmt							: '$1'.
 
 %% Declaração de variáveis
 local_variable_declaration_statement -> type variable_list ';':
@@ -589,10 +588,7 @@ while_no_trailing -> while '(' bool_expr ')' no_short_if_stmt:
 
 
 %%BEGIN DO_WHILE
-do_while_stmt -> do statement while '(' bool_expr ')' ';':
-	{line('$1'), do_while,  {do_while_body, '$2'}, {condition_expr, '$5'}}.
-
-do_while_no_trailing -> do no_short_if_stmt while '(' bool_expr ')' ';':
+do_while_stmt -> do no_short_if_stmt while '(' bool_expr ')' ';':
 	{line('$1'), do_while,  {do_while_body, '$2'}, {condition_expr, '$5'}}.
 %%END DO_WHILE
 

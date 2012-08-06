@@ -10,12 +10,12 @@ public class TesteRecursao1 {
         	return 1;
         else if (n > 1)
         	f = fibo(n-1) + fibo(n-2);
-        	return f;	
+        return f;	
        }
 	
 	public static void main(String[] args) {
-		long n;
-		//int n ;
+		//long n;
+		int n ;
 		n = 10;
 		int a;
 		a = fibo(n-1);
