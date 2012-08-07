@@ -9,7 +9,14 @@
 %% Objetivo : Funções auxiliares usadas em diferentes partes da semântica
 
 -module(helpers).
--export([get_variable_context/2, get_arg_type_list/1, remove_nop/1]).
+-export([get_variable_context/2, get_arg_type_list/1, remove_nop/1,
+		has_element/2]).
+
+%%-----------------------------------------------------------------------------
+%% verifica se determinado elemento existe na lista
+has_element(Element, [Element | _]) -> true;
+has_element(Element, [_ | Rest]) -> has_element(Element, Rest);
+has_element(_, []) -> false.
 
 %%-----------------------------------------------------------------------------
 %% remove todas as ocorrências de no_operation de uma lista

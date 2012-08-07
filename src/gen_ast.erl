@@ -38,6 +38,19 @@ function_call_args(Line, ArgumentAstList, ArgTypeList) ->
 	FinalArgList = lists:zip(ArgTypeAstList, ArgumentAstList),
 	[tuple(Line, X) || X <- FinalArgList].
 
+%% gera lista de parâmetros em uma declaração de função a partir da lista de
+%% tipos, usado na criação dos métodos da super classe
+%% nomes dos parâmetros: V_0, V_1, V_2...
+function_args_list2(Line, ArgsTypeList) ->
+	function_args_list2(Line, ArgsTypeList, [], 0).
+
+function_args_list2(_, [], ArgAstList, _) ->
+	lists:reverse(ArgAstList, []);
+function_args_list2(Line, [ArgType | Rest], ArgAstList, N) ->
+	VarAst = var(Line, "V_" ++ [N + 48]),
+	ArgAst = tuple(Line, [atom(Line, ArgType), VarAst]),
+	function_args_list2(Line, Rest, [ArgAst |ArgAstList], N+1).
+
 %%---------------------------------------------------------------------------%%
 %% Declaração dos parâmetros da função na st
 init_args(Line, ParametersList) ->

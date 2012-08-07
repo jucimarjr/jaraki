@@ -26,12 +26,12 @@ transform_jast_to_east(JavaAST, ErlangModuleName, ClassesInfo) ->
 	st:new(),
 	st:insert_classes_info(ClassesInfo),
 
-	ErlangModuleBody =
-		[get_erl_body(JavaClass)|| JavaClass <- JavaAST],
+	ErlangModuleBody = [get_erl_body(JavaClass)|| JavaClass <- JavaAST],
 
 	%% TODO: declare_static_fields()
 	DefaultConstructor = create_default_constructor(ErlangModuleName),
-	OOFuns = [DefaultConstructor],
+	ParentMethods      = create_all_parent_methods(ErlangModuleName),
+	OOFuns = [DefaultConstructor] ++ ParentMethods,
 
 	ErlangModule = create_module(ErlangModuleName, ErlangModuleBody, OOFuns),
 
@@ -49,11 +49,19 @@ transform_jast_to_east(JavaAST, ErlangModuleName, ClassesInfo) ->
 get_erl_body(JavaClass) ->
 	case JavaClass of
 		{_Line1, _PackageName, {class_list, [{class, ClassData}]}} ->
-			{_Line2, {name, ClassName}, {body, JavaClassBody}} = ClassData,
+			{_Line2, NameJast, ParentJast, BodyJast} = ClassData,
+			{name, ClassName}     = NameJast,
+			{parent, _ParentName}  = ParentJast,
+			{body, JavaClassBody} = BodyJast,
+
 			match_erl_member(ClassName, JavaClassBody);
 
 		{class, ClassData} ->
-			{_Line, {name, ClassName}, {body, JavaClassBody}} = ClassData,
+			{_Line, NameJast, ParentJast, BodyJast} = ClassData,
+			{name, ClassName}     = NameJast,
+			{parent, _ParentName}  = ParentJast,
+			{body, JavaClassBody} = BodyJast,
+
 			match_erl_member(ClassName, JavaClassBody)
 	end.
 
@@ -183,6 +191,7 @@ get_erl_function_body(Line, JavaMethodBody, ParametersList) ->
 			gen_erl_code:match_statement(Statement)
 		end,
 
+
 	New =
 		case st:get_scope() of
 			{_ScopeClass1, {main,_}} ->
@@ -300,6 +309,35 @@ create_default_constructor(ErlangModuleName) ->
 	FunctionBody = [{clause, Line, [], [], ConstructorBody}],
 
 	function(Line, FunctionName, Parameters, FunctionBody).
+
+%%-----------------------------------------------------------------------------
+%% declara os métodos da classe pai
+create_all_parent_methods(ClassName) ->
+	case st:get_class_parent(ClassName) of
+		null -> [];
+		ParentName ->
+			MethodsList = st:get_visible_methods(ParentName),
+			[create_parent_method(Method, ParentName) || Method <- MethodsList]
+	end.
+
+create_parent_method(MethodInfo, ClassName) ->
+	Line = 0,
+
+	{{MethodName, ArgTypeList}, {_, Modifiers}} = MethodInfo,
+
+	ArgsAstList = gen_ast:function_args_list2(Line, ArgTypeList),
+
+	case helpers:has_element(static, Modifiers) of
+		false -> ArgsAstList2 = [var(Line, "ObjectID") | ArgsAstList];
+		true  -> ArgsAstList2 = ArgsAstList
+	end,
+
+	ParentMethodCall = rcall(Line, ClassName, MethodName, ArgsAstList2),
+	MethodBody = [ParentMethodCall],
+
+	MethodClauses = [{clause, Line, ArgsAstList2, [], MethodBody}],
+
+	function(Line, MethodName, length(ArgsAstList2), MethodClauses).
 
 %%-----------------------------------------------------------------------------
 %% declara na st as variáveis do parâmetro de uma função ou construtor

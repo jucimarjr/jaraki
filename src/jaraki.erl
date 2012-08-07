@@ -112,10 +112,12 @@ get_erl_filename(ErlangModuleName) ->
 get_erl_modulename(JavaAST) ->
 	case JavaAST of
 		[{_Line1, _PackageName, {class_list, [{class, ClassData}]}}] ->
-			{_Line2, {name, JavaClassName}, {body, _JavaClassBody}} = ClassData,
+			{_Line2, NameJast, _ParentJast, {body, _JavaClassBody}} = ClassData,
+			{name, JavaClassName} = NameJast,
 			list_to_atom(string:to_lower(atom_to_list(JavaClassName)));
 		[{class, ClassData}] ->
-			{_Line3, {name, JavaClassName}, {body, _JavaClassBody}} = ClassData,
+			{_Line, NameJast, _ParentJast, {body, _JavaClassBody}} = ClassData,
+			{name, JavaClassName} = NameJast,
 			list_to_atom(string:to_lower(atom_to_list(JavaClassName)))
 	end.
 

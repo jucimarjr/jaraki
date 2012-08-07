@@ -8,6 +8,7 @@
 %% Orientador : Prof Jucimar Jr ( jucimar.jr@gmail.com )
 %% Objetivo : Gerar a arvore sintatica a java a partir de um codigo-fonte
 %% Objetivo : Gerar os tokens java a partir de um codigo-fonte
+%% Objetivo : Montar informações de uma classe para ser usado durante a análise
 
 -module(ast).
 -export([get_java_ast/1, get_java_tokens/1, get_class_info/1]).
@@ -34,7 +35,7 @@ get_java_tokens(JavaFileName) ->
 %% Estrutura do retorno:
 %%		[Classe1, Classe2, ... ]
 %%
-%% ClasseN: {Nome, Campos, Metodos}
+%% ClasseN: {NomePai, Nome, Campos, Metodos, Construtores}
 %%
 %% Campos:  [Campo1, Campo2, ...]
 %% Metodos: [Metodo1, Metodo2, ...]
@@ -81,7 +82,11 @@ get_class_info(JavaAST) ->
 					jaraki_exception:handle_error(Line, 14),
 					io:format("diretorio inexistente!\n\n");
 				{ok, FileList} ->
-					{_Line2, {name, ClassName}, {body, ClassBody}} = ClassData,
+					{_Line2, NameJast, ParentJast, BodyJast} = ClassData,
+					{name, ClassName}    = NameJast,
+					{parent, ParentName} = ParentJast,
+					{body, ClassBody}    = BodyJast,
+
 					Retorno = get_file_exists(FileList,
 									atom_to_list(ClassName)++".java"),
 
@@ -90,8 +95,10 @@ get_class_info(JavaAST) ->
 							{FieldsInfo, MethodsInfo, ConstrInfo} =
 								get_members_info(ClassBody),
 							LowerClassName = to_lower_atom(ClassName),
-							FieldsInfo2 = lists:flatten(FieldsInfo),
-							{LowerClassName,FieldsInfo2,MethodsInfo,ConstrInfo};
+							ParentName2    = to_lower_atom(ParentName),
+							FieldsInfo2    = lists:flatten(FieldsInfo),
+							{LowerClassName, ParentName2,
+								FieldsInfo2,MethodsInfo,ConstrInfo};
 						false ->
 							jaraki_exception:handle_error(Line, 15),
 							io:format("O aquivo nao consta no diretorio!\n\n")
@@ -105,10 +112,16 @@ get_class_info(JavaAST) ->
 			%end;
 
 		[{class, ClassData}] ->
-			{_Line3, {name, ClassName}, {body, ClassBody}} = ClassData,
+			{_Line3, NameJast, ParentJast, BodyJast} = ClassData,
+			{name, ClassName}    = NameJast,
+			{parent, ParentName} = ParentJast,
+			{body, ClassBody}    = BodyJast,
+
 			{FieldsInfo, MethodsInfo, ConstrInfo} = get_members_info(ClassBody),
-			LowerClassName = to_lower_atom(ClassName),
-			{LowerClassName, lists:flatten(FieldsInfo), MethodsInfo, ConstrInfo}
+			LowerClassName  = to_lower_atom(ClassName),
+			ParentName2 = to_lower_atom(ParentName),
+			FieldsInfo2     = lists:flatten(FieldsInfo),
+			{LowerClassName, ParentName2, FieldsInfo2, MethodsInfo, ConstrInfo}
 	end.
 
 

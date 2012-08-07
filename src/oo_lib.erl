@@ -21,11 +21,6 @@
 
 %%-----------------------------------------------------------------------------
 %% instancia um objeto de uma classe
-
-%% classe sem atributos
-new(_,_,[]) -> [];
-
-%% classe com atributos
 new(ClassName, SuperClasses, VarsList) ->
 	ObjectID = make_ref(),
 	declare_attributes(ObjectID, VarsList),

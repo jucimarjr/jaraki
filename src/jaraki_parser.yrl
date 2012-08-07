@@ -50,7 +50,7 @@ catches		catch_clause break_stmt
 statement.
 
 Terminals
-package import class public static void %% main, obsoleto
+package import class public static void extends
 return sqrt random print scanner
 length
 '(' ')' '[' ']' '{' '}' ';' '=' '.' '.*' ','
@@ -94,7 +94,15 @@ class_list -> class_declaration				: ['$1'].
 class_list -> class_declaration class_list	: ['$1' | '$2'].
 
 class_declaration -> public class identifier '{' class_body '}':
-	{class, {line('$3'), {name, unwrap('$3')}, {body, '$5'}}}.
+	Parent = {parent,  null},
+	{class, {line('$3'), {name, unwrap('$3')}, Parent, {body, '$5'}}}.
+
+class_declaration -> public class identifier
+							extends identifier '{' class_body '}':
+	Name   = {name, unwrap('$3')},
+	Parent = {parent,  unwrap('$5')},
+	Body   = {body, '$7'},
+	{class, {line('$3'), Name, Parent, Body}}.
 
 %% MethodOrFieldDecl
 class_body -> method_declaration			: ['$1'].
@@ -255,7 +263,8 @@ local_variable_declaration_statement -> identifier variable_list ';':
 	Type = {line('$1'), unwrap('$1')},
 	{var_declaration, {var_type, Type}, {var_list, '$2'}}.
 
-%% declaração de variáveis de referência (para objetos random, scanner e FileReader)
+%% declaração de variáveis de referência
+%% (para objetos random, scanner e FileReader)
 local_variable_declaration_statement -> random variable_list ';':
 	Type = {line('$1'), unwrap('$1')},
 	{var_declaration, {var_type, Type}, {var_list, '$2'}}.

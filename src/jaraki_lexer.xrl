@@ -20,6 +20,7 @@ Package				= package
 Import				= import
 ImportAll			= \.\*
 Class				= class
+Extends				= extends
 Public				= public
 Static				= static
 Void				= void
@@ -113,11 +114,10 @@ Rules.
 {Package}	: {token, {package,	TokenLine, list_to_atom(TokenChars)}}.
 {Import}	: {token, {import,	TokenLine, list_to_atom(TokenChars)}}.
 {Class}		: {token, {class,	TokenLine, list_to_atom(TokenChars)}}.
+{Extends}	: {token, {extends, TokenLine, list_to_atom(TokenChars)}}.
 {Public}	: {token, {public,	TokenLine, list_to_atom(TokenChars)}}.
 {Static}	: {token, {static,	TokenLine, list_to_atom(TokenChars)}}.
 {Void}		: {token, {void,	TokenLine, list_to_atom(TokenChars)}}.
-%% Main OBSOLETO
-%%{Main}		: {token, {main,	TokenLine, list_to_atom(TokenChars)}}.
 {Return}	: {token, {return,	TokenLine, list_to_atom(TokenChars)}}.
 {String}	: {token, {string_t,TokenLine, list_to_atom(TokenChars)}}.
 {Integer}	: {token, {int_t,	TokenLine, list_to_atom(TokenChars)}}.

@@ -19,9 +19,12 @@
 		%% informações das classes
 		insert_classes_info/1,	exist_class/1,
 		exist_method/2,			get_method_info/2,	is_static_method/2,
+		get_class_parent/1,		get_visible_methods/1,
 		exist_field/2,			get_field_info/2,	get_all_fields_info/1,
 		exist_constructor/2,	get_constr_info/2
 	]).
+
+-import(helpers, [has_element/2]).
 
 new() ->
 	put(errors, []),
@@ -164,7 +167,7 @@ update_counter(DictVar, Increment) ->
 %%		NomeDaClasse => atom()
 %%
 %% Valor:
-%%		{Campos, Metodos}
+%%		{NomePai, Campos, Metodos, Construtores}
 %% Onde:
 %%		Campos:  [Campo1, Campo2, ...]
 %%		Metodos: [Metodo1, Metodo2, ...]
@@ -189,13 +192,49 @@ update_counter(DictVar, Increment) ->
 
 %% inicializa "sub-dicionario" com informações das classes
 insert_classes_info(ClassesInfoList) ->
-	lists:map(fun put_class_info/1, ClassesInfoList).
+	lists:map(fun put_class_info/1, ClassesInfoList),
+	insert_parent_methods(ClassesInfoList).
 
 %% insere informação de uma classe
-put_class_info({ClassName, Fields, Methods, Constructors}) ->
+put_class_info({ClassName, ParentName, Fields, Methods, Constructors}) ->
 	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
-	put({oo_classes, ClassName2}, {Fields, Methods, Constructors}).
+	put({oo_classes, ClassName2}, {ParentName, Fields, Methods, Constructors}).
 
+%% insere informações dos métodos visíveis na superclasse
+insert_parent_methods([]) -> ok;
+insert_parent_methods([{_, null, _, _, _} | Rest]) ->
+	insert_parent_methods(Rest);
+insert_parent_methods([ MethodInfo | Rest ]) ->
+	{ClassName, ParentName, Fields, Methods,Constructors} = MethodInfo,
+	ParentMethods = get_visible_methods(ParentName),
+	NewMethods = ParentMethods ++ Methods,
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	Key = {ParentName, Fields, NewMethods, Constructors},
+	put({oo_classes, ClassName2}, Key),
+	insert_parent_methods(Rest).
+
+%% busca a informação de todos os métodos visíveis às classes filhas
+get_visible_methods(ClassName) ->
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	{_, _, MethodsInfo, _} = get({oo_classes, ClassName2}),
+	lists:filter(fun is_visible_method/1, MethodsInfo).
+
+is_visible_method({ _, {_, Modifiers} }) ->
+	case Modifiers of
+		[public    |_] -> true;
+		[protected |_] -> true;
+		_Other         -> false
+	end.
+
+%% busca a classe pai da classe recebida por parametro
+get_class_parent(ClassName) ->
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	{ParentName, _, _, _} = get({oo_classes, ClassName2}),
+	ParentName.
+
+%%---------------------------------------------
+
+%% verifica se classe existe
 exist_class(ClassName) ->
 	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
 	case get({oo_classes, ClassName2}) of
@@ -209,7 +248,7 @@ exist_class(ClassName) ->
 %% a assinatura de um método (que o trona único na classe) corresponde a:
 %% - Nome (identificador)
 %% ----- temporariamente desativado: Tipos dos parâmetros (em ordem)
-%%
+
 %% verifica existência do método
 exist_method(ClassName, {MethodName, Parameters}) ->
 	case get_method_info(ClassName, {MethodName, Parameters}) of
@@ -227,17 +266,13 @@ is_static_method(ClassName, {MethodName, Parameters}) ->
 		get_method_info(ClassName, {MethodName, Parameters}),
 	has_element(static, Modifiers).
 
-has_element(static, [static | _]) -> true;
-has_element(static, [_ | Rest]) -> has_element(static, Rest);
-has_element(_, []) -> false.
-
 %%----------------------------------------------------------------------------
 %%                              CAMPOS
 %%
 %% busca informações de todos os campos declarados
 get_all_fields_info(ClassName) ->
 	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
-	{FieldList, _, _} = get({oo_classes, ClassName2}),
+	{_, FieldList, _, _} = get({oo_classes, ClassName2}),
 	FieldList.
 
 %% verifica se variável existe na classe
@@ -271,7 +306,7 @@ get_constr_info(ClassName, Parameters) ->
 %% MemberType = field | method
 get_member_info(MemberType, ClassName, MemberKey) ->
 	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
-	{FieldList, MethodList, ConstrList} = get({oo_classes, ClassName2}),
+	{_, FieldList, MethodList, ConstrList} = get({oo_classes, ClassName2}),
 	case MemberType of
 		field ->
 			get_member_info(MemberKey, FieldList);
