@@ -132,6 +132,7 @@ match_statement(
 	) ->
 	create_for(Line, VarType, VarName, Start, CondExpr, IncExpr, Body);
 
+
 %%casa expressoes do while
 match_statement(
 	{
@@ -143,6 +144,20 @@ match_statement(
 	) ->
 
 	create_while(Line, CondExpr, Body);
+
+%%casa expressoes do do_while
+match_statement(
+	{
+		Line,
+		do_while,
+		{do_while_body, Body},
+		{condition_expr, CondExpr}
+		
+	}
+	) ->
+
+	create_do_while(Line,  Body, CondExpr);
+
 
 %% casa expressoes do tipo ++
 match_statement({inc_op, Line, IncOp, Variable}) ->
@@ -1034,6 +1049,12 @@ create_while(Line, CondExpr, Body) ->
 	CoreBody = match_inner_stmt(Body),
 	BodyAst = 'fun'(Line, [clause(Line, [], [], CoreBody)]),
 	call(Line, while, [CondAst, BodyAst]).
+
+create_do_while(Line,  Body, CondExpr) -> 
+	CoreBody = match_inner_stmt(Body),
+	BodyAst = 'fun'(Line, [clause(Line, [], [], CoreBody)]),
+	CondAst = 'fun'(Line, [clause(Line, [], [], [match_attr_expr(CondExpr)])]),
+	call(Line, do_while, [BodyAst, CondAst]).
 
 create_undeclare_vars(Line, VarList, Scope) ->
 	create_undeclare_vars(Line, VarList, Scope, []).

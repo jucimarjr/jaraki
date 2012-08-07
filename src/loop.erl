@@ -9,7 +9,7 @@
 %% Objetivo : ...
 
 -module(loop).
--export([for/3, while/2]).
+-export([for/3, while/2, do_while/2]).
 
 %%-----------------------------------------------------------------------------
 %% O loop for
@@ -29,6 +29,16 @@ while(ConditionFun, BodyFun) ->
 		true ->
 			BodyFun(),
 			while(ConditionFun, BodyFun);
+
+		false ->
+			ok
+	end.
+
+do_while(BodyFun, ConditionFun) ->
+	case ConditionFun() of
+		true ->
+			BodyFun(),
+			do_while(BodyFun, ConditionFun);
 
 		false ->
 			ok
