@@ -193,7 +193,7 @@ update_counter(DictVar, Increment) ->
 %% inicializa "sub-dicionario" com informações das classes
 insert_classes_info(ClassesInfoList) ->
 	lists:map(fun put_class_info/1, ClassesInfoList),
-	insert_parent_methods(ClassesInfoList).
+	insert_parent_members(ClassesInfoList).
 
 %% insere informação de uma classe
 put_class_info({ClassName, ParentName, Fields, Methods, Constructors}) ->
@@ -201,17 +201,22 @@ put_class_info({ClassName, ParentName, Fields, Methods, Constructors}) ->
 	put({oo_classes, ClassName2}, {ParentName, Fields, Methods, Constructors}).
 
 %% insere informações dos métodos visíveis na superclasse
-insert_parent_methods([]) -> ok;
-insert_parent_methods([{_, null, _, _, _} | Rest]) ->
-	insert_parent_methods(Rest);
-insert_parent_methods([ MethodInfo | Rest ]) ->
-	{ClassName, ParentName, Fields, Methods,Constructors} = MethodInfo,
+insert_parent_members([]) -> ok;
+insert_parent_members([{_, null, _, _, _} | Rest]) ->
+	insert_parent_members(Rest);
+insert_parent_members([ ClassInfo | Rest ]) ->
+	{ClassName, ParentName, Fields, Methods,Constructors} = ClassInfo,
 	ParentMethods = get_visible_methods(ParentName),
-	NewMethods = ParentMethods ++ Methods,
+	ParentFields  = get_visible_fields(ParentName),
+
+	NewMethods    = ParentMethods ++ Methods,
+	NewFields     = ParentFields  ++ Fields,
+
 	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
-	Key = {ParentName, Fields, NewMethods, Constructors},
+	Key = {ParentName, NewFields, NewMethods, Constructors},
 	put({oo_classes, ClassName2}, Key),
-	insert_parent_methods(Rest).
+
+	insert_parent_members(Rest).
 
 %% busca a informação de todos os métodos visíveis às classes filhas
 get_visible_methods(ClassName) ->
@@ -225,6 +230,15 @@ is_visible_method({ _, {_, Modifiers} }) ->
 		[protected |_] -> true;
 		_Other         -> false
 	end.
+
+%% busca a informação de todos os campos visíveis às casses filhas
+get_visible_fields(ClassName) ->
+	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	{_, FieldsInfo, _, _} = get({oo_classes, ClassName2}),
+	lists:filter(fun is_visible_field/1, FieldsInfo).
+
+is_visible_field({_, {_, Modifiers}}) ->
+	not helpers:has_element(private, Modifiers).
 
 %% busca a classe pai da classe recebida por parametro
 get_class_parent(ClassName) ->

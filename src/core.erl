@@ -67,7 +67,7 @@ get_erl_body(JavaClass) ->
 
 %%-----------------------------------------------------------------------------
 %% Extrai um campo ou funcao da classe
-%% Observação: campos são tratados em outro momendo da análise
+%% Observação: campos são tratados em outro momento da análise
 match_erl_member(ClassName, JavaClassBody) ->
 	match_erl_member(ClassName, JavaClassBody, []).
 
