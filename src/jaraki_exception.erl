@@ -37,7 +37,9 @@ get_error_text(13) -> "Unexpected type on method call!";
 %% Erros de Pacotes TODO: Traduzir os textos para o ingles
 get_error_text(14) -> "Diretorio inexistente";
 get_error_text(15) -> "O aquivo nao consta no diretorio";
-get_error_text(16) -> "Diretorio sem permissao de acesso".
+get_error_text(16) -> "Diretorio sem permissao de acesso";
+
+get_error_text(17) -> "The operator cannot be applied to String".
 
 print_errors([]) ->
 	io:format("\n");

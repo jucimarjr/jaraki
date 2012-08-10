@@ -293,7 +293,30 @@ match_attr_expr({text, Line, String}) ->
 match_attr_expr({singles_quotes, Line, Char}) ->
 	{char, Line, Char};
 match_attr_expr({op, Line, Op, LeftExp, RightExp}) ->
+
 	{op, Line, Op, match_attr_expr(LeftExp), match_attr_expr(RightExp)};
+
+
+match_attr_expr({string, {op, Line, Op, LeftExp, RightExp}}) ->
+	case Op of
+		'+' ->
+		  {op, Line, '++',
+
+			case LeftExp of
+				{op,_,_,_,_} ->  match_attr_expr({string, LeftExp});
+				_ ->			 match_attr_expr(LeftExp)
+			end,
+
+			case RightExp of
+				{op,_,_,_,_} ->  match_attr_expr({string, RightExp});
+				_ ->			 match_attr_expr(RightExp)
+			end
+
+		  };
+
+		_ -> jaraki_exception:handle_error(Line, 17)
+
+		end;
 
 match_attr_expr({var, Line, VarName}) ->
 	Scope = st:get_scope(),
@@ -800,7 +823,19 @@ create_attribution(Line, VarName, VarValue) ->
 
 			TypeAst = gen_ast:type_to_ast(Line, Type),
 			jaraki_exception:check_var_type(Type, VarValue),
-			VarValueAst = match_attr_expr(VarValue),
+
+			VarValueAst =
+				case Type of
+					'String' ->
+						case VarValue of
+							{op,_,_,_,_} -> match_attr_expr({string, VarValue});
+							_ ->			match_attr_expr(VarValue)
+						end;
+
+					_		 -> match_attr_expr(VarValue)
+
+				end,
+
 			CheckInt = gen_ast:check_int(Type),
 			NewVarValueAst =
 				case CheckInt of

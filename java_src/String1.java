@@ -5,10 +5,15 @@ public class String1 {
 		String u = "U";
 		String e = "E";
 		String a = "A";
-		String uea;
+		String uea, teste1, teste2;
 		uea = u + e + a;
-		
+		teste1 = uea + "String";
+		teste2 = uea + " " + "String";
 		System.out.println(uea);
+
+		System.out.println(teste1);
+
+		System.out.println(teste2);
 	}
 
 }
