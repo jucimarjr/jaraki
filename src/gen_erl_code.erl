@@ -673,9 +673,13 @@ create_function_call(Line, FunctionName, ArgumentsList) ->
 						void -> FunctionCall;
 						{array, void} -> FunctionCall;
 						{matrix, void} -> FunctionCall;
-						_OtherType -> rcall(Line, st, return_function,
-										[Fun, atom(Line, FunctionName),
-										list(Line, ArgumentAstList)])
+						_OtherType -> 
+								case ArgumentAstList of 
+									[] -> FunctionCall;
+									_Other -> rcall(Line, st, return_function,
+											[Fun, atom(Line, FunctionName),
+											list(Line, ArgumentAstList)])
+								end
 					end
 			end
 	end.
