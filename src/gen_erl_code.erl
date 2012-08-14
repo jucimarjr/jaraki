@@ -934,11 +934,11 @@ create_attribution(Line, MatrixName, RowIndex, ColumnIndex, VarValue) ->
 
 %% Transforma os elementos do array - vet = {valor1, valor2}
 create_array_values(Line, [{array_element, Value} | []]) ->
-	{cons, Line, {integer, Line, Value}, {nil, Line}};
+	{cons, Line, match_attr_expr(Value), {nil, Line}};
 
 create_array_values(Line,
 						[{array_element, Value} | Rest]) ->
-	Lists =  {cons, Line, {integer, Line, Value},
+	Lists =  {cons, Line, match_attr_expr(Value),
 				create_array_values(Line, Rest)},
 	Lists.
 

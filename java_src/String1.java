@@ -6,7 +6,7 @@ public class String1 {
 		String e = "E";
 		String a = "A";
 		String uea, teste1, teste2;
-		uea = u + e + a;
+		uea = u + e;
 		teste1 = uea + "String";
 		teste2 = uea + " " + "String";
 		System.out.println(uea);
