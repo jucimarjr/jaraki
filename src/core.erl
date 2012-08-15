@@ -23,6 +23,8 @@
 %%   east -> arvore sintatica do erlang.
 %% TODO: tratar múltiplos arquivos, ou seja, múltiplas classes
 transform_jast_to_east(JavaAST, ErlangModuleName, ClassesInfo) ->
+	io:format("core: compilando \"~p\"...\n", [ErlangModuleName]),
+
 	st:new(),
 	st:insert_classes_info(ClassesInfo),
 
@@ -311,14 +313,16 @@ create_default_constructor(ErlangModuleName) ->
 	function(Line, FunctionName, Parameters, FunctionBody).
 
 %%-----------------------------------------------------------------------------
-%% declara os métodos da classe pai
+%% declara os métodos das super classes
 create_all_parent_methods(ClassName) ->
-	case st:get_class_parent(ClassName) of
-		null -> [];
-		ParentName ->
-			MethodsList = st:get_visible_methods(ParentName),
-			[create_parent_method(Method, ParentName) || Method <- MethodsList]
-	end.
+	AllMethodsList = st:get_methods_with_parent(ClassName),
+	[_ClassMethods | InheritedMethods] = AllMethodsList,
+	create_parent_method_list(InheritedMethods, []).
+
+create_parent_method_list([], AllMethodsList) -> AllMethodsList;
+create_parent_method_list([{ClassName, MethodsList} | Rest], Result) ->
+	TempL = [create_parent_method(Method, ClassName) || Method <- MethodsList],
+	create_parent_method_list(Rest, TempL ++ Result).
 
 create_parent_method(MethodInfo, ClassName) ->
 	Line = 0,

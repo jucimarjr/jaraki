@@ -225,7 +225,7 @@ match_attr_expr({new, object, {class, Line, ClassName, ArgumentsJast}}) ->
 
 		ArgTypeList ->
 			case st:exist_constructor(ClassName2, ArgTypeList) of
-				false ->
+				false -> io:format("humm... ~p\n\n", [ArgTypeList]),
 					jaraki_exception:handle_error(Line, 9),
 					no_operation;
 
@@ -786,7 +786,8 @@ create_attribution(Line, {field_attribution, FieldInfoJast}, VarValue) ->
 
 	case ObjectVarName of
 		this ->
-			{ClassName2, _} = Scope;
+			{ClassName, _} = Scope,
+			ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName)));
 		_ ->
 			{ClassName, _VarValue} = st:get2(Line, Scope, ObjectVarName),
 			ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName)))

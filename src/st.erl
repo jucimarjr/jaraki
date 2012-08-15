@@ -19,7 +19,7 @@
 		%% informações das classes
 		insert_classes_info/1,	exist_class/1,
 		exist_method/2,			get_method_info/2,	is_static_method/2,
-		get_class_parent/1,		get_visible_methods/1,
+		get_methods_with_parent/1,
 		exist_field/2,			get_field_info/2,	get_all_fields_info/1,
 		exist_constructor/2,	get_constr_info/2
 	]).
@@ -200,17 +200,18 @@ put_class_info({ClassName, ParentName, Fields, Methods, Constructors}) ->
 	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
 	put({oo_classes, ClassName2}, {ParentName, Fields, Methods, Constructors}).
 
-%% insere informações dos métodos visíveis na superclasse
+%% atualiza dicionário inserindo informações dos métodos visíveis na superclasse
 insert_parent_members([]) -> ok;
 insert_parent_members([{_, null, _, _, _} | Rest]) ->
 	insert_parent_members(Rest);
 insert_parent_members([ ClassInfo | Rest ]) ->
-	{ClassName, ParentName, Fields, Methods,Constructors} = ClassInfo,
-	ParentMethods = get_visible_methods(ParentName),
+	{ClassName, ParentName, Fields, _Methods,Constructors} = ClassInfo,
+	ParentMethods = get_methods_with_parent(ClassName),
 	ParentFields  = get_visible_fields(ParentName),
 
-	NewMethods    = ParentMethods ++ Methods,
-	NewFields     = ParentFields  ++ Fields,
+	NewMethods = merge_parent_methods(ParentMethods),
+
+	NewFields     = Fields ++ ParentFields,
 
 	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
 	Key = {ParentName, NewFields, NewMethods, Constructors},
@@ -218,11 +219,27 @@ insert_parent_members([ ClassInfo | Rest ]) ->
 
 	insert_parent_members(Rest).
 
+%% busca as infos de todos os métodos visíveis de determinada classe,
+%% acrescentando os métodos herdados e aplicando a sobrescrita (filtra métodos
+%% sobrescritos da classe filha)
+%%
+%% retorna no formato [ {Classe, Metodos}, ... ]
+%% métodos sobrescritos são RETIRADOS das classes de origem
+get_methods_with_parent(ClassName) ->
+	AllMethods = get_visible_methods(ClassName),
+	filter_over_methods(AllMethods).
+
 %% busca a informação de todos os métodos visíveis às classes filhas
+%% recursivamente indo de baixo para cima
+%% retornando [{Classe1, Metodos1}, {Classe2, Metodos2}, ... ]
+%% retorna no sentido crescente:
+%% C --extende--|> B --extd--|> A    ->    {C, B, A}
+get_visible_methods(null)      -> [];
 get_visible_methods(ClassName) ->
 	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
-	{_, _, MethodsInfo, _} = get({oo_classes, ClassName2}),
-	lists:filter(fun is_visible_method/1, MethodsInfo).
+	{ParentName, _, MethodsInfo, _} = get({oo_classes, ClassName2}),
+	VisibleMethods = lists:filter(fun is_visible_method/1, MethodsInfo),
+	[{ClassName, VisibleMethods} | get_visible_methods(ParentName)].
 
 is_visible_method({ _, {_, Modifiers} }) ->
 	case Modifiers of
@@ -231,20 +248,57 @@ is_visible_method({ _, {_, Modifiers} }) ->
 		_Other         -> false
 	end.
 
+%% a funcao get_visible_methods retorna uma lista de tuplas com a classe
+%% e a lista de métodos visíveis dessa classe
+%% a funcao abaixo mescla tudo em uma única lista
+merge_parent_methods(ParentMethods) ->
+	merge_parent_methods(ParentMethods, []).
+merge_parent_methods([], AllMethodsList) -> lists:reverse(AllMethodsList, []);
+merge_parent_methods([ {_, MethodList} | Rest ], AllMethodsList) ->
+	merge_parent_methods(Rest, MethodList ++ AllMethodsList).
+
+%% dada as classes A <|-- B <|-- C (C extende B que extende A)
+%% remove de A os métodos sobrescritos por B
+%% recebe e retorna a lista CRESCENTE [C, B, A, ...]
+%% o formato da lista recebida eh: [ {Classe1, Metodos1}, ... ]
+filter_over_methods(MethodsList) ->
+	ReverseMethodsList = lists:reverse(MethodsList, []),
+	filter_over_methods(ReverseMethodsList, []).
+
+filter_over_methods([], NewMethodsList) ->
+	NewMethodsList;
+filter_over_methods([LastMethods], NewMethodsList) ->
+	[LastMethods | NewMethodsList];
+filter_over_methods([MethodsA, MethodsB | Rest], NewMethodsList) ->
+	{ClassA, MethodsListA} = MethodsA,
+	{_ClassB, MethodsListB} = MethodsB,
+
+	NewMethodsListA = remove_same_methods(MethodsListA, MethodsListB),
+
+	NewMethodsA = {ClassA, NewMethodsListA},
+	filter_over_methods([MethodsB | Rest], [NewMethodsA | NewMethodsList]).
+
+%% considere B --extende--|> A
+%% remove todos os métodos da lista A que estão em B e são iguais
+%% usado fazer a sobrescrita, retorna a lista de métodos que B consegue ver
+%% de A (sua classe pai)
+remove_same_methods(MethodsListA, MethodsListB) ->
+	lists:foldl(fun remove_method/2, MethodsListA, MethodsListB).
+
+remove_method(MethodFrom_B, MethodsList_A) ->
+	{MethodKey1, _} = MethodFrom_B,
+	lists:filter(fun({Key2, _}) -> Key2 =/= MethodKey1 end, MethodsList_A).
+
 %% busca a informação de todos os campos visíveis às casses filhas
+get_visible_fields(null)      -> [];
 get_visible_fields(ClassName) ->
 	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
-	{_, FieldsInfo, _, _} = get({oo_classes, ClassName2}),
-	lists:filter(fun is_visible_field/1, FieldsInfo).
+	{ParentName, FieldsInfo, _, _} = get({oo_classes, ClassName2}),
+	VisibleFields = lists:filter(fun is_visible_field/1, FieldsInfo),
+	VisibleFields ++ get_visible_fields(ParentName).
 
 is_visible_field({_, {_, Modifiers}}) ->
 	not helpers:has_element(private, Modifiers).
-
-%% busca a classe pai da classe recebida por parametro
-get_class_parent(ClassName) ->
-	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
-	{ParentName, _, _, _} = get({oo_classes, ClassName2}),
-	ParentName.
 
 %%---------------------------------------------
 
