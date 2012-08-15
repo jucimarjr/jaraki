@@ -224,13 +224,13 @@ match_attr_expr({function_call, {Line, FunctionName},
 %% criação de objetos
 %% construtor padrão
 match_attr_expr({new, object, {class, _Line, ClassName}}) ->
-	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	ClassName2 = helpers:lower_atom(ClassName),
 	rcall(0, ClassName2, '__constructor__', []);
 
 %% construtor definido pelo usuário
 match_attr_expr({new, object, {class, Line, ClassName, ArgumentsJast}}) ->
 	{arguments, ArgumentsList} = ArgumentsJast,
-	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	ClassName2 = helpers:lower_atom(ClassName),
 
 	case helpers:get_arg_type_list(ArgumentsList) of
 		{error, ErrorNumber} ->
@@ -774,7 +774,7 @@ create_static_method_call(Line, ClassName, FunctionName, ArgumentsList) ->
 	case Check of
 		error -> no_operation;
 		ok ->
-			ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+			ClassName2 = helpers:lower_atom(ClassName),
 
 			ArgTypeList = helpers:get_arg_type_list(ArgumentsList),
 			ArgumentAstList1 = [match_attr_expr(V) || V <- ArgumentsList],
@@ -801,10 +801,10 @@ create_attribution(Line, {field_attribution, FieldInfoJast}, VarValue) ->
 	case ObjectVarName of
 		this ->
 			{ClassName, _} = Scope,
-			ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName)));
+			ClassName2 = helpers:lower_atom(ClassName);
 		_ ->
 			{ClassName, _VarValue} = st:get2(Line, Scope, ObjectVarName),
-			ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName)))
+			ClassName2 = helpers:lower_atom(ClassName)
 	end,
 
 	{FieldType, _Modifiers} = st:get_field_info(ClassName2, FieldName),

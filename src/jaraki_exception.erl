@@ -39,7 +39,8 @@ get_error_text(14) -> "Diretorio inexistente";
 get_error_text(15) -> "O aquivo nao consta no diretorio";
 get_error_text(16) -> "Diretorio sem permissao de acesso";
 
-get_error_text(17) -> "The operator cannot be applied to String".
+get_error_text(17) -> "The operator cannot be applied to String";
+get_error_text(18) -> "Undefined Type".
 
 print_errors([]) ->
 	io:format("\n");
@@ -77,13 +78,24 @@ check_var_type(_Type, {next_int, _Line, _VarName, _RandomValue}) ->
 	%% match_type(Type, int);
 	ok;
 
-%% TODO: verificar retorno do new, polimorfismo, etc...
-%% construtor PADRÃO
-check_var_type(_Type, {new, object, {class, _Line, _Type2}}) ->
-	ok;
-%% construtor NOVO
-check_var_type(_Type, {new, object, {class, _, _Type2, _ArgumemtsJast}}) ->
-	ok;
+%% TODO: diferenciar erros da classe na declaração não existente e do objeto!
+%% construtores padrão e personalizado
+check_var_type(VarType, {new, object, ObjectConstr}) ->
+	ObjectType =
+		case ObjectConstr of
+			{class, Line, Type}                 -> Type;
+			{class, Line, Type, _ArgumemtsJast} -> Type
+		end,
+
+	ExistVarType   = st:exist_class(VarType),
+	ExistVarObject = st:exist_class(ObjectType),
+
+	case {ExistVarType, ExistVarObject} of
+		{false, true}  -> handle_error(Line, 18);
+		{true, false}  -> handle_error(Line, 18);
+		{false, false} -> handle_error(Line, 18);
+		{true, true}   -> match_object_type(Line, VarType, ObjectType)
+	end;
 
 check_var_type(Type, {field_access, {Line, ObjectVarName, FieldName}}) ->
 	Scope = st:get_scope(),
@@ -152,6 +164,7 @@ check_var_type(AttrArrayType, {{var, Line, ArrayName},
 	{{matrix, ExprVarType}, _Value} = st:get2(Line, st:get_scope(), ArrayName),
 	match_type(Line, AttrArrayType, ExprVarType).
 
+match_type(_, Type,     Type)    -> ok;
 match_type(_, 'String', text)    -> ok;
 match_type(_, int,      integer) -> ok;
 match_type(_, long,     integer) -> ok;
@@ -162,7 +175,13 @@ match_type(_, random,    _)      -> ok;
 match_type(_, scanner,   _)      -> ok;
 match_type(_, file_reader,   _)      -> ok;
 match_type(_, char, singles_quotes) -> ok;
-match_type(_, Type,     Type)    -> ok;
 
 match_type(Line, _, _) ->
 	handle_error(Line, 3).
+
+match_object_type(_, Type, Type) -> ok;
+match_object_type(Line, VarType, ObjectType) ->
+	case st:is_superclass(VarType, ObjectType) of
+		true  -> ok;
+		false -> handle_error(Line, 3)
+	end.

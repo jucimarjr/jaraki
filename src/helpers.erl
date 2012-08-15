@@ -10,7 +10,10 @@
 
 -module(helpers).
 -export([get_variable_context/2, get_arg_type_list/1, remove_nop/1,
-		has_element/2]).
+		has_element/2, lower_atom/1]).
+%%-----------------------------------------------------------------------------
+%% coloca todos as letras de um átomo em minúsculo
+lower_atom(Atom) -> list_to_atom(string:to_lower(atom_to_list(Atom))).
 
 %%-----------------------------------------------------------------------------
 %% verifica se determinado elemento existe na lista

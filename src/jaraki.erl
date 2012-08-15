@@ -114,11 +114,11 @@ get_erl_modulename(JavaAST) ->
 		[{_Line1, _PackageName, {class_list, [{class, ClassData}]}}] ->
 			{_Line2, NameJast, _ParentJast, {body, _JavaClassBody}} = ClassData,
 			{name, JavaClassName} = NameJast,
-			list_to_atom(string:to_lower(atom_to_list(JavaClassName)));
+			helpers:lower_atom(JavaClassName);
 		[{class, ClassData}] ->
 			{_Line, NameJast, _ParentJast, {body, _JavaClassBody}} = ClassData,
 			{name, JavaClassName} = NameJast,
-			list_to_atom(string:to_lower(atom_to_list(JavaClassName)))
+			helpers:lower_atom(JavaClassName)
 	end.
 
 

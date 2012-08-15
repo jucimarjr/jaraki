@@ -254,7 +254,7 @@ create_constructor(ClassName, ConstructorData) ->
 
 	%% TODO: verificar se nome do construtor bate com o nome da classe
 
-	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	ClassName2 = helpers:lower_atom(ClassName),
 	NewObjectAst = gen_ast:new_object(Line, ClassName2),
 
 	ObjectIDAst = gen_ast:match(Line, var(Line, "ObjectID"), NewObjectAst),

@@ -36,7 +36,7 @@ compile(JavaFileNameList) ->
 get_erl_ast(JavaFileName) ->
 	JavaAST = ast:get_java_ast(JavaFileName),
 	[{class, {_Line, {name, ClassName}, _ClassBody}}] = JavaAST,
-	ModuleName = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	ModuleName = helpers:lower_atom(ClassName),
 	core:transform_jast_to_east(JavaAST, ModuleName, []).
 
 %%-----------------------------------------------------------------------------

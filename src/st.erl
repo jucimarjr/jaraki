@@ -19,7 +19,7 @@
 		%% informações das classes
 		insert_classes_info/1,	exist_class/1,
 		exist_method/2,			get_method_info/2,	is_static_method/2,
-		get_methods_with_parent/1,
+		is_superclass/2,		get_methods_with_parent/1,
 		exist_field/2,			get_field_info/2,	get_all_fields_info/1,
 		exist_constructor/2,	get_constr_info/2
 	]).
@@ -197,7 +197,7 @@ insert_classes_info(ClassesInfoList) ->
 
 %% insere informação de uma classe
 put_class_info({ClassName, ParentName, Fields, Methods, Constructors}) ->
-	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	ClassName2 = helpers:lower_atom(ClassName),
 	put({oo_classes, ClassName2}, {ParentName, Fields, Methods, Constructors}).
 
 %% atualiza dicionário inserindo informações dos métodos visíveis na superclasse
@@ -213,7 +213,7 @@ insert_parent_members([ ClassInfo | Rest ]) ->
 
 	NewFields     = Fields ++ ParentFields,
 
-	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	ClassName2 = helpers:lower_atom(ClassName),
 	Key = {ParentName, NewFields, NewMethods, Constructors},
 	put({oo_classes, ClassName2}, Key),
 
@@ -236,7 +236,7 @@ get_methods_with_parent(ClassName) ->
 %% C --extende--|> B --extd--|> A    ->    {C, B, A}
 get_visible_methods(null)      -> [];
 get_visible_methods(ClassName) ->
-	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	ClassName2 = helpers:lower_atom(ClassName),
 	{ParentName, _, MethodsInfo, _} = get({oo_classes, ClassName2}),
 	VisibleMethods = lists:filter(fun is_visible_method/1, MethodsInfo),
 	[{ClassName, VisibleMethods} | get_visible_methods(ParentName)].
@@ -292,7 +292,7 @@ remove_method(MethodFrom_B, MethodsList_A) ->
 %% busca a informação de todos os campos visíveis às casses filhas
 get_visible_fields(null)      -> [];
 get_visible_fields(ClassName) ->
-	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	ClassName2 = helpers:lower_atom(ClassName),
 	{ParentName, FieldsInfo, _, _} = get({oo_classes, ClassName2}),
 	VisibleFields = lists:filter(fun is_visible_field/1, FieldsInfo),
 	VisibleFields ++ get_visible_fields(ParentName).
@@ -304,10 +304,21 @@ is_visible_field({_, {_, Modifiers}}) ->
 
 %% verifica se classe existe
 exist_class(ClassName) ->
-	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	ClassName2 = helpers:lower_atom(ClassName),
 	case get({oo_classes, ClassName2}) of
 		undefined  -> false;
 		_ClassInfo -> true
+	end.
+
+%% verifica se a classe A é superclasse da classe B
+is_superclass(Class_A, Class_B) ->
+	Class_B2 = helpers:lower_atom(Class_B),
+	Class_A2 = helpers:lower_atom(Class_A),
+	{ParentName, _, _, _} = get({oo_classes, Class_B2}),
+	case ParentName of
+		null    -> false;
+		Class_A2 -> true;
+		_Other  -> is_superclass(Class_A, ParentName)
 	end.
 
 %%----------------------------------------------------------------------------
@@ -339,7 +350,7 @@ is_static_method(ClassName, {MethodName, Parameters}) ->
 %%
 %% busca informações de todos os campos declarados
 get_all_fields_info(ClassName) ->
-	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	ClassName2 = helpers:lower_atom(ClassName),
 	{_, FieldList, _, _} = get({oo_classes, ClassName2}),
 	FieldList.
 
@@ -373,7 +384,7 @@ get_constr_info(ClassName, Parameters) ->
 %% busca informações de um membro da classe (método ou campo)
 %% MemberType = field | method
 get_member_info(MemberType, ClassName, MemberKey) ->
-	ClassName2 = list_to_atom(string:to_lower(atom_to_list(ClassName))),
+	ClassName2 = helpers:lower_atom(ClassName),
 	{_, FieldList, MethodList, ConstrList} = get({oo_classes, ClassName2}),
 	case MemberType of
 		field ->
