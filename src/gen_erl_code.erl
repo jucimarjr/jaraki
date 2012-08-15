@@ -132,6 +132,20 @@ match_statement(
 	) ->
 	create_for(Line, VarType, VarName, Start, CondExpr, IncExpr, Body);
 
+%% casa expressoes for - vetor
+match_statement(
+	{
+		Line,
+		for,
+		{for_init,{var_name,{
+				{var, _Line, VarName},{index, Index}} }},
+		{for_start, Start},
+		{condition_expr, CondExpr},
+		{inc_expr, IncExpr},
+		{for_body, Body}
+	}
+	) ->
+	create_for(vector, Line, VarName, Index, Start, CondExpr, IncExpr, Body);
 
 %%casa expressoes do while
 match_statement(
@@ -1031,7 +1045,18 @@ create_inc_op(Line, IncOp, {var, _VarLine, VarName} = VarAst) ->
 			end,
 
 		VarValue = {op, Line, Inc, VarAst, {integer, Line, 1}},
-		create_attribution(Line, VarName, VarValue).
+	create_attribution(Line, VarName, VarValue);
+
+create_inc_op(Line, IncOp, {{var, _Line, VarName},
+				{index, ArrayIndex}} = VarAst) ->
+		Inc =
+			case IncOp of
+				'++' -> '+';
+				'--' ->	'-'
+			end,
+
+		VarValue = {op, Line, Inc, VarAst, {integer, Line, 1}},
+		create_attribution(Line, VarName, ArrayIndex, VarValue).
 
 %%-----------------------------------------------------------------------------
 %% Cria o if
@@ -1064,6 +1089,41 @@ create_for(Line, VarType, VarName, Start, CondExpr, IncExpr, Body) ->
 				tuple(Line, [TypeAst, match_attr_expr(Start)])]),
 
 	st:	get_declared(Line, Scope, VarName, VarType, undefined),
+	%st:put_value({Scope, VarName}, {VarType, undefined}),
+
+	CondAst	= 'fun'(Line, [clause(Line, [], [], [match_attr_expr(CondExpr)])]),
+	IncAst	= 'fun'(Line, [clause(Line, [], [], [match_statement(IncExpr)])]),
+
+	CoreBody = match_inner_stmt(Body),
+
+	BodyAst	= 'fun'(Line, [clause(Line, [], [], CoreBody)]),
+
+	ForAst	= call(Line, for, [CondAst, IncAst, BodyAst]),
+
+	st:delete(Scope, VarName),
+	UndeclareIncrementAst = rcall(Line, st, delete, [ScopeAst, JavaNameAst]),
+
+	ForBlock = [InitAst, ForAst, UndeclareIncrementAst],
+
+	{block, Line, lists:flatten(ForBlock)}.
+
+create_for(vector, Line, VarName, Index, Start, CondExpr, IncExpr, Body) ->
+	JavaNameAst = string(Line, VarName),
+
+	{VarType, _VarValue} = st:get2(Line, st:get_scope(), VarName),
+	TypeAst = gen_ast:type_to_ast(Line, VarType),
+	Scope = st:get_scope(),
+	ScopeAst = gen_ast:scope(Line, Scope),
+
+	ArrayGetAst = rcall(Line, st, get_value, [ScopeAst, JavaNameAst]),
+	VectorAst = rcall(Line, vector, set_vector, [match_attr_expr(Index),
+					match_attr_expr(Start), ArrayGetAst]),
+
+	InitAst = rcall(Line, st, put_value, [
+				tuple(Line, [ScopeAst, JavaNameAst]),
+				tuple(Line, [TypeAst, VectorAst])]),
+
+	%%st:	get_declared(Line, Scope, VarName, VarType, undefined),
 	%st:put_value({Scope, VarName}, {VarType, undefined}),
 
 	CondAst	= 'fun'(Line, [clause(Line, [], [], [match_attr_expr(CondExpr)])]),
