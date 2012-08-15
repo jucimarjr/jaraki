@@ -434,10 +434,10 @@ array_declaration_list3 -> identifier '[' ']' '[' ']' '=' new_stmt:
 			[{{var, unwrap('$1')}, {var_value, '$7'}}].
 
 %% ------------------------------------------
-array_initializer -> literal : [{array_element, unwrap('$1')}].
+array_initializer -> literal : [{array_element, '$1'}].
 
 array_initializer -> literal ',' array_initializer:
-		[{array_element, unwrap('$1')} | '$3'].
+		[{array_element, '$1'} | '$3'].
 
 
 array_initializer -> '{' array_initializer '}' :
