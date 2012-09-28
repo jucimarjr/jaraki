@@ -748,9 +748,9 @@ create_object_method_call(Line, ObjVarName, FunctionName, ArgumentList) ->
 	end.
 
 create_static_method_call(Line, ClassName, FunctionName, ArgumentsList) ->
-	Scope = st:get_scope(),
+	_Scope = st:get_scope(),
 
-	ArgTypeList = helpers:get_arg_type_list(Scope, ArgumentsList),
+	ArgTypeList = helpers:get_arg_type_list(ArgumentsList),
 	MethodKey = {FunctionName, ArgTypeList},
 
 	Check =
