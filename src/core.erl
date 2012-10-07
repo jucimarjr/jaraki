@@ -28,12 +28,14 @@ transform_jast_to_east(JavaAST, ErlangModuleName, ClassesInfo) ->
 	st:new(),
 	st:insert_classes_info(ClassesInfo),
 
-	ErlangModuleBody = [get_erl_body(JavaClass)|| JavaClass <- JavaAST],
-
 	%% TODO: declare_static_fields()
 	DefaultConstructor = create_default_constructor(ErlangModuleName),
 	ParentMethods      = create_all_parent_methods(ErlangModuleName),
 	OOFuns = [DefaultConstructor] ++ ParentMethods,
+
+	%% mescla membros das classes com os das suas superclasses
+	st:insert_parent_members(ClassesInfo),
+	ErlangModuleBody = [get_erl_body(JavaClass)|| JavaClass <- JavaAST],
 
 	ErlangModule = create_module(ErlangModuleName, ErlangModuleBody, OOFuns),
 

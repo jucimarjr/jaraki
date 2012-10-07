@@ -17,10 +17,10 @@
 		lookup/1,		insert/2,
 
 		%% informações das classes
-		insert_classes_info/1,	exist_class/1,
-		exist_method/2,			get_method_info/2,	is_static_method/2,
+		insert_classes_info/1,	insert_parent_members/1,  exist_class/1,
+		exist_method/2,			get_method_info/2,		  is_static_method/2,
 		is_superclass/2,		get_methods_with_parent/1,
-		exist_field/2,			get_field_info/2,	get_all_fields_info/1,
+		exist_field/2,			get_field_info/2,		  get_all_fields_info/1,
 		exist_constructor/2,	get_constr_info/2
 	]).
 
@@ -171,6 +171,7 @@ update_counter(DictVar, Increment) ->
 %% Onde:
 %%		Campos:  [Campo1, Campo2, ...]
 %%		Metodos: [Metodo1, Metodo2, ...]
+%%		Construtores: [Construtor1, Construtor2, ...]
 %%
 %% CampoN:
 %%		{Nome, CampoValue}
@@ -184,6 +185,12 @@ update_counter(DictVar, Increment) ->
 %%		  |
 %%		  |> {Nome, Parametros}
 %%
+%% ConstrutorN:
+%%		{ ConsrutorKey, ConstrutorValue }
+%%		  |             |
+%%		  |             |> Visibilidade
+%%		  |> Parametros
+%%
 %% Outros:
 %%		Tipo			=> atom()
 %%		Nome			=> atom()
@@ -192,8 +199,7 @@ update_counter(DictVar, Increment) ->
 
 %% inicializa "sub-dicionario" com informações das classes
 insert_classes_info(ClassesInfoList) ->
-	lists:map(fun put_class_info/1, ClassesInfoList),
-	insert_parent_members(ClassesInfoList).
+	lists:map(fun put_class_info/1, ClassesInfoList).
 
 %% insere informação de uma classe
 put_class_info({ClassName, ParentName, Fields, Methods, Constructors}) ->
