@@ -199,7 +199,8 @@ update_counter(DictVar, Increment) ->
 
 %% inicializa "sub-dicionario" com informações das classes
 insert_classes_info(ClassesInfoList) ->
-	lists:map(fun put_class_info/1, ClassesInfoList).
+	lists:map(fun put_class_info/1, ClassesInfoList),
+	insert_parent_members(ClassesInfoList).
 
 %% insere informação de uma classe
 put_class_info({ClassName, ParentName, Fields, Methods, Constructors}) ->
