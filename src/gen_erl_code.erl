@@ -651,6 +651,7 @@ print_list([Element|L], Line) ->
 %%---------------------------------------------------------------------------%%
 %% TODO: checar se método existe na classe atual (this, primeiro caso) ou
 %%       se existe na classe referida pelo Class.Method()
+%%		 ou se existe na classe pai, com o super.metodo()
 %%       deve compilar a classe dependente antes
 %%       se houver dependência A <-> B, checar código todo antes de compilar!
 
@@ -700,6 +701,18 @@ create_function_call(Line, FunctionName, ArgumentsList) ->
 
 %% Chamada do tipo Owner.Metodo()
 %% TODO tratar Parameters, lista de parametros
+create_function_call(Line, super, FunctionName, ArgumentsList) ->
+	{ClassName, {MethodName, Parameters}} = st:get_scope(),
+	MethodKey = {MethodName, Parameters},
+
+	case st:is_static_method(ClassName, MethodKey) of
+		true ->
+			jaraki_exception:handle_error(Line, 20),
+			no_operation;
+		false ->
+			create_object_method_call(Line, super, FunctionName, ArgumentsList)
+	end;
+
 create_function_call(Line, Owner, FunctionName, ArgumentsList) ->
 	case st:is_declared_var(st:get_scope(), Owner) of
 		true ->
@@ -711,27 +724,39 @@ create_function_call(Line, Owner, FunctionName, ArgumentsList) ->
 create_object_method_call(Line, ObjVarName, FunctionName, ArgumentList) ->
 	Scope = st:get_scope(),
 
-	{ClassName, _VarValue} = st:get2(Line, Scope, ObjVarName),
+	ClassName =
+		case ObjVarName of
+			super ->
+				{SubClassName, _} = Scope,
+				st:get_superclass(SubClassName);
+
+			_ ->
+				{ObjClassName, _VarValue} = st:get2(Line, Scope, ObjVarName),
+				ObjClassName
+		end,
 
 	ArgTypeList = helpers:get_arg_type_list(ArgumentList),
 	MethodKey = {FunctionName, ArgTypeList},
 
 	Check =
-		case st:exist_method(ClassName, MethodKey) of
-			true ->
-				case st:is_static_method(ClassName, MethodKey) of
-					true -> jaraki_exception:handle_error(Line, 8);
-					false -> ok
-				end;
-			false -> jaraki_exception:handle_error(Line, 9)
+		case ClassName of
+			null ->
+				jaraki_exception:handle_error(Line, 19);
+			_ ->
+				case st:exist_method(ClassName, MethodKey) of
+					true ->
+						case st:is_static_method(ClassName, MethodKey) of
+							true -> jaraki_exception:handle_error(Line, 8);
+							false -> ok
+						end;
+					false -> jaraki_exception:handle_error(Line, 9)
+				end
 		end,
 
 	case Check of
 		error -> no_operation;
 		ok ->
-			ObjectIDAst = gen_ast:objectID(Line, st:get_scope(), ObjVarName),
-
-			ObjectClassAst = rcall(Line, oo_lib, get_class, [ObjectIDAst]),
+			ObjectIDAst = gen_ast:objectID(Line, Scope, ObjVarName),
 
 			ArgTypeList = helpers:get_arg_type_list(ArgumentList),
 			ArgumentAstList1 = [match_attr_expr(V) || V <- ArgumentList],
@@ -739,12 +764,18 @@ create_object_method_call(Line, ObjVarName, FunctionName, ArgumentList) ->
 				gen_ast:function_call_args(Line, ArgumentAstList1, ArgTypeList),
 			ArgumentAstList = [ObjectIDAst] ++ ArgumentAstList2,
 
-			ArgumentListAst = list(Line, ArgumentAstList),
-
-			FunctionNameAst = atom(Line, FunctionName),
-
-			ApplyArguments = [ObjectClassAst, FunctionNameAst, ArgumentListAst],
-			rcall(Line, erlang, apply, ApplyArguments)
+			case ObjVarName of
+				super ->
+					rcall(Line, ClassName, FunctionName, ArgumentAstList);
+				_ ->
+					ArgumentListAst = list(Line, ArgumentAstList),
+					FunctionNameAst = atom(Line, FunctionName),
+					ObjectClassAst =
+						rcall(Line, oo_lib, get_class, [ObjectIDAst]),
+					ApplyArguments =
+						[ObjectClassAst, FunctionNameAst, ArgumentListAst],
+					rcall(Line, erlang, apply, ApplyArguments)
+			end
 	end.
 
 create_static_method_call(Line, ClassName, FunctionName, ArgumentsList) ->

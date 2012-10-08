@@ -73,6 +73,7 @@ NextFloat			= nextFloat
 NextLine			= nextLine
 New					= new
 This				= this
+Super				= super
 Digit				= [0-9]
 Identifier			= [a-zA-Z_][a-zA-Z0-9_]*
 
@@ -154,6 +155,7 @@ Rules.
 {Close}		: {token, {close,	TokenLine, list_to_atom(TokenChars)}}.
 {New}		: {token, {new,	TokenLine, list_to_atom(TokenChars)}}.
 {This}		: {token, {this,	TokenLine, list_to_atom(TokenChars)}}.
+{Super}		: {token, {super,	TokenLine, list_to_atom(TokenChars)}}.
 {True}		: {token, {true,	TokenLine, list_to_atom(TokenChars)}}.
 {False}		: {token, {false,	TokenLine, list_to_atom(TokenChars)}}.
 

@@ -32,15 +32,15 @@ get_error_text(11) -> "Field not declared";
 get_error_text(12) -> "Non-static variable \"this\" cannot be referenced from "
 						"a static context";
 get_error_text(13) -> "Unexpected type on method call!";
-
-%-------------------------------------------------------------------------------
-%% Erros de Pacotes TODO: Traduzir os textos para o ingles
-get_error_text(14) -> "Diretorio inexistente";
-get_error_text(15) -> "O aquivo nao consta no diretorio";
-get_error_text(16) -> "Diretorio sem permissao de acesso";
-
+get_error_text(14) -> "Directory doesn't exist";
+get_error_text(15) -> "File doesn't exist in the directory";
+get_error_text(16) -> "No permission to access directory";
 get_error_text(17) -> "The operator cannot be applied to String";
-get_error_text(18) -> "Undefined Type".
+get_error_text(18) -> "Undefined Type";
+get_error_text(19) -> "\"super\" called on class that doesn't have superclass";
+get_error_text(20) -> "non-static variable \"super\" cannot be referenced from "
+						"a static context".
+
 
 print_errors([]) ->
 	io:format("\n");

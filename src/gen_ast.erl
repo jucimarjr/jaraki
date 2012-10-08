@@ -175,9 +175,11 @@ update_field_1(Line, VarName, TypeAst, NewVarValue) ->
 	VarParamAst = tuple(Line, [FieldNameAst, TypeAst, NewVarValue]),
 	rcall(Line, oo_lib, update_attribute, [ObjectIDAst, VarParamAst]).
 
-objectID(Line, this) -> var(Line, "ObjectID").
+objectID(Line, this) -> var(Line, "ObjectID");
+objectID(Line, super) -> var(Line, "ObjectID").
 
 objectID(Line, _, this) -> var(Line, "ObjectID");
+objectID(Line, _, super) -> var(Line, "ObjectID");
 objectID(Line, Scope, ObjectVarName) ->
 	ScopeAst = scope(Line, Scope),
 	ObjectVarNameAst = string(Line, ObjectVarName),

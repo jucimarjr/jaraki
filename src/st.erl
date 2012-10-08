@@ -19,7 +19,8 @@
 		%% informações das classes
 		insert_classes_info/1,	insert_parent_members/1,  exist_class/1,
 		exist_method/2,			get_method_info/2,		  is_static_method/2,
-		is_superclass/2,		get_methods_with_parent/1,
+		is_superclass/2,		get_superclass/1,
+		get_methods_with_parent/1,
 		exist_field/2,			get_field_info/2,		  get_all_fields_info/1,
 		exist_constructor/2,	get_constr_info/2
 	]).
@@ -328,6 +329,12 @@ is_superclass(Class_A, Class_B) ->
 		_Other  -> is_superclass(Class_A, ParentName)
 	end.
 
+%% retorna a superclasse da classe passada por parâmetro
+get_superclass(ClassName) ->
+	ClassName2 = helpers:lower_atom(ClassName),
+	{ParentName, _, _, _} = get({oo_classes, ClassName2}),
+	ParentName.
+
 %%----------------------------------------------------------------------------
 %%                                MÉTODOS
 %%
@@ -346,6 +353,7 @@ exist_method(ClassName, {MethodName, Parameters}) ->
 get_method_info(ClassName, {MethodName, Parameters}) ->
 	get_member_info(method, ClassName, {MethodName, Parameters}).
 
+%% recebe o nome da classe, do método e lista de tipos dos parâmetros em ordem
 is_static_method(_, {'__constructor__', _})           -> false;
 is_static_method(ClassName, {MethodName, Parameters}) ->
 	{_ReturnType, Modifiers} =

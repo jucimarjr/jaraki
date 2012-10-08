@@ -55,7 +55,7 @@ return sqrt random print scanner
 length
 '(' ')' '[' ']' '{' '}' ';' '=' '.' '.*' ','
 string_t int_t long_t float_t double_t boolean_t char_t
-next_int	next_line	next_float	new this system_in
+next_int	next_line	next_float	new this super system_in
 'if' 'else' true false
 for while	'do'	try catch break exception
 io_exception 'throws'
@@ -616,7 +616,6 @@ if_else_no_trailing -> 'if' '(' bool_expr ')' no_short_if_stmt
 
 %% BEGIN_FUNCTION
 
-%% TODO trocar para method_invocation
 method_invocation -> identifier '(' ')':
 			{function_call, {line('$1'), unwrap('$1')},
 					{argument_list, []}}.
@@ -636,6 +635,18 @@ method_invocation -> identifier '.' identifier '(' ')':
 	{function_call, Owner, Method, ArgumentList}.
 
 method_invocation -> identifier '.' identifier '(' argument_list ')':
+	Owner = {owner, line('$1'), unwrap('$1')},
+	Method = {method, line('$3'), unwrap('$3')},
+	ArgumentList = {argument_list, '$5'},
+	{function_call, Owner, Method, ArgumentList}.
+
+method_invocation -> super '.' identifier '(' ')':
+	Owner = {owner, line('$1'), unwrap('$1')},
+	Method = {method, line('$3'), unwrap('$3')},
+	ArgumentList = {argument_list, []},
+	{function_call, Owner, Method, ArgumentList}.
+
+method_invocation -> super '.' identifier '(' argument_list ')':
 	Owner = {owner, line('$1'), unwrap('$1')},
 	Method = {method, line('$3'), unwrap('$3')},
 	ArgumentList = {argument_list, '$5'},
