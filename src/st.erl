@@ -204,15 +204,17 @@ insert_classes_info(ClassesInfoList) ->
 	insert_parent_members(ClassesInfoList).
 
 %% insere informação de uma classe
-put_class_info({ClassName, ParentName, Fields, Methods, Constructors}) ->
+put_class_info({{ClassName, ParentName, Fields, Methods, 
+													Constructors}, Errors}) ->
 	ClassName2 = helpers:lower_atom(ClassName),
+	put(errors, Errors),
 	put({oo_classes, ClassName2}, {ParentName, Fields, Methods, Constructors}).
 
 %% atualiza dicionário inserindo informações dos métodos visíveis na superclasse
 insert_parent_members([]) -> ok;
-insert_parent_members([{_, null, _, _, _} | Rest]) ->
+insert_parent_members([{{_, null, _, _, _}, _} | Rest]) ->
 	insert_parent_members(Rest);
-insert_parent_members([ ClassInfo | Rest ]) ->
+insert_parent_members([ {ClassInfo, _Errors} | Rest ]) ->
 	{ClassName, ParentName, Fields, _Methods,Constructors} = ClassInfo,
 	ParentMethods = get_methods_with_parent(ClassName),
 	ParentFields  = get_visible_fields(ParentName),

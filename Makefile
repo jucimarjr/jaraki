@@ -21,7 +21,7 @@ test:   compile
 	@ mkdir -p $(TEST_EBIN_DIR)
 	@ $(ERLC) -o $(TEST_EBIN_DIR) test/test.erl
 	@ erl -noshell -pa test/ebin -eval 'code:add_path("ebin"), eunit:test("test/ebin", [verbose]), halt().'
-	@ mv *.erl $(TEST_EBIN_DIR)
+	@ mv $(JAVA_SRC_DIR)/*.erl $(TEST_EBIN_DIR)
 	@ mv *.beam $(TEST_EBIN_DIR)
 
 # This is the task when you intend to debug

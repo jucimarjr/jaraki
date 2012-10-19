@@ -1,6 +1,6 @@
 package vetor;
 
-import java.util.Scanner;
+//import java.util.Scanner;
 
 public class Vetor8 {
 	// 3. Faça um Programa que leia 4 notas, mostre as notas e a média na tela. 

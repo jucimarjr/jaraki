@@ -451,6 +451,11 @@ array_initializer -> '{' array_initializer '}' ',' array_initializer:
 element_value_pair ->	identifier '=' element_value ';':
 	{line('$1'), attribution, {var, unwrap('$1')}, {var_value, '$3'}}.
 
+%%TODO: Verificar var = 5.85f para tipo float  
+element_value_pair ->	identifier '=' element_value identifier ';':
+	{line('$1'), attribution, {var, unwrap('$1')}, {var_value, '$3'}}.
+
+
 %% Atribuição de array
 element_value_pair ->  identifier '[' element_value ']' '=' element_value ';':
 	{line('$1'), array_attribution,

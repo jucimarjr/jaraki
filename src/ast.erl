@@ -16,10 +16,10 @@
 %%-----------------------------------------------------------------------------
 %% Extrai a Java Abstract Syntax Tree de um arquivo .java
 %% o parser armazena no dicionario de processos informações da classe!
-get_java_ast(JavaFileName) ->
+get_java_ast({Dir,JavaFileName}) ->
 	JavaTokens = get_java_tokens(JavaFileName),
 	{ok, JavaAST} = jaraki_parser:parse(JavaTokens),
-	JavaAST.
+	{Dir, JavaAST}.
 
 %%-----------------------------------------------------------------------------
 %% Extrai a lista de Tokens de um arquivo .java
@@ -67,61 +67,50 @@ get_java_tokens(JavaFileName) ->
 
 %%-----------------------------------------------------------------------------
 %% info das classes
-get_class_info(JavaAST) ->
+get_class_info({DirFile,JavaAST}) ->
+	st:new(),
 	case JavaAST of
 		[{Line, {package,PackageName}, {class_list, [{class, ClassData}]}}] ->
 			{ok,DirAtual} = file:get_cwd(),
 			Package = get_packge_struct(PackageName),
-			Dir = DirAtual ++ "/java_src/" ++ Package,
+			{_Line2, NameJast, ParentJast, BodyJast} = ClassData,
+			{name, ClassName}    = NameJast,
+			DirFileRev = lists:reverse(DirFile),
+			FileNameRev = lists:reverse(atom_to_list(ClassName)++".java"),
 
-			case file:list_dir(list_to_atom(Dir)) of
-				{error, eacces} ->
-					jaraki_exception:handle_error(Line, 16),
-					io:format("diretorio sem permissão de acesso!\n\n");
-				{error, enoent} ->
-					jaraki_exception:handle_error(Line, 14),
-					io:format("diretorio inexistente!\n\n");
-				{ok, FileList} ->
-					{_Line2, NameJast, ParentJast, BodyJast} = ClassData,
-					{name, ClassName}    = NameJast,
-					{parent, ParentName} = ParentJast,
-					{body, ClassBody}    = BodyJast,
+			case lists:reverse(DirFileRev--FileNameRev) of
+				[] ->
+					Dir = DirAtual,
+					jaraki_exception:handle_error(Line, 15),
+					get_dir_list(ParentJast, BodyJast, ClassName, Dir, Line);
 
-					Retorno = get_file_exists(FileList,
-									atom_to_list(ClassName)++".java"),
+				Package -> 
+					Dir = DirAtual++"/"++Package,
+					get_dir_list(ParentJast, BodyJast, ClassName, Dir, Line);
 
-					case Retorno of
-						true ->
-							{FieldsInfo, MethodsInfo, ConstrInfo} =
-								get_members_info(ClassBody),
-							LowerClassName = to_lower_atom(ClassName),
-							ParentName2    = to_lower_atom(ParentName),
-							FieldsInfo2    = lists:flatten(FieldsInfo),
-							{LowerClassName, ParentName2,
-								FieldsInfo2,MethodsInfo,ConstrInfo};
-						false ->
+				DirTemp1 ->
+					DirRev = lists:reverse(DirTemp1),
+					PackageRev = lists:reverse(Package),
+					DirTemp2 = lists:reverse(DirRev--PackageRev),
+					case (DirTemp2++Package) of
+						DirTemp1 ->
+							Dir = DirAtual++"/"++DirTemp1,
+							get_dir_list(ParentJast, BodyJast,
+														ClassName, Dir, Line);
+						_Else ->
+							Dir = DirAtual++"/"++DirTemp1,
 							jaraki_exception:handle_error(Line, 15),
-							io:format("O aquivo nao consta no diretorio!\n\n")
+							get_dir_list(ParentJast, BodyJast,
+														ClassName, Dir, Line)
 					end
-					%io:format("bbbbb  ~p~n~n~n", [FileList])
 			end;
-
-			%	false ->
-			%			jaraki_exception:handle_error(Line, 15),
-			%			io:format("O aquivo nao consta no diretorio!\n\n")
-			%end;
 
 		[{class, ClassData}] ->
 			{_Line3, NameJast, ParentJast, BodyJast} = ClassData,
 			{name, ClassName}    = NameJast,
 			{parent, ParentName} = ParentJast,
 			{body, ClassBody}    = BodyJast,
-
-			{FieldsInfo, MethodsInfo, ConstrInfo} = get_members_info(ClassBody),
-			LowerClassName  = to_lower_atom(ClassName),
-			ParentName2 = to_lower_atom(ParentName),
-			FieldsInfo2     = lists:flatten(FieldsInfo),
-			{LowerClassName, ParentName2, FieldsInfo2, MethodsInfo, ConstrInfo}
+			return_class_info(ClassBody, ClassName, ParentName)
 	end.
 
 
@@ -131,11 +120,54 @@ get_packge_struct([Head|Rest])	->
 	get_packge_struct(Rest, atom_to_list(Head)).
 
 get_packge_struct([], Struct)	->
-	Struct;
+	(Struct++"/");
 
 get_packge_struct([Head|Rest], Struct)	->
 	get_packge_struct(Rest,Struct++"/"++atom_to_list(Head)).
 
+%%-----------------------------------------------------------------------------
+%% Lista Arquivos do diretorio
+get_dir_list(ParentJast, BodyJast, ClassName, Dir, Line)->
+	{parent, ParentName} = ParentJast,
+	{body, ClassBody}    = BodyJast,
+	case file:list_dir(list_to_atom(Dir)) of
+		{error, eacces} ->
+			jaraki_exception:handle_error(Line, 16),
+			return_class_info(ClassBody, ClassName, ParentName);
+		{error, enoent} ->
+			jaraki_exception:handle_error(Line, 14),
+			return_class_info(ClassBody, ClassName, ParentName);
+		{ok, FileList} ->
+			
+				Retorno = get_file_exists(FileList,
+							atom_to_list(ClassName)++".java"),
+				case Retorno of
+				true ->
+					return_class_info(ClassBody, ClassName, ParentName);
+				false ->
+					jaraki_exception:handle_error(Line, 15),
+					return_class_info(ClassBody, ClassName, ParentName)
+			end
+	end.
+
+return_class_info(ClassBody, ClassName, ParentName) ->
+	{FieldsInfo, MethodsInfo, ConstrInfo} =	get_members_info(ClassBody),
+	LowerClassName = to_lower_atom(ClassName),
+	ParentName2    = to_lower_atom(ParentName),
+	FieldsInfo2    = lists:flatten(FieldsInfo),
+	case st:get_errors() of
+		[] ->
+			st:destroy(),
+			{{LowerClassName, ParentName2, FieldsInfo2,
+											MethodsInfo, ConstrInfo}, []};
+		Errors ->
+			st:destroy(),
+			{{LowerClassName, ParentName2, FieldsInfo2,
+											MethodsInfo, ConstrInfo}, Errors}
+	end.
+
+%%-----------------------------------------------------------------------------
+%% Verifica se o arquivo existe
 get_file_exists([Head|[]], File) ->
 	
 	case Head of

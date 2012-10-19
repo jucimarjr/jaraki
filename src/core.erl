@@ -22,7 +22,7 @@
 %%   jast -> arvore sintatica do java.
 %%   east -> arvore sintatica do erlang.
 %% TODO: tratar múltiplos arquivos, ou seja, múltiplas classes
-transform_jast_to_east(JavaAST, ErlangModuleName, ClassesInfo) ->
+transform_jast_to_east({_Dir, JavaAST}, ErlangModuleName, ClassesInfo) ->
 	io:format("core: compilando \"~p\"...\n", [ErlangModuleName]),
 
 	st:new(),
