@@ -103,9 +103,9 @@ run(ModuleName, Args) ->
 			"Running Jaraki code, method main...\n"
 			"---------------------------------------\n\n"),
 
-	{_, _, StartTime} = now(),
+	StartTime = time_microseg(),
 	ModuleName:main({{array, 'String'}, Args}),
-	{_, _, EndTime} = now(),
+	EndTime = time_microseg(),
 
 	ElapsedTime = EndTime - StartTime,
 	io:format(
@@ -115,6 +115,9 @@ run(ModuleName, Args) ->
 				"Execution time: ~p us (~p s)"
 			"\n\n", [ElapsedTime, ElapsedTime/1000000]).
 
+time_microseg() ->
+	{MS, S, US} = now(),
+	(MS * 1.0e+12) + (S * 1.0e+6) + US.
 
 	% compile:file(File, Options)
 	%	=>  {ok, ModuleName}
