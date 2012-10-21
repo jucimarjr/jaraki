@@ -16,17 +16,17 @@
 %%-----------------------------------------------------------------------------
 %% Interface com o usuario final. Compila 1 arquivo java, gera o .erl e o .beam
 compile({beam,JavaFileName}) ->
-	{_, _, StartTime} = now(),
+	StartTime = time_microseg(),
 
 	[ErlangFile] = get_erl_file_list([{JavaFileName, JavaFileName}]),
 %	ErlangFile = get_erl_file(JavaFileName),
 
 	erl_tidy:file(ErlangFile,[{backups,false}]),
-
 	compile:file(ErlangFile),
 
-	{_, _, EndTime} = now(),
+	EndTime = time_microseg(),
 	ElapsedTime = EndTime - StartTime,
+
 	io:format(
 		"~p -> ~p [ Compile time: ~p us (~p s) ]~n",
 		[
@@ -40,17 +40,22 @@ compile({beam,JavaFileName}) ->
 %%-----------------------------------------------------------------------------
 %% Interface com o usuario final. Compila vários arquivos java dependentes
 compile(JavaFileNameList) ->
-	{_, _, StartTime} = now(),
-
+	StartTime = time_microseg(),
 	ErlangFileList = get_erl_file_list(JavaFileNameList),
-	{_, _, EndTime} = now(),
+	EndTime = time_microseg(),
+
 	ElapsedTime = EndTime - StartTime,
 	io:format(
 		"~p -> ~p [ Compile time: ~p us (~p s) ]~n",
-		[[filename:basename(JavaFileName) || {_Dir,JavaFileName} <- JavaFileNameList],
+		[[filename:basename(JavaFileName) ||
+			{_Dir,JavaFileName} <- JavaFileNameList],
 			ErlangFileList,
 			ElapsedTime, ElapsedTime/1000000]
 	).
+
+time_microseg() ->
+	{MS, S, US} = now(),
+	(MS * 1.0e+12) + (S * 1.0e+6) + US.
 
 %%-----------------------------------------------------------------------------
 %% gera vários arquivos .erl de vários .java
