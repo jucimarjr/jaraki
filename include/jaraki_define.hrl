@@ -1,4 +1,4 @@
-%% LUDUS - Laboratorio de Projetos Especiais em Engenharia da Computacao
+%% LUDUS - Laboratorio de Projetos Especiais em Engenharia da Computacao2802;0c
 %% Aluno  : Daniel Henrique Braz Aquino ( dhbaquino@gmail.com )
 %% 			Eden ( edenstark@gmail.com )
 %% 			Helder Cunha Batista ( hcb007@gmail.com )
@@ -25,6 +25,9 @@
 %%                  (V_nomeVariavel1)
 
 -record( var, { java_name, erl_name, type, value, counter = 0 } ).
+
+%% descomente para imprimir mensagens de tempo, etc
+%% -define(verbose).
 
 -ifdef(verbose).
 -define(print_v(String), io:format(String)).

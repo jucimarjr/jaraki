@@ -16,7 +16,7 @@
 %%-----------------------------------------------------------------------------
 %% Interface com o usuario final. Compila 1 arquivo java, gera o .erl e o .beam
 compile({beam,JavaFileName}) ->
-	StartTime = time_microseg(),
+%	StartTime = time_microseg(),
 
 	[ErlangFile] = get_erl_file_list([{JavaFileName, JavaFileName}]),
 %	ErlangFile = get_erl_file(JavaFileName),
@@ -24,8 +24,8 @@ compile({beam,JavaFileName}) ->
 	erl_tidy:file(ErlangFile,[{backups,false}]),
 	compile:file(ErlangFile),
 
-	EndTime = time_microseg(),
-	ElapsedTime = EndTime - StartTime,
+%	EndTime = time_microseg(),
+%	ElapsedTime = EndTime - StartTime,
 
 	?print_v(
 		"~p -> ~p [ Compile time: ~p us (~p s) ]~n",
@@ -40,7 +40,7 @@ compile({beam,JavaFileName}) ->
 %%-----------------------------------------------------------------------------
 %% Interface com o usuario final. Compila vários arquivos java dependentes
 compile(JavaFileNameList) ->
-	StartTime = time_microseg(),
+%	StartTime = time_microseg(),
 	ErlangFileList = get_erl_file_list(JavaFileNameList),
 
 	[ begin
@@ -49,9 +49,9 @@ compile(JavaFileNameList) ->
 	  end
 	  || ErlangFile <- ErlangFileList ],
 
-	EndTime = time_microseg(),
+%	EndTime = time_microseg(),
 
-	ElapsedTime = EndTime - StartTime,
+%	ElapsedTime = EndTime - StartTime,
 	?print_v(
 		"~p -> ~p [ Compile time: ~p us (~p ms ou ~p s) ]~n",
 		[[filename:basename(JavaFileName) ||
@@ -62,9 +62,9 @@ compile(JavaFileNameList) ->
 			ElapsedTime/1000000]
 	).
 
-time_microseg() ->
-	{MS, S, US} = now(),
-	(MS * 1.0e+12) + (S * 1.0e+6) + US.
+%% time_microseg() ->
+%% 	{MS, S, US} = now(),
+%% 	(MS * 1.0e+12) + (S * 1.0e+6) + US.
 
 %%-----------------------------------------------------------------------------
 %% gera vários arquivos .erl de vários .java
