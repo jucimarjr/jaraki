@@ -27,7 +27,7 @@ compile({beam,JavaFileName}) ->
 	EndTime = time_microseg(),
 	ElapsedTime = EndTime - StartTime,
 
-	io:format(
+	?print_v(
 		"~p -> ~p [ Compile time: ~p us (~p s) ]~n",
 		[
 			filename:basename(JavaFileName),
@@ -42,15 +42,24 @@ compile({beam,JavaFileName}) ->
 compile(JavaFileNameList) ->
 	StartTime = time_microseg(),
 	ErlangFileList = get_erl_file_list(JavaFileNameList),
+
+	[ begin
+		erl_tidy:file(ErlangFile,[{backups,false}, {quiet, true}]),
+		compile:file(ErlangFile, [{outdir, filename:dirname(ErlangFile)}])
+	  end
+	  || ErlangFile <- ErlangFileList ],
+
 	EndTime = time_microseg(),
 
 	ElapsedTime = EndTime - StartTime,
-	io:format(
-		"~p -> ~p [ Compile time: ~p us (~p s) ]~n",
+	?print_v(
+		"~p -> ~p [ Compile time: ~p us (~p ms ou ~p s) ]~n",
 		[[filename:basename(JavaFileName) ||
 			{_Dir,JavaFileName} <- JavaFileNameList],
 			ErlangFileList,
-			ElapsedTime, ElapsedTime/1000000]
+			ElapsedTime,
+			round(ElapsedTime/1000),
+			ElapsedTime/1000000]
 	).
 
 time_microseg() ->
@@ -109,27 +118,22 @@ get_version() ->
 %%-----------------------------------------------------------------------------
 %% Extrai o nome do arquivo .erl a partir do java ast
 get_erl_filename(ErlangModuleName, Dir) ->
-	Dir++atom_to_list(ErlangModuleName) ++ ".erl".
+	Dir ++ "/" ++ atom_to_list(ErlangModuleName) ++ ".erl".
 
 %%-----------------------------------------------------------------------------
 %% Extrai o nome do modulo erlang partir do java ast
 %% o nome do modulo eh o nome da classe
-get_erl_modulename({DirFile,JavaAST}) ->
+get_erl_modulename({DirFile, JavaAST}) ->
 	case JavaAST of
 		[{_Line1, _PackageName, {class_list, [{class, ClassData}]}}] ->
 			{_Line2, NameJast, _ParentJast, {body, _JavaClassBody}} = ClassData,
 			{name, JavaClassName} = NameJast,
-			DirFileRev = lists:reverse(DirFile),
-			FileNameRev = lists:reverse(atom_to_list(JavaClassName)++".java"),
-			{lists:reverse(DirFileRev--FileNameRev),
-											helpers:lower_atom(JavaClassName)};
+			{DirFile, helpers:lower_atom(JavaClassName)};
+
 		[{class, ClassData}] ->
 			{_Line, NameJast, _ParentJast, {body, _JavaClassBody}} = ClassData,
 			{name, JavaClassName} = NameJast,
-			DirFileRev = lists:reverse(DirFile),
-			FileNameRev = lists:reverse(atom_to_list(JavaClassName)++".java"),
-			{lists:reverse(DirFileRev--FileNameRev),
-											helpers:lower_atom(JavaClassName)}
+			{DirFile, helpers:lower_atom(JavaClassName)}
 	end.
 
 

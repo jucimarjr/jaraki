@@ -15,15 +15,7 @@ public class Tecnico extends Assistente {
 	}
 
 	public void exibeDados() {
-		//java:
-		//super.exibeDados();
-
-		System.out.println("======== DADOS ========");
-		System.out.println("Nome: " + nome);
-		System.out.println("Salario: " + salario);
-
-		System.out.println("Matricula: " + matricula);
-		//-----------------------------------------------
+		super.exibeDados();
 
 		float resultante = salario + bonusSalarial;
 		System.out.println("Salario + bonus: " + resultante);//(salario + bonusSalarial));

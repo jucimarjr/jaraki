@@ -239,7 +239,7 @@ match_attr_expr({new, object, {class, Line, ClassName, ArgumentsJast}}) ->
 
 		ArgTypeList ->
 			case st:exist_constructor(ClassName2, ArgTypeList) of
-				false -> io:format("humm... ~p\n\n", [ArgTypeList]),
+				false ->
 					jaraki_exception:handle_error(Line, 9),
 					no_operation;
 
@@ -676,14 +676,14 @@ create_function_call(Line, FunctionName, ArgumentsList) ->
 					ArgumentAstList = gen_ast:function_call_args(
 									  Line, ArgumentAstList_temp1, ArgTypeList),
 					{ClassName, _Method} = st:get_scope(),
-			%%io:format("~p\n~p\n~p\n\n", [get(), FunctionName, ArgTypeList]),
+
 					{TypeReturn, _Modificadores} =
 						st:get_method_info(
 							ClassName, {FunctionName, ArgTypeList}),
 
 					FunctionCall = call(Line, FunctionName, ArgumentAstList),
 					Fun = 'fun'(Line, [clause(Line,[],[], [FunctionCall])]),
-			%io:format("~p~n~n",[TypeReturn]),
+
 					case TypeReturn of
 						void -> FunctionCall;
 						{array, void} -> FunctionCall;

@@ -12,13 +12,7 @@ public class Assistente extends Funcionario {
 	}
 
 	public void exibeDados() {
-		//java:
-		//super.exibeDados();
-
-		System.out.println("======== DADOS ========");
-		System.out.println("Nome: " + nome);
-		System.out.println("Salario: " + salario);
-		//-----------------------------------------------
+		super.exibeDados();
 
 		System.out.println("Matricula: " + matricula);
 	}

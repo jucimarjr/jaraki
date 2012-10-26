@@ -177,6 +177,7 @@ Rules.
 {ComparatorOp}	: {token, {comparation_op, TokenLine, op(TokenChars)}}.
 {BooleanOp}		: {token, {bool_op, TokenLine, bop(TokenChars)}}.
 {Digit}+		: {token, {integer, TokenLine, list_to_integer(TokenChars)}}.
+{Digit}+\.{Digit}+f	: {token, {float,TokenLine,list_to_float(TokenChars--"f")}}.
 {Digit}+\.{Digit}+	: {token, {float, TokenLine, list_to_float(TokenChars)}}.
 
 {Identifier}	: {token, {identifier, TokenLine, list_to_atom(TokenChars)}}.

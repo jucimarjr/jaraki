@@ -24,6 +24,11 @@ test:   compile
 	@ mv $(JAVA_SRC_DIR)/*.erl $(TEST_EBIN_DIR)
 	@ mv *.beam $(TEST_EBIN_DIR)
 
+# This is the task when you want the compiler to print messages
+# of compilation process and time of execution or compilation
+verbose: ERLC += -Dverbose
+verbose: compile
+
 # This is the task when you intend to debug
 debug: ERLC += +debug_info
 debug: compile

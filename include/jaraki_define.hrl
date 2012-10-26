@@ -25,3 +25,12 @@
 %%                  (V_nomeVariavel1)
 
 -record( var, { java_name, erl_name, type, value, counter = 0 } ).
+
+-ifdef(verbose).
+-define(print_v(String), io:format(String)).
+-define(print_v(String, Args), io:format(String, Args)).
+
+-else.
+-define(print_v(String), ok).
+-define(print_v(String, Args), ok).
+-endif.

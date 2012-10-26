@@ -19,8 +19,7 @@ public class Administrativo extends Assistente {
 	}
 
 	public void exibeDados() {
-		//java:
-		//super.exibeDados();
+		super.exibeDados();
 
 		System.out.println("======== DADOS ========");
 		System.out.println("Nome: " + nome);

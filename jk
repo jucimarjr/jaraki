@@ -10,8 +10,9 @@
 %-define(JAVA_EBIN_PATH, ?JARAKI_PATH ++ "/java_beam/ebin/").
 %-define(JAVA_ESRC_PATH, ?JARAKI_PATH ++ "/java_beam/src/").
 -define(SCRIPT_NAME, filename:basename(escript:script_name())).
--define(COMPILE_OPTIONS,
-		[return_errors, nowarn_unused_vars]).%, {outdir, ?JAVA_EBIN_PATH}]).
+-define(COMPILE_OPTIONS(FileDir),
+		[return_errors, nowarn_unused_vars, {outdir, FileDir}]).
+		%, {outdir, ?JAVA_EBIN_PATH}]).
 -define(ERROR(Msg),
 			io:format(
 					"*********ERROR!~n"
@@ -22,16 +23,17 @@
 
 help() ->
 	io:format(""
-	"Usage: "++?SCRIPT_NAME++" [options] [.erl | .java file] [arg1 arg2 ...]\n"
+	"Usage: "++?SCRIPT_NAME++" [options] [.beam file] [arg1 arg2 ...]\n"
 	"\n"
 	"Options:\n"
 	"\t[-h | --help]  Prints this help\n\n"
 
 	"Modes:\n"
-	"\t.java file: Compile and run a java source with jaraki compiler\n\n"
-
-	"\t.erl file: Compile and run a erlang source generated with "
+	"\t.beam file: Compile and run a erlang compiled file generated with "
 					"jaraki compiler\n\n"
+
+	%% "\t.erl file: Compile and run a erlang source generated with "
+	%% 				"jaraki compiler\n\n"
 
 	"\t\tThe .erl file should be generated with the jaraki compiler.\n"
 	"\t\tFirst I will compile the .erl file, then I will run it.\n\n"
@@ -49,75 +51,75 @@ main(["-h"| _]) -> help();
 main(["--help"| _]) -> help();
 main([FileName | Args]) ->
 	case filename:extension(FileName) of
-		".erl" ->
-			compile_erl_src(FileName, Args);
-		".java" ->
-			compile_java_src(FileName, Args);
+		".beam" ->
+			load_libs(FileName, Args);
+			%% nao precisa mais compilar os .erl, o jkc já faz isso!
+			%%compile_erl_src(FileName, Args);
 		_ ->
 			?ERROR("Wrong file extension!\n\n")
 	end.
 
-compile_java_src(_,_) ->
-	io:format("to be finished...\n"
-				"jaraki:compile must return generated erlang file name...\n\n");
+%% compile_java_src(_,_) ->
+%% 	io:format("to be finished...\n"
+%% 				"jaraki:compile must return generated erlang file name...\n\n");
 
-compile_java_src(FileName, Args) ->
-	io:format("Compiling java source...\n"),
-	ErlFileName = os:cmd("./jkc " ++  FileName),
-	io:format("done!\n"),
-	%ErlFileName = filename:basename(FileName, ".java") ++ ".erl",
-	%os:cmd("mv "++ErlFileName++" "++?JAVA_ESRC_PATH),
-	%io:format(".erl generated at " ++ ?JAVA_ESRC_PATH++ErlFileName++"\n\n"),
-	%compile_erl_src(?JAVA_ESRC_PATH++ErlFileName, Args),
-	compile_erl_src(ErlFileName, Args).
+%% compile_erl_src(FileName, Args) ->
+	%% io:format("Compiling erlang source...\n"),
+	%% io:format("aff: ~p em ~p", [FileName, filename:dirname(FileName)]),
+	%% case compile:file(FileName, ?COMPILE_OPTIONS(filename:dirname(FileName))) of
+	%% 	{ok, ModuleName} ->
+	%% 		io:format("done!\n\n"),
+	%% 		load_libs(ModuleName, Args);
 
-compile_erl_src(FileName, Args) ->
-	io:format("Compiling erlang source...\n"),
-	case compile:file(FileName, ?COMPILE_OPTIONS) of
-		{ok, ModuleName} ->
-			io:format("done!\n\n"),
-			load_libs(ModuleName, Args);
+	%% 	{error, [{_, [{_,_,{_, enoent}}]}], _} ->
+	%% 		Msg = "File not found!",
+	%% 		?ERROR(Msg);
 
-		{error, [{_, [{_,_,{_, enoent}}]}], _} ->
-			Msg = "File not found!",
-			?ERROR(Msg);
+	%% 	{error, ErrorList, _WarningList} ->
+	%% 		?ERROR(ErrorList)
+	%% end.
 
-		{error, ErrorList, _WarningList} ->
-			?ERROR(ErrorList)
-	end.
+load_libs(FileName, Args) ->
+	%VERBOSE_OFF
+	%io:format("Loading libs... "),
 
-load_libs(ModuleName, Args) ->
-	io:format("Loading libs... "),
 	case code:add_pathz(?LIBS_PATH) of
 		true ->
-			io:format("done!\n\n"),
-			run(ModuleName, Args);
+			%VERBOSE_OFF
+			%io:format("done!\n\n"),
+			run(FileName, Args);
 
 		{error, Reason} ->
 			?ERROR("Cant load libs: " ++ Reason)
 	end.
 
-run(ModuleName, Args) ->
+run(FileName, Args) ->
 	%code:add_pathz(?JAVA_EBIN_PATH),
-	io:format(
-			"Running Jaraki code, method main...\n"
-			"---------------------------------------\n\n"),
+	code:add_pathz(filename:dirname(FileName)),
+	ModuleName = list_to_atom(filename:basename(FileName, ".beam")),
 
-	StartTime = time_microseg(),
-	ModuleName:main({{array, 'String'}, Args}),
-	EndTime = time_microseg(),
+	%VERBOSE_OFF
+	%io:format(
+	%		"Running Jaraki code, method main...\n"
+	%		"---------------------------------------\n\n"),
 
-	ElapsedTime = EndTime - StartTime,
-	io:format(
-			"\n"
-				"---------------------------------------\n"
-				"Execution finished with success!\n"
-				"Execution time: ~p us (~p s)"
-			"\n\n", [ElapsedTime, ElapsedTime/1000000]).
+	%StartTime = time_microseg(),
+	ModuleName:main({{array, 'String'}, Args}).%,
+	%EndTime = time_microseg(),
 
-time_microseg() ->
-	{MS, S, US} = now(),
-	(MS * 1.0e+12) + (S * 1.0e+6) + US.
+	%ElapsedTime = EndTime - StartTime,
+	%VERBOSE_OFF
+	%io:format(
+	%		"\n"
+	%			"---------------------------------------\n"
+	%			"Execution finished with success!\n"
+	%			"Execution time: ~p us (~p ms ou ~p s)"
+	%		"\n\n",
+	%		[ElapsedTime, round(ElapsedTime/1000), ElapsedTime/1000000]).
+
+%% time_microseg() ->
+%% 	{MS, S, US} = now(),
+%% 	(MS * 1.0e+12) + (S * 1.0e+6) + US.
 
 	% compile:file(File, Options)
 	%	=>  {ok, ModuleName}

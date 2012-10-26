@@ -17,7 +17,7 @@
 %% Extrai a Java Abstract Syntax Tree de um arquivo .java
 %% o parser armazena no dicionario de processos informações da classe!
 get_java_ast({Dir,JavaFileName}) ->
-	JavaTokens = get_java_tokens(JavaFileName),
+	JavaTokens = get_java_tokens(Dir ++ "/" ++ JavaFileName),
 	{ok, JavaAST} = jaraki_parser:parse(JavaTokens),
 	{Dir, JavaAST}.
 
