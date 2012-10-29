@@ -36,7 +36,7 @@ get_error_text(14) -> "Directory doesn't exist";
 get_error_text(15) -> "File doesn't exist in the directory";
 get_error_text(16) -> "No permission to access directory";
 get_error_text(17) -> "The operator cannot be applied to String";
-get_error_text(18) -> "Undefined Type";
+get_error_text(18) -> "Undefined Type and/or incompatible variable assignment";
 get_error_text(19) -> "\"super\" called on class that doesn't have superclass";
 get_error_text(20) -> "non-static variable \"super\" cannot be referenced from "
 						"a static context".
@@ -80,7 +80,7 @@ check_var_type(_Type, {next_int, _Line, _VarName, _RandomValue}) ->
 
 %% TODO: diferenciar erros da classe na declaração não existente e do objeto!
 %% construtores padrão e personalizado
-check_var_type(VarType, {new, object, ObjectConstr}) ->
+	check_var_type(VarType, {new, object, ObjectConstr}) ->
 	ObjectType =
 		case ObjectConstr of
 			{class, Line, Type}                 -> Type;
@@ -176,8 +176,16 @@ match_type(_, scanner,   _)      -> ok;
 match_type(_, file_reader,   _)      -> ok;
 match_type(_, char, singles_quotes) -> ok;
 
-match_type(Line, _, _) ->
-	handle_error(Line, 3).
+match_type(Line, VarType, ObjectType) ->
+	ExistVarType   = st:exist_class(VarType),
+	ExistVarObjectType = st:exist_class(ObjectType),
+
+	case {ExistVarType, ExistVarObjectType} of
+		{false, true}  -> handle_error(Line, 18);
+		{true, false}  -> handle_error(Line, 18);
+		{false, false} -> handle_error(Line, 18);
+		{true, true}   -> match_object_type(Line, VarType, ObjectType)
+	end.
 
 match_object_type(_, Type, Type) -> ok;
 match_object_type(Line, VarType, ObjectType) ->

@@ -128,12 +128,18 @@ get_erl_modulename({DirFile, JavaAST}) ->
 		[{_Line1, _PackageName, {class_list, [{class, ClassData}]}}] ->
 			{_Line2, NameJast, _ParentJast, {body, _JavaClassBody}} = ClassData,
 			{name, JavaClassName} = NameJast,
-			{DirFile, helpers:lower_atom(JavaClassName)};
+			DirFileRev = lists:reverse(DirFile),
+			FileNameRev = lists:reverse(atom_to_list(JavaClassName)++".java"),
+			{lists:reverse(DirFileRev--FileNameRev),
+				helpers:lower_atom(JavaClassName)};
 
 		[{class, ClassData}] ->
 			{_Line, NameJast, _ParentJast, {body, _JavaClassBody}} = ClassData,
 			{name, JavaClassName} = NameJast,
-			{DirFile, helpers:lower_atom(JavaClassName)}
+			DirFileRev = lists:reverse(DirFile),
+			FileNameRev = lists:reverse(atom_to_list(JavaClassName)++".java"),
+			{lists:reverse(DirFileRev--FileNameRev),
+				helpers:lower_atom(JavaClassName)};
 	end.
 
 

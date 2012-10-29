@@ -19,7 +19,6 @@ function usage
 	[-h   | --help]  Prints this help
 	[-tk  | --tokens]  Prints the tokens list of the given .java file
 	[-jast | --java_ast]  Prints the Java Abstract Sintax Tree (AST) of the given .java file
-	[-Feast | --file_erlang_ast] Extract and print the Erlang AST from a .erl file
 	[-east | --erlang_ast]  Prints the Converted Erlang AST of the given .java file
 	[-d   | --debug ]  Compile jaraki code debugging the \"java_compile\" module
 
@@ -29,27 +28,21 @@ function usage
 
 function generate_erl
 {
-	#echo "Generating Erlang source code from Jaraki..."
+	echo "Generating Erlang source code from Jaraki..."
 	compileParams=""
-	dirName=""
-	tempFileName=""
-	filePathAndName=""
 	for (( i = 0; i < fileIndex; i++ ))
 	do
 		#echo "filename $i:"${filename[$i]}
-		filePathAndName=$JARAKI_PATH"/"${filename[$i]}
-		dirName="filename:dirname(\""$filePathAndName"\")"
-		tempFileName="filename:basename(\""$filePathAndName"\")"
-		compileParams=$compileParams"{"$dirName", "$tempFileName"}"
+		compileParams=$compileParams"{""\""${filename[$i]}"\",\""$JARAKI_PATH"/"${filename[$i]}"\"""}"
 		if [ `expr $i + 1` != $fileIndex ]; then
 			compileParams=$compileParams","
 		fi
 	done
 	#echo "$compileParams"
 	erl -pa $JARAKI_PATH/ebin -noshell -eval "jaraki_utils:compile( [$compileParams] )." -s erlang halt
-	#echo ""
-	#echo "done!"
-	#echo ""
+	echo ""
+	echo "done!"
+	echo ""
 }
 
 function print_tokens
@@ -67,12 +60,6 @@ function print_tokens
 function print_jtree
 {
 	erl -pa $JARAKI_PATH/ebin -noshell -eval "jaraki_utils:print_java_ast(\"$JARAKI_PATH/$filename\")." -s erlang halt
-	echo ""
-}
-
-function print_fetree
-{
-	erl -pa $JARAKI_PATH/ebin -noshell -eval "jaraki_utils:print_erl_ast_from_erlang(\"$JARAKI_PATH/$filename\")." -s erlang halt
 	echo ""
 }
 
@@ -115,7 +102,6 @@ tokens=
 # var para armazenar se foi passada opção -tr
 jtree=
 etree=
-fetree=
 #abf=
 fileIndex=0
 filenames[$fileIndex]=""
@@ -134,10 +120,6 @@ while [ "$1" != "" ]; do
         -east | --erlang_ast )	etree=1
 								generate_erl=0
                                 ;;
-		-Feast | --file_erlang_ast )
-			fetree=1
-            generate_erl=0
-			;;
 #		-abf | --erlang_abs )	abf=1
 #								generate_erl=0
 #								;;
@@ -147,9 +129,6 @@ while [ "$1" != "" ]; do
 		-d | --debug )			debug=1
 								;;
         *.java )                filename[$fileIndex]=$1
-								fileIndex=`expr $fileIndex + 1`
-								;;
-        *.erl )                filename[$fileIndex]=$1
 								fileIndex=`expr $fileIndex + 1`
 								;;
 		* )						echo "*** Error: file especified \"$1\" has not .java extension"
@@ -177,10 +156,6 @@ fi
 
 if [ "$etree" == "1" ]; then
 	print_etree
-fi
-
-if [ "$fetree" == "1" ]; then
-	print_fetree
 fi
 
 if [ "$debug" == "1" ]; then
