@@ -139,7 +139,7 @@ get_erl_modulename({DirFile, JavaAST}) ->
 			DirFileRev = lists:reverse(DirFile),
 			FileNameRev = lists:reverse(atom_to_list(JavaClassName)++".java"),
 			{lists:reverse(DirFileRev--FileNameRev),
-				helpers:lower_atom(JavaClassName)};
+				helpers:lower_atom(JavaClassName)}
 	end.
 
 
