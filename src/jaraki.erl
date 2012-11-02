@@ -117,6 +117,8 @@ get_version() ->
 
 %%-----------------------------------------------------------------------------
 %% Extrai o nome do arquivo .erl a partir do java ast
+get_erl_filename(ErlangModuleName, []) ->
+	"./" ++ atom_to_list(ErlangModuleName) ++ ".erl";
 get_erl_filename(ErlangModuleName, Dir) ->
 	Dir ++ "/" ++ atom_to_list(ErlangModuleName) ++ ".erl".
 
