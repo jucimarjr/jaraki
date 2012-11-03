@@ -45,13 +45,13 @@ print_java_ast(JavaFileName) ->
 	?print_v("Generating Syntax Analysis... "),
 
 	Dir = filename:dirname(JavaFileName),
-	FileName = filename:basename(JavaFileName),
-	JavaFile = {Dir, FileName},
+	%FileName = filename:basename(JavaFileName),
+	JavaFile = {Dir, JavaFileName},
 	case catch(ast:get_java_ast(JavaFile)) of
 		{'EXIT', Reason} ->
 			io:format("*******ERROR!~n"),
 			io:format("***Reason:~n~p", [Reason]);
-		JavaAST ->
+		{Dir, JavaAST} ->
 			?print_v("done!~n"),
 
 			io:format("Jaraki Syntax Tree from ~p:~n", [JavaFileName]),
